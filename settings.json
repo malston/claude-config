@@ -108,7 +108,7 @@
     "devops-automation@claude-code-templates": true,
     "testing-suite@claude-code-templates": true,
     "update-claudemd@awesome-claude-code-plugins": true,
-    "tanzu-cf-architect@tanzu-cf-architect-dev": true,
+    "tanzu-cf-architect@tanzu-cf-architect": true,
     "project-management-suite@claude-code-templates": true,
     "document-skills@anthropic-agent-skills": true,
     "example-skills@anthropic-agent-skills": true
