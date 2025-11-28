@@ -1,0 +1,50 @@
+{
+  "superpowers-marketplace": {
+    "source": {
+      "source": "github",
+      "repo": "obra/superpowers-marketplace"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/superpowers-marketplace",
+    "lastUpdated": "2025-11-20T01:50:23.897Z"
+  },
+  "tanzu-cf-architect-dev": {
+    "source": {
+      "source": "directory",
+      "path": "/Users/markalston/workspace/tanzu-cf-architect"
+    },
+    "installLocation": "/Users/markalston/workspace/tanzu-cf-architect",
+    "lastUpdated": "2025-11-24T14:35:47.789Z"
+  },
+  "claude-code-plugins": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-code"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
+    "lastUpdated": "2025-11-26T17:12:33.877Z"
+  },
+  "claude-code-templates": {
+    "source": {
+      "source": "git",
+      "url": "https://github.com/davila7/claude-code-templates.git"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
+    "lastUpdated": "2025-11-26T21:06:26.981Z"
+  },
+  "awesome-claude-code-plugins": {
+    "source": {
+      "source": "github",
+      "repo": "ccplugins/marketplace"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/awesome-claude-code-plugins",
+    "lastUpdated": "2025-11-28T21:22:55.557Z"
+  },
+  "anthropic-agent-skills": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/skills"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
+    "lastUpdated": "2025-11-28T21:34:50.126Z"
+  }
+}

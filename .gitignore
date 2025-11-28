@@ -1,0 +1,32 @@
+# Session-specific data (not portable)
+debug/
+projects/
+file-history/
+todos/
+shell-snapshots/
+session-env/
+plans/
+history.jsonl
+bash-command-log.txt
+
+# IDE and lock files
+ide/
+
+# Analytics and caching
+statsig/
+.mypy_cache/
+
+# Plugin runtime data (installed plugins are machine-specific)
+plugins/cache/
+plugins/marketplaces/
+plugins/installed_plugins.json
+
+# Local node modules and runtime
+local/
+
+# Backup files
+*.bak
+*copy.json
+
+# OS files
+.DS_Store
