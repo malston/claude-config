@@ -28,5 +28,8 @@ local/
 *.bak
 *copy.json
 
+# Secrets (use config/env.example as template)
+config/.env
+
 # OS files
 .DS_Store
