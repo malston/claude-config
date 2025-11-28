@@ -7,14 +7,6 @@
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/superpowers-marketplace",
     "lastUpdated": "2025-11-20T01:50:23.897Z"
   },
-  "tanzu-cf-architect": {
-    "source": {
-      "source": "github",
-      "repo": "malston/tanzu-cf-architect-claude-plugin"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
-    "lastUpdated": "2025-11-28T22:50:00.000Z"
-  },
   "claude-code-plugins": {
     "source": {
       "source": "github",
@@ -46,5 +38,13 @@
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
     "lastUpdated": "2025-11-28T21:34:50.126Z"
+  },
+  "tanzu-cf-architect": {
+    "source": {
+      "source": "github",
+      "repo": "malston/tanzu-cf-architect-claude-plugin"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
+    "lastUpdated": "2025-11-28T22:10:47.038Z"
   }
 }
