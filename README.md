@@ -46,17 +46,24 @@ Defines MCP servers to install globally:
     {
       "name": "server-name",
       "command": "npx",
-      "args": ["-y", "package-name"],
-      "env_required": ["API_KEY"],
-      "note": "Where to get the API key"
+      "args": ["-y", "package-name", "--api-key", "$API_KEY"],
+      "secrets": {
+        "API_KEY": "op://Private/SERVICE_API_KEY/credential"
+      }
     }
   ]
 }
 ```
 
-### config/.env
+Secrets are fetched from 1Password CLI (`op read`) during setup. Install with:
+```bash
+brew install 1password-cli
+op signin
+```
 
-Contains secrets for MCP servers (not tracked in git):
+### Fallback: config/.env
+
+If not using 1Password, set secrets via environment or `config/.env`:
 ```bash
 CONTEXT7_API_KEY=your-key-here
 ```

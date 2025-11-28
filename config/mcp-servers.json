@@ -9,9 +9,10 @@
     {
       "name": "context7",
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env_required": ["CONTEXT7_API_KEY"],
-      "note": "Get API key from https://context7.com"
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "$CONTEXT7_API_KEY"],
+      "secrets": {
+        "CONTEXT7_API_KEY": "op://Private/CONTEXT7_API_KEY/credential"
+      }
     },
     {
       "name": "sequential-thinking",

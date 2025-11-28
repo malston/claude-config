@@ -33,16 +33,46 @@ config_path = os.path.join(os.environ.get('CONFIG_DIR', 'config'), 'mcp-servers.
 with open(config_path) as f:
     config = json.load(f)
 
+# Check if 1Password CLI is available
+def op_available():
+    try:
+        subprocess.run(['op', '--version'], capture_output=True, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+has_op = op_available()
+
 for server in config.get('servers', []):
     name = server['name']
     command = server['command']
     args = server['args']
-    env_required = server.get('env_required', [])
+    secrets = server.get('secrets', {})
 
-    # Check for required env vars
-    missing_env = [e for e in env_required if not os.environ.get(e)]
-    if missing_env:
-        print(f"  Skipping {name}: missing env vars {missing_env}")
+    # Fetch secrets from 1Password if available
+    env_vars = dict(os.environ)
+    missing_secrets = []
+
+    for env_var, op_ref in secrets.items():
+        if env_var in os.environ:
+            # Already set in environment
+            continue
+        if has_op:
+            try:
+                result = subprocess.run(
+                    ['op', 'read', op_ref],
+                    capture_output=True, check=True, text=True
+                )
+                env_vars[env_var] = result.stdout.strip()
+            except subprocess.CalledProcessError:
+                missing_secrets.append((env_var, op_ref))
+        else:
+            missing_secrets.append((env_var, op_ref))
+
+    if missing_secrets:
+        print(f"  Skipping {name}: missing secrets {[s[0] for s in missing_secrets]}")
+        if not has_op:
+            print(f"    (install 1Password CLI: brew install 1password-cli)")
         continue
 
     # Build the claude mcp add command
@@ -54,7 +84,7 @@ for server in config.get('servers', []):
     for arg in args:
         if arg.startswith('$'):
             env_var = arg[1:]
-            expanded_args.append(os.environ.get(env_var, arg))
+            expanded_args.append(env_vars.get(env_var, arg))
         else:
             expanded_args.append(arg)
     cmd.extend(expanded_args)
@@ -130,9 +160,10 @@ echo ""
 echo "Setup complete!"
 echo ""
 
-# Check for missing env vars and warn
+# Check for missing secrets and warn
 python3 << 'PYTHON_SCRIPT'
 import json
+import subprocess
 import os
 
 config_path = os.path.join(os.environ.get('CONFIG_DIR', 'config'), 'mcp-servers.json')
@@ -140,23 +171,39 @@ if os.path.exists(config_path):
     with open(config_path) as f:
         config = json.load(f)
 
+    # Check if 1Password CLI is available
+    try:
+        subprocess.run(['op', '--version'], capture_output=True, check=True)
+        has_op = True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        has_op = False
+
     missing = []
     for server in config.get('servers', []):
-        for env_var in server.get('env_required', []):
+        secrets = server.get('secrets', {})
+        for env_var, op_ref in secrets.items():
             if not os.environ.get(env_var):
-                missing.append((server['name'], env_var, server.get('note', '')))
+                if has_op:
+                    try:
+                        subprocess.run(['op', 'read', op_ref], capture_output=True, check=True)
+                    except subprocess.CalledProcessError:
+                        missing.append((server['name'], env_var, op_ref))
+                else:
+                    missing.append((server['name'], env_var, op_ref))
 
     if missing:
-        print("Manual steps required:")
+        print("Some MCP servers were skipped due to missing secrets:")
         print("")
-        for name, env_var, note in missing:
-            print(f"  • Set {env_var} for {name}")
-            if note:
-                print(f"    {note}")
+        for name, env_var, op_ref in missing:
+            print(f"  • {name}: {env_var}")
+            print(f"    1Password: {op_ref}")
         print("")
-        print("  1. Copy config/env.example to config/.env")
-        print("  2. Fill in the values")
-        print("  3. Re-run ./setup.sh")
+        if not has_op:
+            print("  Install 1Password CLI: brew install 1password-cli")
+            print("  Then run: op signin")
+        else:
+            print("  Ensure you're signed into 1Password: op signin")
+        print("  Then re-run ./setup.sh")
 PYTHON_SCRIPT
 
 echo ""
