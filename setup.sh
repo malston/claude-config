@@ -45,7 +45,6 @@ has_op = op_available()
 
 for server in config.get('servers', []):
     name = server['name']
-    scope = server.get('scope', 'user')  # default to user scope
     command = server['command']
     args = server['args']
     secrets = server.get('secrets', {})
@@ -76,8 +75,8 @@ for server in config.get('servers', []):
             print(f"    (install 1Password CLI: brew install 1password-cli)")
         continue
 
-    # Build the claude mcp add command
-    cmd = ['claude', 'mcp', 'add', name, '-s', scope, '--']
+    # Build the claude mcp add command (always user scope)
+    cmd = ['claude', 'mcp', 'add', name, '-s', 'user', '--']
     cmd.append(command)
 
     # Substitute env vars in args
@@ -90,10 +89,10 @@ for server in config.get('servers', []):
             expanded_args.append(arg)
     cmd.extend(expanded_args)
 
-    print(f"  Adding {name} ({scope})...")
+    print(f"  Adding {name}...")
     try:
         subprocess.run(cmd, check=True, capture_output=True)
-        print(f"  ✓ {name} installed ({scope})")
+        print(f"  ✓ {name} installed")
     except subprocess.CalledProcessError as e:
         # Server might already exist
         if b'already exists' in e.stderr:
