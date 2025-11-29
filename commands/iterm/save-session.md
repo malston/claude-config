@@ -6,4 +6,4 @@ allowed-tools:
 
 Run this command to save your iTerm2 session:
 
-!~/bin/save-iterm-session.py
+!${HOME}/.claude/hooks/save-iterm-session.py

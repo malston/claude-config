@@ -78,6 +78,17 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/save-iterm-session.py"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
