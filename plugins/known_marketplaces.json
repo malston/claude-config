@@ -46,5 +46,13 @@
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
     "lastUpdated": "2025-11-28T22:10:47.038Z"
+  },
+  "every-marketplace": {
+    "source": {
+      "source": "git",
+      "url": "https://github.com/EveryInc/compounding-engineering-plugin.git"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/every-marketplace",
+    "lastUpdated": "2025-11-29T03:22:47.976Z"
   }
 }
