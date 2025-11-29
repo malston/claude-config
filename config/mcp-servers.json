@@ -1,13 +1,15 @@
 {
-  "description": "User-scoped MCP servers to install via setup.sh",
+  "description": "MCP servers to install via setup.sh",
   "servers": [
     {
       "name": "chrome-devtools",
+      "scope": "user",
       "command": "npx",
       "args": ["-y", "chrome-devtools-mcp@latest"]
     },
     {
       "name": "context7",
+      "scope": "user",
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp", "--api-key", "$CONTEXT7_API_KEY"],
       "secrets": {
@@ -16,6 +18,7 @@
     },
     {
       "name": "sequential-thinking",
+      "scope": "user",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
     }

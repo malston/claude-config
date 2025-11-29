@@ -39,12 +39,13 @@ The setup script:
 
 ### config/mcp-servers.json
 
-Defines MCP servers to install globally:
+Defines MCP servers to install:
 ```json
 {
   "servers": [
     {
       "name": "server-name",
+      "scope": "user",
       "command": "npx",
       "args": ["-y", "package-name", "--api-key", "$API_KEY"],
       "secrets": {
@@ -54,6 +55,13 @@ Defines MCP servers to install globally:
   ]
 }
 ```
+
+**Scope options:**
+| Scope | Flag | Description |
+|-------|------|-------------|
+| `user` | `-s user` | Available in all projects on this machine (default) |
+| `local` | `-s local` | Current project only, stored in `~/.claude.json` |
+| `project` | `-s project` | Stored in `.mcp.json`, shared with team |
 
 Secrets are fetched from 1Password CLI (`op read`) during setup. Install with:
 ```bash
