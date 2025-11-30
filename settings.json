@@ -23,9 +23,20 @@
       "mcp__serena__search_for_pattern",
       "mcp__serena__think_about_collected_information",
       "mcp__serena__replace_symbol_body",
-      "mcp__serena__think_about_whether_you_are_done"
+      "mcp__serena__think_about_whether_you_are_done",
+      "Bash(gh issue list:*)",
+      "Bash(npm test:*)",
+      "Bash(git commit:*)",
+      "Skill(code-reviewer)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(npm run coverage:*)",
+      "Bash(git add:*)",
+      "Bash(HEADLESS=true npm run test:e2e:*)",
+      "mcp__serena__list_dir"
     ],
-    "deny": []
+    "deny": [],
+    "ask": [],
+    "defaultMode": "dontAsk"
   },
   "hooks": {
     "Notification": [
@@ -78,17 +89,6 @@
           }
         ]
       }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/save-iterm-session.py"
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
@@ -115,11 +115,8 @@
     "superpowers-lab@superpowers-marketplace": true,
     "double-shot-latte@superpowers-marketplace": true,
     "claude-opus-4-5-migration@claude-code-plugins": true,
-    "devops-automation@claude-code-templates": true,
-    "testing-suite@claude-code-templates": true,
     "update-claudemd@awesome-claude-code-plugins": true,
     "tanzu-cf-architect@tanzu-cf-architect": true,
-    "project-management-suite@claude-code-templates": true,
     "document-skills@anthropic-agent-skills": true,
     "example-skills@anthropic-agent-skills": true,
     "compounding-engineering@every-marketplace": true

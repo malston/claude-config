@@ -15,14 +15,6 @@
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
     "lastUpdated": "2025-11-26T17:12:33.877Z"
   },
-  "claude-code-templates": {
-    "source": {
-      "source": "git",
-      "url": "https://github.com/davila7/claude-code-templates.git"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
-    "lastUpdated": "2025-11-26T21:06:26.981Z"
-  },
   "awesome-claude-code-plugins": {
     "source": {
       "source": "github",
