@@ -21,7 +21,7 @@
       "repo": "ccplugins/marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/awesome-claude-code-plugins",
-    "lastUpdated": "2025-11-28T21:22:55.557Z"
+    "lastUpdated": "2025-11-30T01:47:36.165Z"
   },
   "anthropic-agent-skills": {
     "source": {
@@ -46,5 +46,13 @@
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/every-marketplace",
     "lastUpdated": "2025-11-29T03:22:47.976Z"
+  },
+  "claude-code-templates": {
+    "source": {
+      "source": "github",
+      "repo": "davila7/claude-code-templates"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
+    "lastUpdated": "2025-11-30T01:50:34.486Z"
   }
 }

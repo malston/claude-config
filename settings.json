@@ -36,7 +36,7 @@
     ],
     "deny": [],
     "ask": [],
-    "defaultMode": "dontAsk"
+    "defaultMode": "acceptEdits"
   },
   "hooks": {
     "Notification": [
@@ -119,7 +119,7 @@
     "tanzu-cf-architect@tanzu-cf-architect": true,
     "document-skills@anthropic-agent-skills": true,
     "example-skills@anthropic-agent-skills": true,
-    "compounding-engineering@every-marketplace": true
-  },
-  "alwaysThinkingEnabled": true
+    "compounding-engineering@every-marketplace": true,
+    "project-management-suite@claude-code-templates": true
+  }
 }
