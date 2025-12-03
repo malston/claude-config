@@ -57,7 +57,7 @@ update_marketplaces() {
     for marketplace in "${marketplaces[@]}"; do
         print_status "$YELLOW" "Updating marketplace: $marketplace"
         if claude plugin marketplace update "$marketplace" < /dev/null; then
-            ((count++))
+            count=$((count + 1))
         else
             print_status "$RED" "Failed to update: $marketplace"
         fi
@@ -86,17 +86,17 @@ reinstall_plugins() {
         # Uninstall
         if ! claude plugin uninstall "$plugin" < /dev/null; then
             print_status "$RED" "Failed to uninstall: $plugin"
-            ((failed++))
+            failed=$((failed + 1))
             continue
         fi
 
         # Install
         if claude plugin install "$plugin" < /dev/null; then
-            ((count++))
+            count=$((count + 1))
             print_status "$GREEN" "✓ Successfully reinstalled: $plugin"
         else
             print_status "$RED" "Failed to install: $plugin"
-            ((failed++))
+            failed=$((failed + 1))
         fi
     done
 
