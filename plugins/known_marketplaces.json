@@ -50,9 +50,10 @@
   "claude-code-templates": {
     "source": {
       "source": "github",
-      "repo": "davila7/claude-code-templates"
+      "repo": "malston/claude-code-templates",
+      "branch": "bugfix/marketplace-settings"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
-    "lastUpdated": "2025-12-03T04:18:49.019Z"
+    "lastUpdated": "2025-12-03T12:26:06.032Z"
   }
 }
