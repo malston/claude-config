@@ -7,8 +7,14 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LAST_CHECK_FILE="$SCRIPT_DIR/../.last_brew_check"
 
-# Check if we've already run today
-if [ -f "$LAST_CHECK_FILE" ]; then
+# Parse arguments
+FORCE=false
+if [ "$1" = "--force" ]; then
+    FORCE=true
+fi
+
+# Check if we've already run today (unless --force)
+if [ "$FORCE" = false ] && [ -f "$LAST_CHECK_FILE" ]; then
     LAST_CHECK=$(cat "$LAST_CHECK_FILE")
     TODAY=$(date +%Y-%m-%d)
 
