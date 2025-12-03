@@ -34,7 +34,28 @@ The setup script:
 
 - Reads `config/mcp-servers.json` and installs each MCP server (user-scoped)
 - Reads `plugins/known_marketplaces.json` and adds each marketplace
+- Reads `plugins/installed_plugins.json` and installs each plugin
 - Warns about any missing environment variables
+
+## Auto-Upgrade
+
+The `scripts/auto-upgrade-claude.sh` script automatically checks for and installs Claude Code updates when you enter this directory (via direnv).
+
+**Features:**
+- Runs once per day to avoid slowness
+- Displays changelog from GitHub when an upgrade occurs
+- Runs in background to avoid blocking your shell
+
+**Setup:**
+1. Install direnv: `brew install direnv`
+2. Add to your `~/.zshrc`: `eval "$(direnv hook zsh)"`
+3. Create `.envrc` in this directory (gitignored):
+   ```bash
+   #!/bin/bash
+   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+   "$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" &
+   ```
+4. Allow direnv: `direnv allow`
 
 ## Configuration Files
 
