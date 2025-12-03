@@ -31,6 +31,7 @@ cp config/env.example config/.env
 ```
 
 The setup script:
+
 - Reads `config/mcp-servers.json` and installs each MCP server (user-scoped)
 - Reads `plugins/known_marketplaces.json` and adds each marketplace
 - Warns about any missing environment variables
@@ -40,6 +41,7 @@ The setup script:
 ### config/mcp-servers.json
 
 Defines user-scoped MCP servers (available in all projects):
+
 ```json
 {
   "servers": [
@@ -56,6 +58,7 @@ Defines user-scoped MCP servers (available in all projects):
 ```
 
 Secrets are fetched from 1Password CLI (`op read`) during setup. Install with:
+
 ```bash
 brew install 1password-cli
 op signin
@@ -64,6 +67,7 @@ op signin
 ### Fallback: config/.env
 
 If not using 1Password, set secrets via environment or `config/.env`:
+
 ```bash
 CONTEXT7_API_KEY=your-key-here
 ```
@@ -71,6 +75,7 @@ CONTEXT7_API_KEY=your-key-here
 ## What's Not Tracked
 
 Session-specific data is gitignored:
+
 - Debug logs, conversation history, shell snapshots
 - Project session data, todos, plans
 - Installed plugins (machine-specific)

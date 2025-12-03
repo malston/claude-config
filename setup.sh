@@ -157,6 +157,45 @@ else
 fi
 
 echo ""
+
+# Install plugins from installed_plugins.json
+echo "Installing plugins..."
+if [ -f "$SCRIPT_DIR/plugins/installed_plugins.json" ]; then
+    python3 << 'PYTHON_SCRIPT'
+import json
+import subprocess
+import os
+
+script_dir = os.environ.get('SCRIPT_DIR', '.')
+config_path = os.path.join(script_dir, 'plugins', 'installed_plugins.json')
+
+with open(config_path) as f:
+    config = json.load(f)
+
+plugins = config.get('plugins', {})
+
+for plugin_name in plugins.keys():
+    print(f"  Installing {plugin_name}...")
+    try:
+        result = subprocess.run(
+            ['claude', 'plugin', 'install', plugin_name],
+            check=True, capture_output=True, text=True
+        )
+        print(f"  ✓ {plugin_name} installed")
+    except subprocess.CalledProcessError as e:
+        # Plugin might already be installed
+        stderr = e.stderr.lower()
+        stdout = e.stdout.lower()
+        if 'already' in stderr or 'already' in stdout:
+            print(f"  ✓ {plugin_name} already installed")
+        else:
+            print(f"  ✗ {plugin_name} failed: {e.stderr}")
+PYTHON_SCRIPT
+else
+    echo "  No installed_plugins.json found, skipping"
+fi
+
+echo ""
 echo "Setup complete!"
 echo ""
 

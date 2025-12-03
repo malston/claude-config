@@ -9,6 +9,7 @@ plans/
 history.jsonl
 bash-command-log.txt
 security_warnings_state_*.json
+.claude.json
 
 # IDE and lock files
 ide/
