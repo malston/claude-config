@@ -45,23 +45,23 @@ check_files() {
 update_marketplaces() {
     print_status "$GREEN" "\n=== Updating Marketplaces ==="
 
+    local marketplaces
+    mapfile -t marketplaces < <(jq -r 'keys[]' "$KNOWN_MARKETPLACES_FILE")
+
+    if [[ ${#marketplaces[@]} -eq 0 ]]; then
+        print_status "$YELLOW" "No marketplaces found"
+        return
+    fi
+
     local count=0
-    while IFS= read -r marketplace; do
-        if [[ -z "$marketplace" ]]; then
-            continue
-        fi
+    for marketplace in "${marketplaces[@]}"; do
         print_status "$YELLOW" "Updating marketplace: $marketplace"
         if claude plugin marketplace update "$marketplace" < /dev/null; then
             ((count++))
         else
             print_status "$RED" "Failed to update: $marketplace"
         fi
-    done < <(jq -r 'keys[]' "$KNOWN_MARKETPLACES_FILE")
-
-    if [[ $count -eq 0 ]]; then
-        print_status "$YELLOW" "No marketplaces found"
-        return
-    fi
+    done
 
     print_status "$GREEN" "Updated $count marketplace(s)"
 }
@@ -70,12 +70,17 @@ update_marketplaces() {
 reinstall_plugins() {
     print_status "$GREEN" "\n=== Reinstalling Plugins ==="
 
+    local plugins
+    mapfile -t plugins < <(jq -r '.plugins | keys[]' "$INSTALLED_PLUGINS_FILE")
+
+    if [[ ${#plugins[@]} -eq 0 ]]; then
+        print_status "$YELLOW" "No plugins found"
+        return
+    fi
+
     local count=0
     local failed=0
-    while IFS= read -r plugin; do
-        if [[ -z "$plugin" ]]; then
-            continue
-        fi
+    for plugin in "${plugins[@]}"; do
         print_status "$YELLOW" "Reinstalling: $plugin"
 
         # Uninstall
@@ -93,12 +98,7 @@ reinstall_plugins() {
             print_status "$RED" "Failed to install: $plugin"
             ((failed++))
         fi
-    done < <(jq -r '.plugins | keys[]' "$INSTALLED_PLUGINS_FILE")
-
-    if [[ $count -eq 0 && $failed -eq 0 ]]; then
-        print_status "$YELLOW" "No plugins found"
-        return
-    fi
+    done
 
     print_status "$GREEN" "Reinstalled $count plugin(s)"
     if [[ $failed -gt 0 ]]; then
