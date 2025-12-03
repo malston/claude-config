@@ -85,9 +85,12 @@ reinstall_plugins() {
         print_status "$YELLOW" "Reinstalling: $plugin"
 
         # Uninstall (capture output to check error type)
+        # Temporarily disable exit on error to capture status properly
+        set +e
         local uninstall_output
         uninstall_output=$(claude plugin uninstall "$plugin" 2>&1 < /dev/null)
         local uninstall_status=$?
+        set -e
 
         # Check if uninstall failed
         if [[ $uninstall_status -ne 0 ]]; then
