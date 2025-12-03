@@ -80,14 +80,27 @@ reinstall_plugins() {
 
     local count=0
     local failed=0
+    local skipped=0
     for plugin in "${plugins[@]}"; do
         print_status "$YELLOW" "Reinstalling: $plugin"
 
-        # Uninstall
-        if ! claude plugin uninstall "$plugin" < /dev/null; then
-            print_status "$RED" "Failed to uninstall: $plugin"
-            failed=$((failed + 1))
-            continue
+        # Uninstall (capture output to check error type)
+        local uninstall_output
+        uninstall_output=$(claude plugin uninstall "$plugin" 2>&1 < /dev/null)
+        local uninstall_status=$?
+
+        # Check if uninstall failed
+        if [[ $uninstall_status -ne 0 ]]; then
+            # Check if it's because plugin is already uninstalled or not found
+            if echo "$uninstall_output" | grep -qE "(already uninstalled|not found)"; then
+                print_status "$YELLOW" "⚠ Plugin not currently installed, will attempt fresh install"
+            else
+                # Real uninstall error - skip this plugin
+                print_status "$RED" "✘ Failed to uninstall: $plugin"
+                echo "$uninstall_output"
+                failed=$((failed + 1))
+                continue
+            fi
         fi
 
         # Install
@@ -95,7 +108,7 @@ reinstall_plugins() {
             count=$((count + 1))
             print_status "$GREEN" "✓ Successfully reinstalled: $plugin"
         else
-            print_status "$RED" "Failed to install: $plugin"
+            print_status "$RED" "✘ Failed to install: $plugin"
             failed=$((failed + 1))
         fi
     done
