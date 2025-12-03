@@ -8,6 +8,7 @@ session-env/
 plans/
 history.jsonl
 bash-command-log.txt
+security_warnings_state_*.json
 
 # IDE and lock files
 ide/

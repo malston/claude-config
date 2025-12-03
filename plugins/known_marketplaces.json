@@ -5,7 +5,7 @@
       "repo": "obra/superpowers-marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/superpowers-marketplace",
-    "lastUpdated": "2025-12-03T04:18:50.531Z"
+    "lastUpdated": "2025-12-03T13:32:04.352Z"
   },
   "claude-code-plugins": {
     "source": {
@@ -13,7 +13,7 @@
       "repo": "anthropics/claude-code"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
-    "lastUpdated": "2025-12-03T04:18:48.141Z"
+    "lastUpdated": "2025-12-03T13:32:02.285Z"
   },
   "awesome-claude-code-plugins": {
     "source": {
@@ -21,7 +21,7 @@
       "repo": "ccplugins/marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/awesome-claude-code-plugins",
-    "lastUpdated": "2025-12-03T04:18:47.278Z"
+    "lastUpdated": "2025-12-03T13:32:01.605Z"
   },
   "anthropic-agent-skills": {
     "source": {
@@ -29,7 +29,7 @@
       "repo": "anthropics/skills"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
-    "lastUpdated": "2025-12-03T04:18:46.193Z"
+    "lastUpdated": "2025-12-03T13:32:00.921Z"
   },
   "tanzu-cf-architect": {
     "source": {
@@ -37,23 +37,22 @@
       "repo": "malston/tanzu-cf-architect-claude-plugin"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
-    "lastUpdated": "2025-12-03T04:18:52.679Z"
+    "lastUpdated": "2025-12-03T13:32:05.909Z"
   },
   "every-marketplace": {
     "source": {
       "source": "git",
-      "url": "https://github.com/EveryInc/compounding-engineering-plugin.git"
+      "url": "https://github.com/EveryInc/compound-engineering-plugin.git"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/every-marketplace",
-    "lastUpdated": "2025-12-03T04:18:49.744Z"
+    "lastUpdated": "2025-12-03T13:32:03.641Z"
   },
   "claude-code-templates": {
     "source": {
       "source": "github",
-      "repo": "malston/claude-code-templates",
-      "branch": "bugfix/marketplace-settings"
+      "repo": "malston/claude-code-templates"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
-    "lastUpdated": "2025-12-03T12:26:06.032Z"
+    "lastUpdated": "2025-12-03T13:32:02.936Z"
   }
 }
