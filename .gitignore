@@ -10,6 +10,8 @@ history.jsonl
 bash-command-log.txt
 security_warnings_state_*.json
 .claude.json
+.envrc
+.last_brew_check
 
 # IDE and lock files
 ide/
