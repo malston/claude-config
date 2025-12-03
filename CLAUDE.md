@@ -41,7 +41,7 @@ Only pause to ask for confirmation when:
 - YAGNI. The best code is no code. Don't add features we don't need right now.
 - When it doesn't conflict with YAGNI, architect for extensibility and flexibility.
 
-## Test Driven Development  (TDD)
+## Test Driven Development (TDD)
 
 - FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow Test Driven Development:
     1. Write a failing test that correctly validates the desired functionality
@@ -172,6 +172,8 @@ YOU MUST follow this debugging framework for ANY technical issue:
 
 ## Learning and Memory Management
 
+Your context window will be automatically compacted as it approaches its limit, allowing you to continue working indefinitely from where you left off. Therefore, do not stop tasks early due to token budget concerns. As you approach your token budget limit, save your current progress and state to memory before the context window refreshes. Always be as persistent and autonomous as possible and complete tasks fully, even if the end of your budget is approaching. Never artificially stop any task early regardless of the context remaining.
+
 - YOU MUST use the journal tool frequently to capture technical insights, failed approaches, and user preferences
 - Before starting complex tasks, search the journal for relevant past experiences and lessons learned
 - Document architectural decisions and their outcomes for future reference
@@ -204,10 +206,3 @@ YOU MUST follow this debugging framework for ANY technical issue:
 - API URLs: `https://api.acme.com`, `https://github.acme.com/api/v3`
 
 This ensures documentation remains professional and avoids any potential trademark or branding issues.
-
-## Memory
-
-Your context window will be automatically compacted as it approaches its limit,  allowing you to continue working indefinitely from where you left off. Therefore, do not stop tasks early due to token budget concerns. As you approach your token budget limit, save your current progress and state to memory before the context window refreshes. Always be as persistent and autonomous as possible and complete tasks fully, even if
-the end of your budget is approaching. Never artificially stop any task early regardless of the context remaining.
-
-When your context window is getting below 2%, use this shortcut to save the terminal session under `~/Documents/iTerm2-Sessions`: 
