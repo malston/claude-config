@@ -56,7 +56,7 @@ update_marketplaces() {
     local count=0
     while IFS= read -r marketplace; do
         print_status "$YELLOW" "Updating marketplace: $marketplace"
-        if claude plugin marketplace update "$marketplace"; then
+        if claude plugin marketplace update "$marketplace" < /dev/null; then
             ((count++))
         else
             print_status "$RED" "Failed to update: $marketplace"
@@ -84,14 +84,14 @@ reinstall_plugins() {
         print_status "$YELLOW" "Reinstalling: $plugin"
 
         # Uninstall
-        if ! claude plugin uninstall "$plugin"; then
+        if ! claude plugin uninstall "$plugin" < /dev/null; then
             print_status "$RED" "Failed to uninstall: $plugin"
             ((failed++))
             continue
         fi
 
         # Install
-        if claude plugin install "$plugin"; then
+        if claude plugin install "$plugin" < /dev/null; then
             ((count++))
             print_status "$GREEN" "✓ Successfully reinstalled: $plugin"
         else
