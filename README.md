@@ -134,3 +134,18 @@ Session-specific data is gitignored:
 - Installed plugins (machine-specific)
 - IDE lock files, analytics cache
 - Secrets (`config/.env`)
+
+## Credits
+
+This configuration and workflow system draws inspiration from:
+
+- **[Jesse Vincent](https://blog.fsck.com/about/)** (Massively Parallel Procrastination)
+  - Superpowers marketplace and skills
+  - CLAUDE.md workflow patterns and coding standards
+  - TDD and systematic debugging approaches
+
+- **Anthropic** - Official Claude Code plugins and agent patterns
+
+- **The Claude Code Community** - Setup patterns, hooks, and plugin development practices
+
+Special thanks to the [Every](https://every.to) team for the Compound Engineering toolkit.
