@@ -22,6 +22,54 @@ print_status() {
     echo -e "${color}${message}${NC}"
 }
 
+# Interactive selection helper
+select_items() {
+    local prompt=$1
+    shift
+    local items=("$@")
+
+    if [[ ${#items[@]} -eq 0 ]]; then
+        echo ""
+        return
+    fi
+
+    print_status "$GREEN" "\n$prompt" >&2
+    print_status "$YELLOW" "Enter numbers separated by spaces (e.g., 1 3 5), 'all' for all items, or 'none' to skip:" >&2
+    echo "" >&2
+
+    local i=1
+    for item in "${items[@]}"; do
+        echo "  $i) $item" >&2
+        ((i++))
+    done
+    echo "" >&2
+
+    read -r -p "Selection: " selection
+
+    # Handle special cases
+    if [[ "$selection" == "none" ]] || [[ -z "$selection" ]]; then
+        echo ""
+        return
+    fi
+
+    if [[ "$selection" == "all" ]]; then
+        printf '%s\n' "${items[@]}"
+        return
+    fi
+
+    # Parse numbers and return selected items
+    local selected=()
+    for num in $selection; do
+        if [[ "$num" =~ ^[0-9]+$ ]] && [[ $num -ge 1 ]] && [[ $num -le ${#items[@]} ]]; then
+            selected+=("${items[$((num-1))]}")
+        else
+            print_status "$RED" "Invalid selection: $num (skipping)" >&2
+        fi
+    done
+
+    printf '%s\n' "${selected[@]}"
+}
+
 # Check if required files exist
 check_files() {
     if [[ ! -f "$KNOWN_MARKETPLACES_FILE" ]]; then
@@ -43,14 +91,27 @@ check_files() {
 
 # Update all marketplaces
 update_marketplaces() {
+    local interactive=$1
+
     print_status "$GREEN" "\n=== Updating Marketplaces ==="
 
-    local marketplaces
-    mapfile -t marketplaces < <(jq -r 'keys[]' "$KNOWN_MARKETPLACES_FILE")
+    local all_marketplaces
+    mapfile -t all_marketplaces < <(jq -r 'keys[]' "$KNOWN_MARKETPLACES_FILE")
 
-    if [[ ${#marketplaces[@]} -eq 0 ]]; then
+    if [[ ${#all_marketplaces[@]} -eq 0 ]]; then
         print_status "$YELLOW" "No marketplaces found"
         return
+    fi
+
+    local marketplaces
+    if [[ "$interactive" == true ]]; then
+        mapfile -t marketplaces < <(select_items "Select marketplaces to update:" "${all_marketplaces[@]}")
+        if [[ ${#marketplaces[@]} -eq 0 ]]; then
+            print_status "$YELLOW" "No marketplaces selected for update"
+            return
+        fi
+    else
+        marketplaces=("${all_marketplaces[@]}")
     fi
 
     local count=0
@@ -68,19 +129,31 @@ update_marketplaces() {
 
 # Reinstall all plugins (uninstall then install)
 reinstall_plugins() {
+    local interactive=$1
+
     print_status "$GREEN" "\n=== Reinstalling Plugins ==="
 
-    local plugins
-    mapfile -t plugins < <(jq -r '.plugins | keys[]' "$INSTALLED_PLUGINS_FILE")
+    local all_plugins
+    mapfile -t all_plugins < <(jq -r '.plugins | keys[]' "$INSTALLED_PLUGINS_FILE")
 
-    if [[ ${#plugins[@]} -eq 0 ]]; then
+    if [[ ${#all_plugins[@]} -eq 0 ]]; then
         print_status "$YELLOW" "No plugins found"
         return
     fi
 
+    local plugins
+    if [[ "$interactive" == true ]]; then
+        mapfile -t plugins < <(select_items "Select plugins to reinstall:" "${all_plugins[@]}")
+        if [[ ${#plugins[@]} -eq 0 ]]; then
+            print_status "$YELLOW" "No plugins selected for reinstallation"
+            return
+        fi
+    else
+        plugins=("${all_plugins[@]}")
+    fi
+
     local count=0
     local failed=0
-    local skipped=0
     for plugin in "${plugins[@]}"; do
         print_status "$YELLOW" "Reinstalling: $plugin"
 
@@ -132,6 +205,7 @@ main() {
     # Parse arguments
     local update_only=false
     local reinstall_only=false
+    local interactive=false
 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -143,15 +217,21 @@ main() {
                 reinstall_only=true
                 shift
                 ;;
+            --interactive|-i)
+                interactive=true
+                shift
+                ;;
             --help|-h)
                 echo "Usage: $0 [OPTIONS]"
                 echo ""
                 echo "Options:"
                 echo "  --update-only       Only update marketplaces"
                 echo "  --reinstall-only    Only reinstall plugins"
+                echo "  --interactive, -i   Interactively select which items to process"
                 echo "  --help, -h          Show this help message"
                 echo ""
                 echo "Without options, updates marketplaces and reinstalls all plugins"
+                echo "The --interactive flag can be combined with --update-only or --reinstall-only"
                 exit 0
                 ;;
             *)
@@ -164,12 +244,12 @@ main() {
 
     # Execute requested operations
     if [[ "$update_only" == true ]]; then
-        update_marketplaces
+        update_marketplaces "$interactive"
     elif [[ "$reinstall_only" == true ]]; then
-        reinstall_plugins
+        reinstall_plugins "$interactive"
     else
-        update_marketplaces
-        reinstall_plugins
+        update_marketplaces "$interactive"
+        reinstall_plugins "$interactive"
     fi
 
     print_status "$GREEN" "\n✓ Complete"

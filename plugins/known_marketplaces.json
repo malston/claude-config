@@ -5,7 +5,7 @@
       "repo": "obra/superpowers-marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/superpowers-marketplace",
-    "lastUpdated": "2025-12-03T13:32:04.352Z"
+    "lastUpdated": "2025-12-06T13:09:33.738Z"
   },
   "claude-code-plugins": {
     "source": {
@@ -13,7 +13,7 @@
       "repo": "anthropics/claude-code"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
-    "lastUpdated": "2025-12-03T13:32:02.285Z"
+    "lastUpdated": "2025-12-06T13:09:31.503Z"
   },
   "awesome-claude-code-plugins": {
     "source": {
@@ -21,7 +21,7 @@
       "repo": "ccplugins/marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/awesome-claude-code-plugins",
-    "lastUpdated": "2025-12-03T13:32:01.605Z"
+    "lastUpdated": "2025-12-06T13:09:30.733Z"
   },
   "anthropic-agent-skills": {
     "source": {
@@ -29,7 +29,7 @@
       "repo": "anthropics/skills"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
-    "lastUpdated": "2025-12-03T13:32:00.921Z"
+    "lastUpdated": "2025-12-06T13:09:30.076Z"
   },
   "tanzu-cf-architect": {
     "source": {
@@ -37,7 +37,7 @@
       "repo": "malston/tanzu-cf-architect-claude-plugin"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
-    "lastUpdated": "2025-12-03T13:32:05.909Z"
+    "lastUpdated": "2025-12-06T13:09:35.397Z"
   },
   "every-marketplace": {
     "source": {
@@ -45,7 +45,7 @@
       "url": "https://github.com/EveryInc/compound-engineering-plugin.git"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/every-marketplace",
-    "lastUpdated": "2025-12-03T13:32:03.641Z"
+    "lastUpdated": "2025-12-06T13:09:32.940Z"
   },
   "claude-code-templates": {
     "source": {
@@ -53,6 +53,6 @@
       "repo": "malston/claude-code-templates"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
-    "lastUpdated": "2025-12-03T13:32:02.936Z"
+    "lastUpdated": "2025-12-06T13:09:32.132Z"
   }
 }
