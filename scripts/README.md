@@ -620,8 +620,14 @@ All scripts are located in: `~/.claude/scripts/`
 
 Supporting files:
 
-- `~/.claude/plugins/known_marketplaces.json` - List of installed marketplaces
-- `~/.claude/plugins/installed_plugins.json` - List of installed plugins
+**Setup configuration (used by setup.sh):**
+- `~/.claude/plugins/setup-marketplaces.json` - Marketplaces to install (committed)
+- `~/.claude/plugins/setup-marketplaces.local.json` - Private marketplaces (gitignored)
+- `~/.claude/plugins/setup-plugins.json` - Plugins to auto-install (committed)
+
+**CLI-managed state (used by management scripts):**
+- `~/.claude/plugins/known_marketplaces.json` - Installed marketplaces (CLI state)
+- `~/.claude/plugins/installed_plugins.json` - Installed plugins (CLI state)
 - `~/.claude/plugins/installed_plugins.json.backup` - Backup created by fix-plugin-paths.sh
 
 ---
