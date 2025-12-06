@@ -6,6 +6,7 @@ todos/
 shell-snapshots/
 session-env/
 plans/
+.worktrees/
 history.jsonl
 bash-command-log.txt
 security_warnings_state_*.json
