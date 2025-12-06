@@ -8,7 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$SCRIPT_DIR/config"
 ENV_FILE="$CONFIG_DIR/.env"
 
-# Load and merge marketplace configuration
+# Loads base marketplace configuration and optionally merges local overrides.
+# Returns merged JSON configuration on stdout.
 load_marketplace_config() {
     local base_file="$SCRIPT_DIR/plugins/setup-marketplaces.json"
     local local_file="$SCRIPT_DIR/plugins/setup-marketplaces.local.json"
@@ -24,14 +25,27 @@ base_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.json')
 local_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.local.json')
 
 # Load base config
-with open(base_file) as f:
-    config = json.load(f)
+try:
+    with open(base_file) as f:
+        config = json.load(f)
+except FileNotFoundError:
+    print(f"Error: Base config file not found: {base_file}", file=sys.stderr)
+    sys.exit(1)
+except json.JSONDecodeError as e:
+    print(f"Error: Invalid JSON in base config: {base_file}", file=sys.stderr)
+    print(f"  {e}", file=sys.stderr)
+    sys.exit(1)
 
 # Merge local config if exists
 if os.path.exists(local_file):
-    with open(local_file) as f:
-        local = json.load(f)
-    config['marketplaces'].update(local['marketplaces'])
+    try:
+        with open(local_file) as f:
+            local_config = json.load(f)
+        config['marketplaces'].update(local_config['marketplaces'])
+    except json.JSONDecodeError as e:
+        print(f"Warning: Invalid JSON in local config: {local_file}", file=sys.stderr)
+        print(f"  {e}", file=sys.stderr)
+        print(f"  Continuing with base config only", file=sys.stderr)
 
 # Output merged config as JSON
 print(json.dumps(config))
