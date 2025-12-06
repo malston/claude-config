@@ -11,6 +11,40 @@ ENV_FILE="$CONFIG_DIR/.env"
 echo "Setting up Claude Code configuration..."
 echo ""
 
+# Install claude-pm
+echo "Installing claude-pm..."
+CLAUDE_PM_VERSION="latest"
+
+# Detect platform
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+case $ARCH in
+    x86_64) ARCH="amd64" ;;
+    aarch64|arm64) ARCH="arm64" ;;
+esac
+
+# Download binary
+DOWNLOAD_URL="https://github.com/malston/claude-pm/releases/latest/download/claude-pm-${OS}-${ARCH}"
+INSTALL_DIR="$HOME/.local/bin"
+mkdir -p "$INSTALL_DIR"
+
+if curl -L -o "$INSTALL_DIR/claude-pm" "$DOWNLOAD_URL"; then
+    chmod +x "$INSTALL_DIR/claude-pm"
+    echo "  ✓ claude-pm installed to $INSTALL_DIR/claude-pm"
+else
+    echo "  ✗ Failed to install claude-pm"
+    exit 1
+fi
+
+# Verify installation
+if command -v claude-pm &> /dev/null; then
+    echo "  ✓ claude-pm is in PATH"
+else
+    echo "  ⚠ Add $INSTALL_DIR to your PATH"
+fi
+
+echo ""
+
 # Load environment variables if .env exists
 if [ -f "$ENV_FILE" ]; then
     echo "Loading environment variables from $ENV_FILE"
@@ -196,6 +230,15 @@ else
 fi
 
 echo ""
+
+# Run health check
+echo "Running health check..."
+if command -v claude-pm &> /dev/null; then
+    claude-pm doctor
+    claude-pm cleanup --yes
+fi
+
+echo ""
 echo "Setup complete!"
 echo ""
 
@@ -248,3 +291,59 @@ PYTHON_SCRIPT
 echo ""
 echo "To install plugins: claude plugin install <plugin>@<marketplace>"
 echo "To list plugins:    claude plugin marketplace list"
+echo ""
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Auto-update Configuration"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Check if direnv is installed
+if command -v direnv &> /dev/null; then
+    echo "✓ direnv detected"
+    echo ""
+    echo "Would you like to enable automatic daily updates?"
+    echo "  • Claude Code version checks"
+    echo "  • Plugin and marketplace updates"
+    echo ""
+    read -r -p "Add auto-update scripts to .envrc? [Y/n] " response
+
+    case $response in
+        [nN][oO]|[nN])
+            echo "Skipping auto-update configuration"
+            ;;
+        *)
+            # Create or append to .envrc
+            ENVRC_FILE="$SCRIPT_DIR/.envrc"
+
+            if [ ! -f "$ENVRC_FILE" ]; then
+                echo "# Claude Code auto-updates" > "$ENVRC_FILE"
+            fi
+
+            # Add auto-upgrade-claude.sh if not already present
+            if ! grep -q "auto-upgrade-claude.sh" "$ENVRC_FILE"; then
+                echo "" >> "$ENVRC_FILE"
+                echo "# Auto-upgrade Claude Code and claude-pm daily" >> "$ENVRC_FILE"
+                echo "$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" >> "$ENVRC_FILE"
+            fi
+
+            # Add auto-update-plugins.sh if not already present
+            if ! grep -q "auto-update-plugins.sh" "$ENVRC_FILE"; then
+                echo "" >> "$ENVRC_FILE"
+                echo "# Auto-update plugins and marketplaces daily" >> "$ENVRC_FILE"
+                echo "$SCRIPT_DIR/scripts/auto-update-plugins.sh" >> "$ENVRC_FILE"
+            fi
+
+            echo "✓ Added auto-update scripts to .envrc"
+            echo ""
+            echo "Run 'direnv allow .' to enable"
+            ;;
+    esac
+else
+    echo "⚠ direnv not installed"
+    echo ""
+    echo "To enable automatic daily updates:"
+    echo "  1. Install direnv: brew install direnv"
+    echo "  2. Add to shell: eval \"\$(direnv hook zsh)\"  # or bash"
+    echo "  3. Re-run: ./setup.sh"
+fi
