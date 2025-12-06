@@ -325,13 +325,14 @@ PYTHON_SCRIPT
     # Install selected marketplaces
     echo ""
     echo "Installing selected marketplaces..."
-    echo "$config" | python3 << PYTHON_SCRIPT
+    echo "$config" | SELECTION="$selection" python3 << 'PYTHON_SCRIPT'
 import json
 import subprocess
 import sys
+import os
 
 config = json.load(sys.stdin)
-selection = "$selection"
+selection = os.environ.get('SELECTION', '')
 
 # Build list of non-essential marketplaces
 options = []
@@ -343,8 +344,17 @@ for name, marketplace in config['marketplaces'].items():
 if selection == 'all':
     to_install = options
 else:
-    indices = [int(x.strip()) - 1 for x in selection.split()]
-    to_install = [options[i] for i in indices if i < len(options)]
+    try:
+        indices = [int(x.strip()) - 1 for x in selection.split()]
+        # Validate indices are within bounds
+        invalid_indices = [i for i in indices if i < 0 or i >= len(options)]
+        if invalid_indices:
+            print(f"Error: Invalid selection. Please enter numbers between 1 and {len(options)}", file=sys.stderr)
+            sys.exit(1)
+        to_install = [options[i] for i in indices]
+    except ValueError as e:
+        print(f"Error: Invalid input. Please enter numbers separated by spaces (e.g., '1 2 3')", file=sys.stderr)
+        sys.exit(1)
 
 # Install each
 for name, marketplace in to_install:
