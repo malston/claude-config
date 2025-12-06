@@ -1,0 +1,9 @@
+{
+  "marketplaces": {
+    "your-private-marketplace": {
+      "source": "github",
+      "repo": "you/your-private-repo",
+      "description": "Your private tools and plugins"
+    }
+  }
+}
