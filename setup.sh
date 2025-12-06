@@ -324,14 +324,15 @@ if command -v direnv &> /dev/null; then
             if ! grep -q "auto-upgrade-claude.sh" "$ENVRC_FILE"; then
                 echo "" >> "$ENVRC_FILE"
                 echo "# Auto-upgrade Claude Code and claude-pm daily" >> "$ENVRC_FILE"
-                echo "$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" >> "$ENVRC_FILE"
+                echo 'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"' >> "$ENVRC_FILE"
+                echo '"$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" &' >> "$ENVRC_FILE"
             fi
 
             # Add auto-update-plugins.sh if not already present
             if ! grep -q "auto-update-plugins.sh" "$ENVRC_FILE"; then
                 echo "" >> "$ENVRC_FILE"
                 echo "# Auto-update plugins and marketplaces daily" >> "$ENVRC_FILE"
-                echo "$SCRIPT_DIR/scripts/auto-update-plugins.sh" >> "$ENVRC_FILE"
+                echo '"$SCRIPT_DIR/scripts/auto-update-plugins.sh"' >> "$ENVRC_FILE"
             fi
 
             echo "✓ Added auto-update scripts to .envrc"
