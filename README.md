@@ -17,25 +17,70 @@ Portable configuration for Claude Code CLI.
 | `config/` | MCP server definitions and environment templates |
 | `setup.sh` | Post-clone setup script |
 
-## Setup on a New Machine
+## Quick Start (Newcomers)
+
+New to Claude Code? Get started in 2 minutes:
 
 ```bash
 git clone https://github.com/malston/claude-config.git ~/.claude
 cd ~/.claude
-
-# Optional: configure secrets for MCP servers that need them
-cp config/env.example config/.env
-# Edit config/.env with your API keys
-
 ./setup.sh
 ```
 
-The setup script:
+The interactive setup will:
+1. Install essential marketplaces (Anthropic official + Superpowers)
+2. Offer optional additional marketplaces
+3. Configure MCP servers
 
-- Reads `config/mcp-servers.json` and installs each MCP server (user-scoped)
-- Reads `plugins/known_marketplaces.json` and adds each marketplace
-- Reads `plugins/installed_plugins.json` and installs each plugin
-- Warns about any missing environment variables
+## Power User Setup
+
+Already have your own fork with private config? Install everything:
+
+```bash
+git clone YOUR_FORK ~/.claude
+cd ~/.claude
+SETUP_MODE=auto ./setup.sh
+```
+
+This installs your complete configuration including:
+- All public marketplaces from `plugins/setup-marketplaces.json`
+- Your private marketplaces from `plugins/setup-marketplaces.local.json`
+- All plugins from `plugins/setup-plugins.json`
+
+## Customization
+
+### Adding Private Marketplaces
+
+Create `plugins/setup-marketplaces.local.json` (gitignored):
+
+```json
+{
+  "marketplaces": {
+    "your-private-marketplace": {
+      "source": "github",
+      "repo": "you/your-private-repo",
+      "description": "Your private tools"
+    }
+  }
+}
+```
+
+See `plugins/setup-marketplaces.local.json.example` for the full format.
+
+### Adding Private Plugins
+
+Create `plugins/setup-plugins.local.json` (gitignored):
+
+```json
+{
+  "plugins": [
+    "your-plugin@your-marketplace",
+    "another-plugin@another-marketplace"
+  ]
+}
+```
+
+These files stay private even in your fork.
 
 ## Auto-Upgrade
 
