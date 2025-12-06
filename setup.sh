@@ -8,6 +8,36 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$SCRIPT_DIR/config"
 ENV_FILE="$CONFIG_DIR/.env"
 
+# Load and merge marketplace configuration
+load_marketplace_config() {
+    local base_file="$SCRIPT_DIR/plugins/setup-marketplaces.json"
+    local local_file="$SCRIPT_DIR/plugins/setup-marketplaces.local.json"
+
+    # Use Python to merge configs
+    python3 << 'PYTHON_SCRIPT'
+import json
+import sys
+import os
+
+script_dir = os.environ.get('SCRIPT_DIR', '.')
+base_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.json')
+local_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.local.json')
+
+# Load base config
+with open(base_file) as f:
+    config = json.load(f)
+
+# Merge local config if exists
+if os.path.exists(local_file):
+    with open(local_file) as f:
+        local = json.load(f)
+    config['marketplaces'].update(local['marketplaces'])
+
+# Output merged config as JSON
+print(json.dumps(config))
+PYTHON_SCRIPT
+}
+
 echo "Setting up Claude Code configuration..."
 echo ""
 
