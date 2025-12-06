@@ -1,6 +1,6 @@
 #!/bin/bash
-# Setup script for Claude Code configuration
-# Run this after cloning the repo to a new machine
+# ABOUTME: Bootstraps Claude Code by installing claude-pm, MCP servers, marketplaces, and plugins.
+# ABOUTME: Supports interactive mode (essentials only) and auto mode (all configured items).
 
 set -e
 
@@ -377,28 +377,15 @@ auto_mode_install() {
 
     # Install all marketplaces
     echo "Installing marketplaces..."
-    python3 << 'PYTHON_SCRIPT'
+
+    local config=$(load_marketplace_config)
+
+    echo "$config" | python3 << 'PYTHON_SCRIPT'
 import json
 import subprocess
 import sys
-import os
 
-script_dir = os.environ.get('SCRIPT_DIR', '.')
-base_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.json')
-local_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.local.json')
-
-# Load base config
-with open(base_file) as f:
-    config = json.load(f)
-
-# Merge local config if exists
-if os.path.exists(local_file):
-    try:
-        with open(local_file) as f:
-            local_config = json.load(f)
-        config['marketplaces'].update(local_config['marketplaces'])
-    except json.JSONDecodeError as e:
-        print(f"  Warning: Invalid JSON in local config", file=sys.stderr)
+config = json.load(sys.stdin)
 installed = 0
 skipped = 0
 
