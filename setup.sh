@@ -198,39 +198,15 @@ install_essential_marketplaces() {
     echo ""
     echo "Installing essential marketplaces..."
 
+    local config=$(load_marketplace_config)
+
     # Install essential marketplaces using Python
-    python3 << 'PYTHON_SCRIPT'
+    echo "$config" | python3 << 'PYTHON_SCRIPT'
 import json
 import subprocess
 import sys
-import os
 
-script_dir = os.environ.get('SCRIPT_DIR', '.')
-base_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.json')
-local_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.local.json')
-
-# Load base config
-try:
-    with open(base_file) as f:
-        config = json.load(f)
-except FileNotFoundError:
-    print(f"  Error: Base config file not found: {base_file}", file=sys.stderr)
-    sys.exit(1)
-except json.JSONDecodeError as e:
-    print(f"  Error: Invalid JSON in base config: {base_file}", file=sys.stderr)
-    print(f"    {e}", file=sys.stderr)
-    sys.exit(1)
-
-# Merge local config if exists
-if os.path.exists(local_file):
-    try:
-        with open(local_file) as f:
-            local_config = json.load(f)
-        config['marketplaces'].update(local_config['marketplaces'])
-    except json.JSONDecodeError as e:
-        print(f"  Warning: Invalid JSON in local config: {local_file}", file=sys.stderr)
-        print(f"    {e}", file=sys.stderr)
-        print(f"    Continuing with base config only", file=sys.stderr)
+config = json.load(sys.stdin)
 
 for name, marketplace in config["marketplaces"].items():
     # Only install essentials in Phase 1
@@ -393,6 +369,124 @@ PYTHON_SCRIPT
 
 if [ "$SETUP_MODE" = "interactive" ]; then
     explore_additional_marketplaces
+fi
+
+# Auto mode: Install all configured marketplaces and plugins
+auto_mode_install() {
+    echo ""
+
+    # Install all marketplaces
+    echo "Installing marketplaces..."
+    python3 << 'PYTHON_SCRIPT'
+import json
+import subprocess
+import sys
+import os
+
+script_dir = os.environ.get('SCRIPT_DIR', '.')
+base_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.json')
+local_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.local.json')
+
+# Load base config
+with open(base_file) as f:
+    config = json.load(f)
+
+# Merge local config if exists
+if os.path.exists(local_file):
+    try:
+        with open(local_file) as f:
+            local_config = json.load(f)
+        config['marketplaces'].update(local_config['marketplaces'])
+    except json.JSONDecodeError as e:
+        print(f"  Warning: Invalid JSON in local config", file=sys.stderr)
+installed = 0
+skipped = 0
+
+for name, marketplace in config['marketplaces'].items():
+    source_type = marketplace.get('source')
+
+    if source_type == 'github':
+        repo = marketplace.get('repo')
+        try:
+            result = subprocess.run(
+                ['claude', 'plugin', 'marketplace', 'add', repo],
+                check=True, capture_output=True
+            )
+            print(f"  ✓ {name}")
+            installed += 1
+        except subprocess.CalledProcessError as e:
+            if b'already' in e.stderr.lower() or b'already' in e.stdout.lower():
+                print(f"  ✓ {name} (already added)")
+                installed += 1
+            elif b'not found' in e.stderr.lower() or b'access denied' in e.stderr.lower():
+                print(f"  ⚠ {name} (private, skipped)")
+                skipped += 1
+            else:
+                print(f"  ✗ {name} (failed)")
+                skipped += 1
+    elif source_type == 'git':
+        url = marketplace.get('url')
+        try:
+            subprocess.run(
+                ['claude', 'plugin', 'marketplace', 'add', url],
+                check=True, capture_output=True
+            )
+            print(f"  ✓ {name}")
+            installed += 1
+        except subprocess.CalledProcessError:
+            print(f"  ⚠ {name} (skipped)")
+            skipped += 1
+
+print("")
+print(f"Marketplaces: {installed} installed, {skipped} skipped")
+PYTHON_SCRIPT
+
+    # Install plugins from setup-plugins.json if it exists
+    if [ -f "$SCRIPT_DIR/plugins/setup-plugins.json" ]; then
+        echo ""
+        echo "Installing plugins..."
+
+        python3 << 'PYTHON_SCRIPT'
+import json
+import subprocess
+import os
+
+script_dir = os.environ.get('SCRIPT_DIR', '.')
+plugins_file = os.path.join(script_dir, 'plugins', 'setup-plugins.json')
+
+with open(plugins_file) as f:
+    config = json.load(f)
+
+plugins = config.get('plugins', [])
+installed = 0
+skipped = 0
+
+for plugin_name in plugins:
+    try:
+        subprocess.run(
+            ['claude', 'plugin', 'install', plugin_name],
+            check=True, capture_output=True, text=True
+        )
+        print(f"  ✓ {plugin_name}")
+        installed += 1
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr.lower() if e.stderr else ''
+        stdout = e.stdout.lower() if e.stdout else ''
+        if 'already' in stderr or 'already' in stdout:
+            print(f"  ✓ {plugin_name} (already installed)")
+            installed += 1
+        else:
+            print(f"  ✗ {plugin_name} (failed)")
+            skipped += 1
+
+print("")
+print(f"Plugins: {installed} installed, {skipped} skipped")
+PYTHON_SCRIPT
+    fi
+}
+
+if [ "$SETUP_MODE" = "auto" ]; then
+    auto_mode_install
 fi
 
 echo ""
