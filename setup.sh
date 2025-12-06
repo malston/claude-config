@@ -275,6 +275,116 @@ if [ "$SETUP_MODE" = "interactive" ]; then
     echo "→ Essentials installed! You have a working Claude Code setup."
 fi
 
+# Phase 2: Optional marketplace exploration
+explore_additional_marketplaces() {
+    echo ""
+    read -r -p "Want to explore more marketplaces? [Y/n]: " response
+
+    case $response in
+        [nN][oO]|[nN])
+            echo "Skipping additional marketplaces"
+            return
+            ;;
+    esac
+
+    echo ""
+    echo "Popular marketplaces:"
+    echo ""
+
+    local config=$(load_marketplace_config)
+
+    # Show non-essential marketplaces
+    echo "$config" | python3 << 'PYTHON_SCRIPT'
+import json
+import sys
+
+config = json.load(sys.stdin)
+options = []
+
+for name, marketplace in config['marketplaces'].items():
+    if marketplace.get('essential', False):
+        continue
+    desc = marketplace.get('description', 'No description')
+    options.append((name, desc, marketplace))
+
+# Display options
+for i, (name, desc, _) in enumerate(options, 1):
+    print(f"  {i}. {name} - {desc}")
+
+print("")
+print("Enter numbers separated by spaces (e.g., '1 3 4'), or 'all', or 'none':")
+PYTHON_SCRIPT
+
+    read -r selection
+
+    if [ "$selection" = "none" ] || [ -z "$selection" ]; then
+        echo "No additional marketplaces selected"
+        return
+    fi
+
+    # Install selected marketplaces
+    echo ""
+    echo "Installing selected marketplaces..."
+    echo "$config" | python3 << PYTHON_SCRIPT
+import json
+import subprocess
+import sys
+
+config = json.load(sys.stdin)
+selection = "$selection"
+
+# Build list of non-essential marketplaces
+options = []
+for name, marketplace in config['marketplaces'].items():
+    if not marketplace.get('essential', False):
+        options.append((name, marketplace))
+
+# Determine which to install
+if selection == 'all':
+    to_install = options
+else:
+    indices = [int(x.strip()) - 1 for x in selection.split()]
+    to_install = [options[i] for i in indices if i < len(options)]
+
+# Install each
+for name, marketplace in to_install:
+    source_type = marketplace.get('source')
+
+    if source_type == 'github':
+        repo = marketplace.get('repo')
+        print(f"  Installing {name}...")
+        try:
+            subprocess.run(
+                ['claude', 'plugin', 'marketplace', 'add', repo],
+                check=True, capture_output=True
+            )
+            print(f"  ✓ {name}")
+        except subprocess.CalledProcessError as e:
+            if b'already' in e.stderr.lower() or b'already' in e.stdout.lower():
+                print(f"  ✓ {name} (already added)")
+            else:
+                print(f"  ✗ {name} failed")
+    elif source_type == 'git':
+        url = marketplace.get('url')
+        print(f"  Installing {name}...")
+        try:
+            subprocess.run(
+                ['claude', 'plugin', 'marketplace', 'add', url],
+                check=True, capture_output=True
+            )
+            print(f"  ✓ {name}")
+        except subprocess.CalledProcessError:
+            print(f"  ✓ {name} (already added or failed)")
+PYTHON_SCRIPT
+
+    echo ""
+    echo "✓ Done! Use 'claude plugin list <marketplace>' to browse plugins."
+}
+
+if [ "$SETUP_MODE" = "interactive" ]; then
+    explore_additional_marketplaces
+fi
+
 echo ""
 
 # Install plugins from installed_plugins.json
