@@ -67,20 +67,7 @@ Create `plugins/setup-marketplaces.local.json` (gitignored):
 
 See `plugins/setup-marketplaces.local.json.example` for the full format.
 
-### Adding Private Plugins
-
-Create `plugins/setup-plugins.local.json` (gitignored):
-
-```json
-{
-  "plugins": [
-    "your-plugin@your-marketplace",
-    "another-plugin@another-marketplace"
-  ]
-}
-```
-
-These files stay private even in your fork.
+This file stays private even in your fork.
 
 ## Auto-Upgrade
 
