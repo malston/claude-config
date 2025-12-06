@@ -66,5 +66,29 @@ elif echo "$UPGRADE_OUTPUT" | grep -q "is already installed"; then
     echo "Claude Code is up to date ($OLD_VERSION)"
 fi
 
+# Update claude-pm tool itself
+echo "Checking for claude-pm updates..."
+CLAUDE_PM_CURRENT=$("$HOME/.local/bin/claude-pm" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
+
+# Get latest version from GitHub
+CLAUDE_PM_LATEST=$(curl -sL https://api.github.com/repos/malston/claude-pm/releases/latest |
+    python3 -c "import sys, json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
+
+if [ "$CLAUDE_PM_CURRENT" != "$CLAUDE_PM_LATEST" ]; then
+    echo "Upgrading claude-pm: $CLAUDE_PM_CURRENT → $CLAUDE_PM_LATEST"
+
+    # Download and install new version
+    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH=$(uname -m)
+    [[ $ARCH == "x86_64" ]] && ARCH="amd64" || ARCH="arm64"
+
+    curl -L -o "$HOME/.local/bin/claude-pm" \
+        "https://github.com/malston/claude-pm/releases/latest/download/claude-pm-${OS}-${ARCH}"
+    chmod +x "$HOME/.local/bin/claude-pm"
+    echo "✓ claude-pm upgraded"
+else
+    echo "claude-pm is up to date ($CLAUDE_PM_CURRENT)"
+fi
+
 # Mark as checked today
 date +%Y-%m-%d > "$LAST_CHECK_FILE"
