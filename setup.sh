@@ -198,21 +198,39 @@ install_essential_marketplaces() {
     echo ""
     echo "Installing essential marketplaces..."
 
-    local config
-    config=$(load_marketplace_config)
-
-    # Extract and install essential marketplaces using Python
-    printf '%s\n' "$config" | python3 -c '
+    # Install essential marketplaces using Python
+    python3 << 'PYTHON_SCRIPT'
 import json
 import subprocess
 import sys
+import os
 
-data = sys.stdin.read()
-if not data:
-    print("  Error: No configuration data received", file=sys.stderr)
+script_dir = os.environ.get('SCRIPT_DIR', '.')
+base_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.json')
+local_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.local.json')
+
+# Load base config
+try:
+    with open(base_file) as f:
+        config = json.load(f)
+except FileNotFoundError:
+    print(f"  Error: Base config file not found: {base_file}", file=sys.stderr)
+    sys.exit(1)
+except json.JSONDecodeError as e:
+    print(f"  Error: Invalid JSON in base config: {base_file}", file=sys.stderr)
+    print(f"    {e}", file=sys.stderr)
     sys.exit(1)
 
-config = json.loads(data)
+# Merge local config if exists
+if os.path.exists(local_file):
+    try:
+        with open(local_file) as f:
+            local_config = json.load(f)
+        config['marketplaces'].update(local_config['marketplaces'])
+    except json.JSONDecodeError as e:
+        print(f"  Warning: Invalid JSON in local config: {local_file}", file=sys.stderr)
+        print(f"    {e}", file=sys.stderr)
+        print(f"    Continuing with base config only", file=sys.stderr)
 
 for name, marketplace in config["marketplaces"].items():
     # Only install essentials in Phase 1
@@ -248,7 +266,7 @@ for name, marketplace in config["marketplaces"].items():
             print(f"  ✓ {name}")
         except subprocess.CalledProcessError:
             print(f"  ✓ {name} (already added or failed)")
-'
+PYTHON_SCRIPT
 }
 
 if [ "$SETUP_MODE" = "interactive" ]; then
