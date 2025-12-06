@@ -5,7 +5,6 @@ file-history/
 todos/
 shell-snapshots/
 session-env/
-plans/
 .worktrees/
 history.jsonl
 bash-command-log.txt
