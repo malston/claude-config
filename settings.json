@@ -121,7 +121,7 @@
     "example-skills@anthropic-agent-skills": true,
     "compound-engineering@every-marketplace": true,
     "devops-automation@claude-code-templates": true,
-    "testing-suite@claude-code-templates": true,
+    "testing-suite@claude-code-templates": false,
     "nextjs-vercel-pro@claude-code-templates": true
   },
   "alwaysThinkingEnabled": true
