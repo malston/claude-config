@@ -1,0 +1,13 @@
+{
+  "plugins": [
+    "superpowers@superpowers-marketplace",
+    "episodic-memory@superpowers-marketplace",
+    "elements-of-style@superpowers-marketplace",
+    "compound-engineering@every-marketplace",
+    "code-review@claude-code-plugins",
+    "commit-commands@claude-code-plugins",
+    "feature-dev@claude-code-plugins",
+    "hookify@claude-code-plugins",
+    "plugin-dev@claude-code-plugins"
+  ]
+}
