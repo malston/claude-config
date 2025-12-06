@@ -4,6 +4,15 @@
 
 set -e
 
+# Detect setup mode
+SETUP_MODE="${SETUP_MODE:-interactive}"
+
+if [ "$SETUP_MODE" = "auto" ]; then
+    echo "→ Auto mode: Installing from config..."
+else
+    echo "→ Interactive mode: Setting up essentials..."
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$SCRIPT_DIR/config"
 ENV_FILE="$CONFIG_DIR/.env"
