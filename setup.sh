@@ -193,54 +193,68 @@ fi
 
 echo ""
 
-# Add plugin marketplaces from known_marketplaces.json
-echo "Adding plugin marketplaces..."
-if [ -f "$SCRIPT_DIR/plugins/known_marketplaces.json" ]; then
-    python3 << 'PYTHON_SCRIPT'
+# Phase 1: Install essential marketplaces
+install_essential_marketplaces() {
+    echo ""
+    echo "Installing essential marketplaces..."
+
+    local config
+    config=$(load_marketplace_config)
+
+    # Extract and install essential marketplaces using Python
+    printf '%s\n' "$config" | python3 -c '
 import json
 import subprocess
-import os
+import sys
 
-script_dir = os.environ.get('SCRIPT_DIR', '.')
-config_path = os.path.join(script_dir, 'plugins', 'known_marketplaces.json')
+data = sys.stdin.read()
+if not data:
+    print("  Error: No configuration data received", file=sys.stderr)
+    sys.exit(1)
 
-with open(config_path) as f:
-    marketplaces = json.load(f)
+config = json.loads(data)
 
-for name, config in marketplaces.items():
-    source = config.get('source', {})
-    source_type = source.get('source')
+for name, marketplace in config["marketplaces"].items():
+    # Only install essentials in Phase 1
+    if not marketplace.get("essential", False):
+        continue
 
-    if source_type == 'github':
-        repo = source.get('repo')
-        if repo:
-            print(f"  Adding {name} from {repo}...")
-            try:
-                result = subprocess.run(
-                    ['claude', 'plugin', 'marketplace', 'add', repo],
-                    check=True, capture_output=True
-                )
-                print(f"  ✓ {name} added")
-            except subprocess.CalledProcessError as e:
-                if b'already' in e.stderr.lower() or b'already' in e.stdout.lower():
-                    print(f"  ✓ {name} already added")
-                else:
-                    print(f"  ✗ {name} failed")
-    elif source_type == 'git':
-        url = source.get('url')
-        if url:
-            print(f"  Adding {name} from {url}...")
-            try:
-                subprocess.run(
-                    ['claude', 'plugin', 'marketplace', 'add', url],
-                    check=True, capture_output=True
-                )
-                print(f"  ✓ {name} added")
-            except subprocess.CalledProcessError:
-                print(f"  ✓ {name} already added or failed")
-PYTHON_SCRIPT
-else
-    echo "  No known_marketplaces.json found, skipping"
+    source_type = marketplace.get("source")
+
+    if source_type == "github":
+        repo = marketplace.get("repo")
+        desc = marketplace.get("description", "")
+        print(f"  Installing {name} ({desc})...")
+        try:
+            subprocess.run(
+                ["claude", "plugin", "marketplace", "add", repo],
+                check=True, capture_output=True
+            )
+            print(f"  ✓ {name}")
+        except subprocess.CalledProcessError as e:
+            if b"already" in e.stderr.lower() or b"already" in e.stdout.lower():
+                print(f"  ✓ {name} (already added)")
+            else:
+                print(f"  ✗ {name} failed")
+    elif source_type == "git":
+        url = marketplace.get("url")
+        desc = marketplace.get("description", "")
+        print(f"  Installing {name} ({desc})...")
+        try:
+            subprocess.run(
+                ["claude", "plugin", "marketplace", "add", url],
+                check=True, capture_output=True
+            )
+            print(f"  ✓ {name}")
+        except subprocess.CalledProcessError:
+            print(f"  ✓ {name} (already added or failed)")
+'
+}
+
+if [ "$SETUP_MODE" = "interactive" ]; then
+    install_essential_marketplaces
+    echo ""
+    echo "→ Essentials installed! You have a working Claude Code setup."
 fi
 
 echo ""
