@@ -442,9 +442,19 @@ auto_mode_install() {
     # Install all marketplaces
     echo "Installing marketplaces..."
 
-    local config=$(load_marketplace_config)
+    # Load marketplace config with error checking
+    local config_output
+    local config_errors
+    config_output=$(load_marketplace_config 2>&1)
+    config_errors=$?
 
-    echo "$config" | python3 << 'PYTHON_SCRIPT'
+    if [ $config_errors -ne 0 ] || [ -z "$config_output" ]; then
+        echo "  ✗ Failed to load marketplace configuration"
+        echo "$config_output" >&2
+        return 1
+    fi
+
+    echo "$config_output" | python3 << 'PYTHON_SCRIPT'
 import json
 import subprocess
 import sys
