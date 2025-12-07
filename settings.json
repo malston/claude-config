@@ -122,7 +122,8 @@
     "compound-engineering@every-marketplace": false,
     "devops-automation@claude-code-templates": true,
     "testing-suite@claude-code-templates": false,
-    "nextjs-vercel-pro@claude-code-templates": true
+    "nextjs-vercel-pro@claude-code-templates": false
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "model": "opus"
 }
