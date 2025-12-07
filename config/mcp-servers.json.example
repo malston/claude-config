@@ -1,14 +1,7 @@
 {
   "description": "User-scoped MCP servers to install via setup.sh",
+  "note": "chrome-devtools uses ~18k tokens. Only add if you need browser automation.",
   "servers": [
-    {
-      "name": "chrome-devtools",
-      "command": "npx",
-      "args": [
-        "-y",
-        "chrome-devtools-mcp@latest"
-      ]
-    },
     {
       "name": "context7",
       "command": "npx",
@@ -21,6 +14,14 @@
       "secrets": {
         "CONTEXT7_API_KEY": "your_context7_key_here"
       }
+    }
+  ],
+  "optional_heavy_servers": [
+    {
+      "_comment": "chrome-devtools uses ~18k tokens. Uncomment and move to 'servers' array if needed.",
+      "name": "chrome-devtools",
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
     }
   ]
 }
