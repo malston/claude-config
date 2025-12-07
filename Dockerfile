@@ -59,15 +59,15 @@ COPY --chown=claude:claude . /home/claude/.claude/
 # Set working directory to config
 WORKDIR /home/claude/.claude
 
-# Run setup in auto mode to install all configured marketplaces and plugins
-# This will install claude-pm, configure MCP servers, and set up plugins
-RUN SETUP_MODE=auto ./setup.sh || echo "Setup completed with warnings"
+# Note: setup.sh is not run during build because it requires interactive input
+# from Claude CLI's first-run wizard. Run it manually after starting the container:
+#   docker run -it --rm claude-code:latest /bin/bash
+#   cd ~/.claude && SETUP_MODE=auto ./setup.sh
 
 # Create workspace directory
 RUN mkdir -p /home/claude/workspace
 WORKDIR /home/claude/workspace
 
-# Default command: run claude code
-# Users can override this to run specific commands
-ENTRYPOINT ["claude"]
-CMD ["--help"]
+# Default command: provide helpful instructions
+# Users can override with: docker run -it claude-code:latest /bin/bash
+CMD ["/bin/bash", "-c", "echo 'Welcome to Claude Code Docker Environment!' && echo '' && echo 'To set up Claude Code and plugins, run:' && echo '  cd ~/.claude && SETUP_MODE=auto ./setup.sh' && echo '' && echo 'Then start Claude:' && echo '  claude' && echo '' && exec /bin/bash"]

@@ -24,29 +24,26 @@ The 1Password CLI is optional and only needed if you use MCP servers that requir
 # Start container with interactive shell
 docker-compose run --rm claude /bin/bash
 
-# Run a specific Claude command
-docker-compose run --rm claude chat "Hello, Claude!"
+# First time: run setup inside the container
+cd ~/.claude && SETUP_MODE=auto ./setup.sh
 
-# Keep container running in background
-docker-compose up -d
-docker-compose exec claude /bin/bash
+# Then start Claude
+claude
 ```
 
 ### Run with Docker Directly
 
 ```bash
-# Interactive shell
+# Interactive shell (recommended for first run)
 docker run -it --rm \
   -v $(pwd)/workspace:/home/claude/workspace \
-  claude-code:latest /bin/bash
-
-# Run Claude command
-docker run -it --rm claude-code:latest chat "Hello!"
-
-# Mount local workspace
-docker run -it --rm \
-  -v /path/to/your/code:/home/claude/workspace \
   claude-code:latest
+
+# Inside the container, run setup on first use:
+cd ~/.claude && SETUP_MODE=auto ./setup.sh
+
+# Then start Claude
+claude
 ```
 
 ## Configuration
