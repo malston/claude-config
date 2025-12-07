@@ -24,10 +24,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Claude Code CLI
+# Note: Don't run claude during build as it triggers interactive setup wizard
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
-    # Verify installation - claude is installed to /root/.local/bin during build
-    export PATH="/root/.local/bin:$PATH" && \
-    claude --version
+    # Verify the binary exists (don't run it yet)
+    test -f /root/.local/bin/claude && echo "Claude CLI binary installed" || exit 1
 
 # Install 1Password CLI (optional, for MCP secrets)
 ARG INSTALL_1PASSWORD=false
