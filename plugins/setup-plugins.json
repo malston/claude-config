@@ -3,11 +3,14 @@
     "superpowers@superpowers-marketplace",
     "episodic-memory@superpowers-marketplace",
     "elements-of-style@superpowers-marketplace",
-    "compound-engineering@every-marketplace",
     "code-review@claude-code-plugins",
     "commit-commands@claude-code-plugins",
     "feature-dev@claude-code-plugins",
     "hookify@claude-code-plugins",
     "plugin-dev@claude-code-plugins"
+  ],
+  "_optional_heavy_plugins": [
+    "compound-engineering@every-marketplace (adds Playwright MCP, ~14.5k tokens)",
+    "testing-suite@claude-code-templates (adds Playwright MCP, ~14.5k tokens)"
   ]
 }
