@@ -13,6 +13,7 @@ security_warnings_state_*.json
 .envrc
 .last_brew_check
 .last_plugin_check
+notifications.log
 
 # IDE and lock files
 ide/

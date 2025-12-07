@@ -119,9 +119,9 @@
     "tanzu-cf-architect@tanzu-cf-architect": true,
     "document-skills@anthropic-agent-skills": true,
     "example-skills@anthropic-agent-skills": true,
-    "compound-engineering@every-marketplace": true,
+    "compound-engineering@every-marketplace": false,
     "devops-automation@claude-code-templates": true,
-    "testing-suite@claude-code-templates": true,
+    "testing-suite@claude-code-templates": false,
     "nextjs-vercel-pro@claude-code-templates": true
   },
   "alwaysThinkingEnabled": true
