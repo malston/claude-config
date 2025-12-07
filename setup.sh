@@ -61,7 +61,60 @@ print(json.dumps(config))
 PYTHON_SCRIPT
 }
 
+# Show platform-appropriate 1Password CLI install instructions
+show_1password_install() {
+    if command -v apt-get &> /dev/null; then
+        echo "  Install 1Password CLI:"
+        echo "    curl -sS https://downloads.1password.com/linux/keys/1password.asc | \\"
+        echo "      sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg"
+        echo "    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' | \\"
+        echo "      sudo tee /etc/apt/sources.list.d/1password.list"
+        echo "    sudo apt-get update && sudo apt-get install 1password-cli"
+    elif command -v brew &> /dev/null; then
+        echo "  Install 1Password CLI: brew install 1password-cli"
+    else
+        echo "  Install 1Password CLI: https://1password.com/downloads/command-line/"
+    fi
+}
+
+# Show platform-appropriate direnv install instructions
+show_direnv_install() {
+    if command -v apt-get &> /dev/null; then
+        echo "  Install direnv: sudo apt-get install direnv"
+    elif command -v brew &> /dev/null; then
+        echo "  Install direnv: brew install direnv"
+    else
+        echo "  Install direnv: https://direnv.net/docs/installation.html"
+    fi
+}
+
 echo "Setting up Claude Code configuration..."
+echo ""
+
+# Install Claude Code CLI
+echo "Installing Claude Code CLI..."
+
+# Check if already installed
+if command -v claude &> /dev/null; then
+    CURRENT_VERSION=$(claude --version 2>/dev/null | head -n1 || echo "unknown")
+    echo "  ✓ Claude CLI already installed ($CURRENT_VERSION)"
+else
+    # Use official installer
+    if curl -fsSL https://claude.ai/install.sh | bash; then
+        # Verify installation
+        if command -v claude &> /dev/null; then
+            INSTALLED_VERSION=$(claude --version 2>/dev/null | head -n1 || echo "installed")
+            echo "  ✓ Claude CLI installed ($INSTALLED_VERSION)"
+        else
+            echo "  ✓ Claude CLI installed (restart shell to use)"
+        fi
+    else
+        echo "  ✗ Failed to install Claude CLI"
+        echo "  Please install manually: https://code.claude.com/docs/en/setup"
+        exit 1
+    fi
+fi
+
 echo ""
 
 # Install claude-pm
@@ -159,7 +212,7 @@ for server in config.get('servers', []):
     if missing_secrets:
         print(f"  Skipping {name}: missing secrets {[s[0] for s in missing_secrets]}")
         if not has_op:
-            print(f"    (install 1Password CLI: brew install 1password-cli)")
+            print(f"    (install 1Password CLI: https://1password.com/downloads/command-line/)")
         continue
 
     # Build the claude mcp add command (always user scope)
@@ -567,7 +620,19 @@ if os.path.exists(config_path):
             print(f"    1Password: {op_ref}")
         print("")
         if not has_op:
-            print("  Install 1Password CLI: brew install 1password-cli")
+            # Platform-aware install instructions
+            import shutil
+            if shutil.which('apt-get'):
+                print("  Install 1Password CLI:")
+                print("    curl -sS https://downloads.1password.com/linux/keys/1password.asc | \\")
+                print("      sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg")
+                print("    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' | \\")
+                print("      sudo tee /etc/apt/sources.list.d/1password.list")
+                print("    sudo apt-get update && sudo apt-get install 1password-cli")
+            elif shutil.which('brew'):
+                print("  Install 1Password CLI: brew install 1password-cli")
+            else:
+                print("  Install 1Password CLI: https://1password.com/downloads/command-line/")
             print("  Then run: op signin")
         else:
             print("  Ensure you're signed into 1Password: op signin")
@@ -630,7 +695,8 @@ else
     echo "⚠ direnv not installed"
     echo ""
     echo "To enable automatic daily updates:"
-    echo "  1. Install direnv: brew install direnv"
+    echo "  1. Install direnv:"
+    show_direnv_install
     echo "  2. Add to shell: eval \"\$(direnv hook zsh)\"  # or bash"
     echo "  3. Re-run: ./setup.sh"
 fi
