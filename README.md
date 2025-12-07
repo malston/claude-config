@@ -16,6 +16,8 @@ Portable configuration for Claude Code CLI.
 | `plugins/` | Plugin configuration and marketplace list |
 | `config/` | MCP server definitions and environment templates |
 | `setup.sh` | Post-clone setup script |
+| `Dockerfile` | Docker configuration for containerized environments |
+| `docs/DOCKER.md` | Docker setup and usage guide |
 
 ## Quick Start (Newcomers)
 
@@ -46,6 +48,20 @@ This installs your complete configuration including:
 - All public marketplaces from `plugins/setup-marketplaces.json`
 - Your private marketplaces from `plugins/setup-marketplaces.local.json`
 - All plugins from `plugins/setup-plugins.json`
+
+## Docker Setup
+
+Run Claude Code in a containerized environment with pre-configured settings:
+
+```bash
+# Build the image
+docker build -t claude-code:latest .
+
+# Run interactively
+docker run -it --rm -v $(pwd)/workspace:/home/claude/workspace claude-code:latest /bin/bash
+```
+
+For complete Docker documentation, build options, and usage examples, see [docs/DOCKER.md](docs/DOCKER.md).
 
 ## Customization
 
