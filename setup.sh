@@ -595,10 +595,15 @@ fi
 echo ""
 
 # Run health check
-echo "Running health check..."
-if command -v claude-pm &> /dev/null; then
-    claude-pm doctor
-    claude-pm cleanup --yes
+if [ -f "$SCRIPT_DIR/plugins/installed_plugins.json" ]; then
+    echo "Running health check..."
+    if command -v claude-pm &> /dev/null; then
+        claude-pm doctor
+        claude-pm cleanup --yes
+    fi
+else
+    echo "Skipping health check (plugins not yet initialized)"
+    echo "Run 'claude' to complete initial setup, then run this script again"
 fi
 
 echo ""
