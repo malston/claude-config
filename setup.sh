@@ -17,6 +17,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$SCRIPT_DIR/config"
 ENV_FILE="$CONFIG_DIR/.env"
 
+# Export SCRIPT_DIR so Python subprocesses can access it
+export SCRIPT_DIR
+
 # Loads base marketplace configuration and optionally merges local overrides.
 # Returns merged JSON configuration on stdout.
 load_marketplace_config() {
