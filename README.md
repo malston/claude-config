@@ -65,7 +65,7 @@ For complete Docker documentation, build options, and usage examples, see [docs/
 
 ## Managing Context Usage
 
-With all plugins installed, MCP tools can use ~53k tokens (26% of context window) before you even start a conversation. The heavy plugins are Playwright servers from browser automation tools.
+With all plugins installed, MCP tools can use ~53k tokens (26% of context window) before you even start a conversation. The heavy plugins are Playwright and Chrome DevTools servers that are browser automation tools.
 
 **Recommended: Disable heavy plugins immediately after setup** to free up ~45k tokens:
 
