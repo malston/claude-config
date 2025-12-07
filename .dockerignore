@@ -24,6 +24,7 @@ statsig/
 plugins/cache/
 plugins/marketplaces/
 plugins/installed_plugins.json
+plugins/known_marketplaces.json
 
 # Backup files
 *.bak
