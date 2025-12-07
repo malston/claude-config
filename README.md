@@ -73,9 +73,13 @@ With all plugins installed, MCP tools can use ~53k tokens (26% of context window
 # Disable Playwright-heavy plugins (saves ~29k tokens)
 claude plugin disable testing-suite
 claude plugin disable compound-engineering
+```
 
-# Optionally disable browser tools if not needed (saves ~18k tokens)
-claude plugin disable chrome-devtools
+**Optionally disable heavy MCP servers** (saves ~18k tokens):
+
+```bash
+# Remove chrome-devtools MCP server (not a plugin)
+claude mcp remove chrome-devtools --scope user
 ```
 
 After disabling, your MCP context drops from ~53k to ~5k tokens (90% reduction).
@@ -83,9 +87,12 @@ After disabling, your MCP context drops from ~53k to ~5k tokens (90% reduction).
 **Re-enable when needed:**
 
 ```bash
+# Re-enable plugins
 claude plugin enable compound-engineering  # for design/browser work
 claude plugin enable testing-suite         # for testing
-claude plugin enable chrome-devtools       # for browser automation
+
+# Re-add MCP server (requires reinstalling)
+# See config/mcp-servers.json for configuration
 ```
 
 **Check current usage:**
