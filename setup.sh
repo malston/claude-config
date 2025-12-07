@@ -445,8 +445,18 @@ auto_mode_install() {
     # Load marketplace config with error checking
     local config_output
     local config_errors
+
+    # Debug: show what SCRIPT_DIR is
+    echo "  Debug: SCRIPT_DIR=$SCRIPT_DIR" >&2
+    echo "  Debug: Checking for $SCRIPT_DIR/plugins/setup-marketplaces.json" >&2
+
     config_output=$(load_marketplace_config 2>&1)
     config_errors=$?
+
+    # Debug: show what was returned
+    echo "  Debug: Exit code=$config_errors" >&2
+    echo "  Debug: Output length=${#config_output}" >&2
+    echo "  Debug: First 200 chars: ${config_output:0:200}" >&2
 
     if [ $config_errors -ne 0 ] || [ -z "$config_output" ]; then
         echo "  ✗ Failed to load marketplace configuration"
