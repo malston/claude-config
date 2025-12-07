@@ -63,6 +63,41 @@ docker run -it --rm -v $(pwd)/workspace:/home/claude/workspace claude-code:lates
 
 For complete Docker documentation, build options, and usage examples, see [docs/DOCKER.md](docs/DOCKER.md).
 
+## Managing Context Usage
+
+With all plugins installed, MCP tools can use ~53k tokens (26% of context window) before you even start a conversation. The heavy plugins are Playwright servers from browser automation tools.
+
+**Recommended: Disable heavy plugins immediately after setup** to free up ~45k tokens:
+
+```bash
+# Disable Playwright-heavy plugins (saves ~29k tokens)
+claude plugin disable testing-suite
+claude plugin disable compound-engineering
+
+# Optionally disable browser tools if not needed (saves ~18k tokens)
+claude plugin disable chrome-devtools
+```
+
+After disabling, your MCP context drops from ~53k to ~5k tokens (90% reduction).
+
+**Re-enable when needed:**
+
+```bash
+claude plugin enable compound-engineering  # for design/browser work
+claude plugin enable testing-suite         # for testing
+claude plugin enable chrome-devtools       # for browser automation
+```
+
+**Check current usage:**
+
+```bash
+# Inside Claude
+/context
+
+# Or with claude-pm
+claude-pm doctor
+```
+
 ## Customization
 
 ### Adding Private Marketplaces

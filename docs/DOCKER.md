@@ -194,45 +194,7 @@ docker run -it --rm \
 
 ## Managing Context Usage
 
-With all plugins installed, MCP tools can use ~53k tokens (26% of context window) before you even start a conversation. The heavy plugins are Playwright servers from browser automation tools.
-
-### Recommended: Disable Heavy Plugins
-
-**Disable immediately after setup** to free up ~45k tokens:
-
-```bash
-# Disable Playwright-heavy plugins (saves ~29k tokens)
-claude plugin disable testing-suite
-claude plugin disable compound-engineering
-
-# Optionally disable browser tools if not needed (saves ~18k tokens)
-claude plugin disable chrome-devtools
-```
-
-After disabling, your MCP context drops from ~53k to ~5k tokens (90% reduction).
-
-### Re-enable When Needed
-
-```bash
-# Enable for design/browser work
-claude plugin enable compound-engineering
-
-# Enable for testing
-claude plugin enable testing-suite
-
-# Enable for browser automation
-claude plugin enable chrome-devtools
-```
-
-### Check Current Usage
-
-```bash
-# Inside Claude
-/context
-
-# Or with claude-pm
-claude-pm doctor
-```
+MCP tools use ~53k tokens (26% of context) with all plugins enabled. See the main [README.md](../README.md#managing-context-usage) for detailed guidance on disabling heavy Playwright-based plugins to save ~45k tokens.
 
 ## Troubleshooting
 
