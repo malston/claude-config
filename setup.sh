@@ -145,7 +145,7 @@ DOWNLOAD_URL="https://github.com/malston/claude-pm/releases/latest/download/clau
 INSTALL_DIR="$HOME/.local/bin"
 mkdir -p "$INSTALL_DIR"
 
-if curl -L -o "$INSTALL_DIR/claude-pm" "$DOWNLOAD_URL"; then
+if curl -sL -o "$INSTALL_DIR/claude-pm" "$DOWNLOAD_URL"; then
     chmod +x "$INSTALL_DIR/claude-pm"
     echo "  ✓ claude-pm installed to $INSTALL_DIR/claude-pm"
 else
