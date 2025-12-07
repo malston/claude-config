@@ -37,6 +37,7 @@ claude
 # Interactive shell (recommended for first run)
 docker run -it --rm \
   -v $(pwd)/workspace:/home/claude/workspace \
+  -e GITHUB_TOKEN=${GITHUB_TOKEN} \
   claude-code:latest
 
 # Inside the container, run setup on first use:
@@ -44,6 +45,19 @@ cd ~/.claude && SETUP_MODE=auto ./setup.sh
 
 # Then start Claude
 claude
+```
+
+**Note:** Set `GITHUB_TOKEN` in your environment first:
+```bash
+export GITHUB_TOKEN=ghp_your_token_here
+```
+
+Or pass it directly:
+```bash
+docker run -it --rm \
+  -v $(pwd)/workspace:/home/claude/workspace \
+  -e GITHUB_TOKEN=ghp_your_token_here \
+  claude-code:latest
 ```
 
 ## Configuration
@@ -55,6 +69,7 @@ Set these in `docker-compose.yml` or pass with `-e`:
 - `SETUP_MODE=auto` - Install all configured plugins automatically
 - `SETUP_MODE=interactive` - Guided setup (requires TTY)
 - `ANTHROPIC_API_KEY` - Your Anthropic API key
+- `GITHUB_TOKEN` - GitHub personal access token for cloning plugin marketplaces (optional but recommended)
 
 ### Secrets and Private Config
 

@@ -1,0 +1,51 @@
+# ABOUTME: Docker Compose configuration for Claude Code
+# ABOUTME: Provides easy container orchestration with volume mounts and environment variables
+
+version: '3.8'
+
+services:
+  claude:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: claude-code:latest
+    container_name: claude-code
+
+    # Mount your workspace and config
+    volumes:
+      # Mount your workspace directory
+      - ./workspace:/home/claude/workspace
+
+      # Optional: Mount secrets (uncomment if using)
+      # - ./config/.env:/home/claude/.claude/config/.env:ro
+
+      # Optional: Persist plugin data across rebuilds
+      # - claude-plugins:/home/claude/.claude/plugins
+
+    # Environment variables
+    environment:
+      # Set to 'auto' to install all configured plugins on startup
+      # Set to 'interactive' for guided setup (requires TTY)
+      - SETUP_MODE=auto
+
+      # Optional: Anthropic API key
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+      # Optional: GitHub personal access token for cloning marketplaces
+      # Avoids authentication prompts when installing plugins
+      # Generate at: https://github.com/settings/tokens
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+
+    # Keep container running for interactive use
+    stdin_open: true
+    tty: true
+
+    # Override default command for interactive shell
+    # command: /bin/bash
+
+    # Network mode
+    network_mode: bridge
+
+# Optional: Named volumes for persistent data
+# volumes:
+#   claude-plugins:

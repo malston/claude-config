@@ -94,6 +94,14 @@ show_direnv_install() {
 echo "Setting up Claude Code configuration..."
 echo ""
 
+# Configure git to use GitHub token if provided
+if [ -n "$GITHUB_TOKEN" ]; then
+    echo "Configuring git with GitHub token..."
+    git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+    echo "  ✓ Git configured to use GITHUB_TOKEN"
+    echo ""
+fi
+
 # Install Claude Code CLI
 echo "Installing Claude Code CLI..."
 
