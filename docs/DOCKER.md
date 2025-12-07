@@ -29,8 +29,8 @@ docker-compose run --rm claude /bin/bash
 # First time: run setup inside the container
 cd ~/.claude && SETUP_MODE=auto ./setup.sh
 
-# Then start Claude
-claude
+# Then start Claude (I usually pass this flag when I'm running in a docker container)
+claude --dangerously-skip-permissions
 ```
 
 ### Run with Docker Directly

@@ -1,0 +1,26 @@
+{
+  "description": "User-scoped MCP servers to install via setup.sh",
+  "servers": [
+    {
+      "name": "chrome-devtools",
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
+    },
+    {
+      "name": "context7",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp",
+        "--api-key",
+        "$CONTEXT7_API_KEY"
+      ],
+      "secrets": {
+        "CONTEXT7_API_KEY": "your_context7_key_here"
+      }
+    }
+  ]
+}

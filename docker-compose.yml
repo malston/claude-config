@@ -1,8 +1,6 @@
 # ABOUTME: Docker Compose configuration for Claude Code
 # ABOUTME: Provides easy container orchestration with volume mounts and environment variables
 
-version: '3.8'
-
 services:
   claude:
     build:
