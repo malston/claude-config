@@ -7,11 +7,13 @@ This directory includes Docker configuration to run Claude Code in a containeriz
 ### Build the Image
 
 **Basic build** (without 1Password CLI):
+
 ```bash
 docker build -t claude-code:latest .
 ```
 
 **With 1Password CLI** (for MCP server secrets):
+
 ```bash
 docker build --build-arg INSTALL_1PASSWORD=true -t claude-code:latest .
 ```
@@ -38,6 +40,7 @@ claude
 docker run -it --rm \
   -v $(pwd)/workspace:/home/claude/workspace \
   -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+  -e CONTEXT7_API_KEY=${CONTEXT7_API_KEY} \
   claude-code:latest
 
 # Inside the container, run setup on first use:
@@ -47,12 +50,15 @@ cd ~/.claude && SETUP_MODE=auto ./setup.sh
 claude
 ```
 
-**Note:** Set `GITHUB_TOKEN` in your environment first:
+**Note:** Set `GITHUB_TOKEN` and `CONTEXT7_API_KEY` in your environment first:
+
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
+export CONTEXT7_API_KEY=your_context7_key
 ```
 
 Or pass it directly:
+
 ```bash
 docker run -it --rm \
   -v $(pwd)/workspace:/home/claude/workspace \
@@ -76,6 +82,7 @@ Set these in `docker-compose.yml` or pass with `-e`:
 ### Secrets and Private Config
 
 **Option 1: Environment Variables**
+
 ```bash
 # In docker-compose.yml
 environment:
@@ -83,6 +90,7 @@ environment:
 ```
 
 **Option 2: Mount .env file**
+
 ```bash
 # Uncomment in docker-compose.yml
 volumes:
@@ -90,6 +98,7 @@ volumes:
 ```
 
 **Option 3: Build-time secrets**
+
 ```bash
 # Create config/.env before building
 docker build -t claude-code:latest .
@@ -100,12 +109,14 @@ docker build -t claude-code:latest .
 If you have private marketplaces in `plugins/setup-marketplaces.local.json`:
 
 1. **Build-time inclusion** (copied into image):
+
    ```bash
    # Local file is automatically included during build
    docker build -t claude-code:latest .
    ```
 
 2. **Runtime mount** (not persisted in image):
+
    ```bash
    docker run -v $(pwd)/plugins/setup-marketplaces.local.json:/home/claude/.claude/plugins/setup-marketplaces.local.json:ro claude-code:latest
    ```
@@ -144,6 +155,7 @@ environment:
 ```
 
 Then start with:
+
 ```bash
 docker-compose run --rm claude /bin/bash
 # Inside container:
@@ -187,18 +199,21 @@ docker run -it --rm \
 If `setup.sh` fails during build (e.g., private marketplace not accessible):
 
 **Option 1:** Skip setup during build, run manually:
+
 ```dockerfile
 # Comment out the RUN setup.sh line
 # RUN SETUP_MODE=auto ./setup.sh
 ```
 
 Then run setup inside the container:
+
 ```bash
 docker run -it claude-code:latest /bin/bash
 cd ~/.claude && SETUP_MODE=auto ./setup.sh
 ```
 
 **Option 2:** Build with `--network host` for access to private repos:
+
 ```bash
 docker build --network host -t claude-code:latest .
 ```
@@ -206,11 +221,13 @@ docker build --network host -t claude-code:latest .
 ### Plugin Installation Fails
 
 Check the container logs:
+
 ```bash
 docker-compose logs claude
 ```
 
 Run setup manually inside container:
+
 ```bash
 docker-compose run --rm claude /bin/bash
 cd ~/.claude
@@ -220,11 +237,13 @@ cd ~/.claude
 ### Secrets Not Available
 
 Verify environment variables are set:
+
 ```bash
 docker-compose run --rm claude env | grep ANTHROPIC
 ```
 
 Or check mounted .env file:
+
 ```bash
 docker-compose run --rm claude cat ~/.claude/config/.env
 ```
@@ -262,10 +281,13 @@ COPY --from=builder /home/claude/.claude /home/claude/.claude
 
 1. **Run as non-root** (already configured)
 2. **Read-only root filesystem**:
+
    ```bash
    docker run --read-only -v /tmp --tmpfs /home/claude/.claude/tmp claude-code:latest
    ```
+
 3. **Drop capabilities**:
+
    ```bash
    docker run --cap-drop=ALL --cap-add=NET_BIND_SERVICE claude-code:latest
    ```
@@ -273,6 +295,7 @@ COPY --from=builder /home/claude/.claude /home/claude/.claude
 ### CI/CD Integration
 
 **GitHub Actions Example:**
+
 ```yaml
 name: Claude Code CI
 on: [push]
@@ -355,11 +378,13 @@ docker build --no-cache -t claude-code:latest .
 ### Update Plugins
 
 **Option 1:** Rebuild image
+
 ```bash
 docker-compose build
 ```
 
 **Option 2:** Update inside running container
+
 ```bash
 docker-compose exec claude /bin/bash
 cd ~/.claude/scripts
