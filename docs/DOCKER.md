@@ -57,6 +57,7 @@ Or pass it directly:
 docker run -it --rm \
   -v $(pwd)/workspace:/home/claude/workspace \
   -e GITHUB_TOKEN=ghp_your_token_here \
+  -e CONTEXT7_API_KEY=your_context7_key \
   claude-code:latest
 ```
 
@@ -70,6 +71,7 @@ Set these in `docker-compose.yml` or pass with `-e`:
 - `SETUP_MODE=interactive` - Guided setup (requires TTY)
 - `ANTHROPIC_API_KEY` - Your Anthropic API key
 - `GITHUB_TOKEN` - GitHub personal access token for cloning plugin marketplaces (optional but recommended)
+- `CONTEXT7_API_KEY` - Context7 API key for documentation MCP server (optional)
 
 ### Secrets and Private Config
 

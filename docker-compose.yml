@@ -36,6 +36,10 @@ services:
       # Generate at: https://github.com/settings/tokens
       - GITHUB_TOKEN=${GITHUB_TOKEN}
 
+      # Optional: Context7 API key for documentation MCP server
+      # Get your key at: https://context7.com
+      - CONTEXT7_API_KEY=${CONTEXT7_API_KEY}
+
     # Keep container running for interactive use
     stdin_open: true
     tty: true
