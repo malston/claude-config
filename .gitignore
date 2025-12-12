@@ -21,6 +21,7 @@ ide/
 # Analytics and caching
 statsig/
 .mypy_cache/
+stats-cache.json
 
 # Plugin runtime data (installed plugins are machine-specific)
 plugins/cache/

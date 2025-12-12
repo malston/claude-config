@@ -113,7 +113,7 @@ Since the goal is to verify the setup.sh script without repeatedly installing ma
 
 ## Common Functionality Verification
 
-### claude-pm Installation
+### claudeup Installation
 - [x] Detects platform (OS and architecture)
 - [x] Handles darwin/linux platforms
 - [x] Handles amd64/arm64 architectures
@@ -144,9 +144,9 @@ Since the goal is to verify the setup.sh script without repeatedly installing ma
 - [x] Gracefully handles missing file
 
 ### Health Check
-- [x] Runs `claude-pm doctor`
-- [x] Runs `claude-pm cleanup --yes`
-- [x] Only executes if claude-pm is available
+- [x] Runs `claudeup doctor`
+- [x] Runs `claudeup cleanup --yes`
+- [x] Only executes if claudeup is available
 
 ### Final Summary
 - [x] Shows setup complete message

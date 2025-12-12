@@ -6,7 +6,7 @@ Automated scripts for keeping Claude Code and its plugins up to date.
 
 ### auto-upgrade-claude.sh
 
-Automatically upgrades Claude Code and claude-pm, then displays the changelog.
+Automatically upgrades Claude Code and claudeup, then displays the changelog.
 
 **Usage:**
 
@@ -23,7 +23,7 @@ Automatically upgrades Claude Code and claude-pm, then displays the changelog.
 1. Checks if already run today (skips unless `--force`)
 2. Upgrades Claude Code via `brew upgrade --cask claude-code`
 3. Detects version changes and displays changelog from GitHub
-4. Upgrades claude-pm to the latest release
+4. Upgrades claudeup to the latest release
 5. Records check date to avoid duplicate runs
 
 **When to use:**
@@ -50,16 +50,16 @@ Fetching changelog...
 - Fix issue with MCP server initialization
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Checking for claude-pm updates...
-Upgrading claude-pm: 0.5.0 → 0.6.0
-✓ claude-pm upgraded
+Checking for claudeup updates...
+Upgrading claudeup: 0.5.0 → 0.6.0
+✓ claudeup upgraded
 ```
 
 ---
 
 ### auto-update-plugins.sh
 
-Checks for plugin and marketplace updates using claude-pm.
+Checks for plugin and marketplace updates using claudeup.
 
 **Usage:**
 
@@ -74,7 +74,7 @@ Checks for plugin and marketplace updates using claude-pm.
 **What it does:**
 
 1. Checks if already run today (skips unless `--force`)
-2. Runs `claude-pm update` to check and prompt for updates
+2. Runs `claudeup update` to check and prompt for updates
 3. Records check date to avoid duplicate runs
 
 **When to use:**
@@ -82,7 +82,7 @@ Checks for plugin and marketplace updates using claude-pm.
 - Automatically called by `.envrc` when entering the directory (if configured)
 - Manually run with `--force` to check for plugin updates immediately
 
-**What claude-pm update does:**
+**What claudeup update does:**
 
 - Checks all installed marketplaces for updates
 - Checks all installed plugins for updates
@@ -119,14 +119,14 @@ direnv allow
 
 ## Manual Plugin Management
 
-For manual plugin management, use `claude-pm` directly:
+For manual plugin management, use `claudeup` directly:
 
 ```bash
 # Check for updates
-claude-pm update
+claudeup update
 
 # List installed plugins
-claude-pm list
+claudeup list
 
 # Update a specific marketplace
 claude plugin marketplace update <marketplace-name>
@@ -136,8 +136,8 @@ claude plugin uninstall <plugin-name>@<marketplace>
 claude plugin install <plugin-name>@<marketplace>
 ```
 
-For more information, run `claude-pm --help` or visit:
-https://github.com/malston/claude-pm
+For more information, run `claudeup --help` or visit:
+https://github.com/malston/claudeup
 
 ---
 

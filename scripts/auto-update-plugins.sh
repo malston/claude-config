@@ -25,8 +25,8 @@ fi
 
 echo "Checking for plugin/marketplace updates..."
 
-# Use claude-pm to check and prompt for updates
-claude-pm update
+# Use claudeup to check and prompt for updates
+claudeup update
 
 # Mark as checked today
 date +%Y-%m-%d > "$LAST_CHECK_FILE"

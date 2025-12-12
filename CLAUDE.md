@@ -206,3 +206,56 @@ Your context window will be automatically compacted as it approaches its limit, 
 - API URLs: `https://api.acme.com`, `https://github.acme.com/api/v3`
 
 This ensures documentation remains professional and avoids any potential trademark or branding issues.
+
+## Session Memory & Project Context
+
+### tanzu-platform-sbom-service Project
+
+**Project Overview:**
+- SBOM (Software Bill of Materials) service for Cloud Foundry
+- Monitors CF audit events for droplet creation
+- Scans droplets with Syft, produces CycloneDX format SBOMs
+- REST API for retrieving SBOMs by app GUID
+
+**Current Work (Dec 2024):**
+- Preparing customer demo comparing traditional buildpacks vs Cloud Native Buildpacks (CNB)
+- Working in git worktree: `.worktrees/cnb-deployment` on branch `feature/cnb-deployment`
+- Main goal: Show both approaches work identically with SBOM service
+
+**Environment Details:**
+- TAS 6.0.6 (regular edition, not Small Footprint)
+- CF CLI 8+
+- Uses 1Password CLI (`op`) for credentials
+- Uses mise for Java version management (Java 17 for Spring Music)
+- Example app: Spring Music (gradle-based Java app)
+
+**Key Findings - CNB Tile Installation:**
+- CNB tile v0.6.2 has artificial dependency on TAS >= 10.2.2
+- Tile uses standard CF CLI commands: `cf create-buildpack --lifecycle cnb`
+- Can bypass tile and manually install .cnb files from `compiled_packages/`
+- Buildpacks: java-cnb.tgz (2.9GB), nodejs-cnb.tgz (1.1GB), go-cnb.tgz (335MB), web-servers-cnb.tgz (912MB)
+- diego_cnb feature flag must be enabled
+- Stack: cflinuxfs4
+- Plan documented: `docs/plans/cnb-manual-installation-plan.md`
+
+**Mark's Preferences:**
+- Uses `om` CLI for Ops Manager operations
+- OM credentials in .envrc: `OM_TARGET`, `OM_USERNAME`, `OM_PASSWORD`, `OM_SKIP_SSL_VALIDATION`
+- **Important:** Export OM_* vars, don't pass as flags to om CLI
+- OM_TARGET needs https:// prefix (auto-add if missing)
+- Uses Harbor at harbor.lab.markalston.net for private registries
+- Harbor credentials in 1Password: `op read "op://Private/tjinaf4ug7re2nyqr3jbarwu24/password"`
+
+**Scripts Created:**
+- `scripts/deploy-spring-music-traditional.sh` - Traditional buildpack (working)
+- `scripts/deploy-spring-music-cnb.sh` - CNB deployment (ready, platform limited)
+- `scripts/setup-cnb-harbor.sh` - Harbor registry setup (working)
+- `scripts/download-cnb-tile.sh` - Manual tile download instructions
+- `scripts/install-cnb-tile.sh` - Tile installation via om CLI (blocked by dependency)
+
+**Next Steps:**
+- Create `scripts/install-cnb-buildpacks-manual.sh` to automate manual installation
+- Extract .cnb files from tile packages
+- Install buildpacks with CF CLI
+- Test with Spring Music deployment
+- Verify SBOM generation works with CNB

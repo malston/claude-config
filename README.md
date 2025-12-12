@@ -101,8 +101,8 @@ claude plugin enable testing-suite         # for testing
 # Inside Claude
 /context
 
-# Or with claude-pm
-claude-pm doctor
+# Or with claudeup
+claudeup doctor
 ```
 
 ## Customization

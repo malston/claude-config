@@ -8,6 +8,7 @@
 ## Overview
 
 Enhance setup.sh and Dockerfile to support non-macOS environments by:
+
 1. Installing Claude CLI using Anthropic's official installer
 2. Making 1password-cli and direnv optional with graceful detection
 3. Showing platform-appropriate install instructions (apt-get vs brew)
@@ -17,7 +18,8 @@ Enhance setup.sh and Dockerfile to support non-macOS environments by:
 
 ### Platform Detection
 
-Extend the existing OS detection (currently lines 72-77 for claude-pm):
+Extend the existing OS detection (currently lines 72-77 for claudeup):
+
 - Detect: Ubuntu/Debian (via apt-get availability), macOS (via brew availability)
 - Store platform info in variables: `$OS` (darwin/linux), `$PKG_MANAGER` (apt-get/brew)
 
@@ -26,7 +28,7 @@ Extend the existing OS detection (currently lines 72-77 for claude-pm):
 ```
 1. Detect platform and package manager
 2. Install Claude CLI (via official installer - platform agnostic)
-3. Install claude-pm (existing logic - already cross-platform)
+3. Install claudeup (existing logic - already cross-platform)
 4. Load environment / configure MCP servers (existing)
 5. Install marketplaces (existing)
 6. Install plugins (existing)
@@ -36,7 +38,7 @@ Extend the existing OS detection (currently lines 72-77 for claude-pm):
 8. Health check (existing)
 ```
 
-**Key principle:** Fail gracefully. Missing optional tools show helpful messages but don't block setup. Missing required tools (Claude CLI, claude-pm) fail with clear instructions.
+**Key principle:** Fail gracefully. Missing optional tools show helpful messages but don't block setup. Missing required tools (Claude CLI, claudeup) fail with clear instructions.
 
 ## Claude CLI Installation
 
@@ -52,7 +54,7 @@ Or similar. Verify the actual URL from Anthropic's documentation.
 
 ### Implementation in setup.sh
 
-Add before the claude-pm installation section (around line 67):
+Add before the claudeup installation section (around line 67):
 
 ```bash
 echo "Installing Claude Code CLI..."
@@ -177,7 +179,8 @@ This keeps the base image lean while allowing users who need 1Password to add it
 
 ### Required vs Optional Failures
 
-**Required tools** (Claude CLI, claude-pm) must exit with clear errors:
+**Required tools** (Claude CLI, claudeup) must exit with clear errors:
+
 ```bash
 if ! command -v claude &> /dev/null; then
     echo "✗ ERROR: Claude CLI installation failed"
@@ -187,6 +190,7 @@ fi
 ```
 
 **Optional tools** (1password-cli, direnv) skip gracefully with helpful messages:
+
 ```bash
 if ! command -v op &> /dev/null; then
     echo "⚠ 1Password CLI not found - MCP secrets will be skipped"
@@ -198,22 +202,25 @@ fi
 ### User Feedback Improvements
 
 **Platform detection visibility:**
+
 ```bash
 echo "Detected platform: $OS ($PKG_MANAGER)"
 ```
 
 **Installation progress:**
+
 ```bash
 echo "Installing Claude CLI..."
 echo "  ✓ Claude CLI installed (version X.Y.Z)"
 ```
 
 **Summary at end:**
+
 ```bash
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Setup Summary:"
 echo "  ✓ Claude CLI (required)"
-echo "  ✓ claude-pm (required)"
+echo "  ✓ claudeup (required)"
 echo "  ✓ direnv (optional)"
 echo "  ⚠ 1Password CLI (optional, not installed)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

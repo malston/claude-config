@@ -126,7 +126,7 @@ ls plugins/setup-marketplaces.local.json.example
 
 ### Interactive Mode Flow
 1. ✅ Mode detection shows "Interactive mode" message
-2. ✅ claude-pm installation logic verified
+2. ✅ claudeup installation logic verified
 3. ✅ MCP server installation logic verified
 4. ✅ Phase 1: Essential marketplace installation logic verified
 5. ✅ Completion message: "Essentials installed! You have a working Claude Code setup."
@@ -141,7 +141,7 @@ ls plugins/setup-marketplaces.local.json.example
 
 ### Auto Mode Flow
 1. ✅ Mode detection shows "Auto mode" message
-2. ✅ claude-pm installation logic verified
+2. ✅ claudeup installation logic verified
 3. ✅ MCP server installation logic verified
 4. ✅ Config merging: base + .local.json
 5. ✅ ALL marketplaces installation logic verified
@@ -160,7 +160,7 @@ To avoid repeatedly installing marketplaces/plugins on the system, we did NOT:
 - Actually run `claude plugin marketplace add` commands
 - Actually run `claude plugin install` commands
 - Actually run `claude mcp add` commands
-- Actually download claude-pm (already installed)
+- Actually download claudeup (already installed)
 - Actually fetch secrets from 1Password
 - Actually modify .envrc file
 

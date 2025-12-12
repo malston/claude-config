@@ -13,7 +13,7 @@
       "repo": "anthropics/claude-code"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
-    "lastUpdated": "2025-12-06T13:09:31.503Z"
+    "lastUpdated": "2025-12-12T03:27:06.467Z"
   },
   "awesome-claude-code-plugins": {
     "source": {
@@ -21,7 +21,7 @@
       "repo": "ccplugins/marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/awesome-claude-code-plugins",
-    "lastUpdated": "2025-12-06T13:09:30.733Z"
+    "lastUpdated": "2025-12-12T15:39:32.483Z"
   },
   "anthropic-agent-skills": {
     "source": {
@@ -29,7 +29,7 @@
       "repo": "anthropics/skills"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
-    "lastUpdated": "2025-12-06T13:09:30.076Z"
+    "lastUpdated": "2025-12-12T14:29:55.021Z"
   },
   "tanzu-cf-architect": {
     "source": {
@@ -37,7 +37,7 @@
       "repo": "malston/tanzu-cf-architect-claude-plugin"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
-    "lastUpdated": "2025-12-06T13:09:35.397Z"
+    "lastUpdated": "2025-12-12T19:45:37.847Z"
   },
   "every-marketplace": {
     "source": {
@@ -53,6 +53,14 @@
       "repo": "malston/claude-code-templates"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
-    "lastUpdated": "2025-12-06T13:09:32.132Z"
+    "lastUpdated": "2025-12-12T20:17:16.867Z"
+  },
+  "thedotmack": {
+    "source": {
+      "source": "github",
+      "repo": "thedotmack/claude-mem"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/thedotmack",
+    "lastUpdated": "2025-12-12T20:16:36.387Z"
   }
 }
