@@ -81,7 +81,7 @@ if [ "$CLAUDEUP_CURRENT" != "$CLAUDEUP_LATEST" ]; then
     ARCH=$(uname -m)
     [[ $ARCH == "x86_64" ]] && ARCH="amd64" || ARCH="arm64"
 
-    curl -L -o "$HOME/.local/bin/claudeup" \
+    curl -sL -o "$HOME/.local/bin/claudeup" \
         "https://github.com/claudeup/claudeup/releases/latest/download/claudeup-${OS}-${ARCH}"
     chmod +x "$HOME/.local/bin/claudeup"
     echo "✓ claudeup upgraded"
