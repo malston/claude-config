@@ -37,7 +37,7 @@
       "repo": "malston/tanzu-cf-architect-claude-plugin"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
-    "lastUpdated": "2025-12-12T19:45:37.847Z"
+    "lastUpdated": "2025-12-15T03:12:03.059Z"
   },
   "every-marketplace": {
     "source": {
@@ -61,6 +61,14 @@
       "repo": "thedotmack/claude-mem"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/thedotmack",
-    "lastUpdated": "2025-12-12T20:16:36.387Z"
+    "lastUpdated": "2025-12-15T03:14:41.902Z"
+  },
+  "claude-code-workflows": {
+    "source": {
+      "source": "github",
+      "repo": "wshobson/agents"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-workflows",
+    "lastUpdated": "2025-12-15T03:11:18.443Z"
   }
 }

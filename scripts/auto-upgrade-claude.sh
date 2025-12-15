@@ -71,7 +71,7 @@ echo "Checking for claudeup updates..."
 CLAUDEUP_CURRENT=$("$HOME/.local/bin/claudeup" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
 
 # Get latest version from GitHub
-CLAUDEUP_LATEST=$(curl -sL https://api.github.com/repos/malston/claudeup/releases/latest |
+CLAUDEUP_LATEST=$(curl -sL https://api.github.com/repos/claudeup/claudeup/releases/latest |
     python3 -c "import sys, json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
 
 if [ "$CLAUDEUP_CURRENT" != "$CLAUDEUP_LATEST" ]; then
@@ -82,7 +82,7 @@ if [ "$CLAUDEUP_CURRENT" != "$CLAUDEUP_LATEST" ]; then
     [[ $ARCH == "x86_64" ]] && ARCH="amd64" || ARCH="arm64"
 
     curl -L -o "$HOME/.local/bin/claudeup" \
-        "https://github.com/malston/claudeup/releases/latest/download/claudeup-${OS}-${ARCH}"
+        "https://github.com/claudeup/claudeup/releases/latest/download/claudeup-${OS}-${ARCH}"
     chmod +x "$HOME/.local/bin/claudeup"
     echo "✓ claudeup upgraded"
 else
