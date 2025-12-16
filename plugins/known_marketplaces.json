@@ -5,7 +5,7 @@
       "repo": "obra/superpowers-marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/superpowers-marketplace",
-    "lastUpdated": "2025-12-16T14:38:28.812Z"
+    "lastUpdated": "2025-12-16T15:10:30.464Z"
   },
   "claude-code-plugins": {
     "source": {
@@ -29,7 +29,7 @@
       "repo": "anthropics/skills"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
-    "lastUpdated": "2025-12-16T14:41:30.256Z"
+    "lastUpdated": "2025-12-16T15:09:22.147Z"
   },
   "tanzu-cf-architect": {
     "source": {
@@ -69,7 +69,7 @@
       "repo": "anthropics/claude-plugins-official"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2025-12-16T14:38:31.340Z"
+    "lastUpdated": "2025-12-16T15:06:17.968Z"
   },
   "claude-code-workflows": {
     "source": {
