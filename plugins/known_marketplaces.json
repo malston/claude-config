@@ -5,7 +5,7 @@
       "repo": "obra/superpowers-marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/superpowers-marketplace",
-    "lastUpdated": "2025-12-16T15:10:30.464Z"
+    "lastUpdated": "2025-12-17T02:58:03.597Z"
   },
   "claude-code-plugins": {
     "source": {
@@ -13,7 +13,7 @@
       "repo": "anthropics/claude-code"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
-    "lastUpdated": "2025-12-16T13:54:03.207Z"
+    "lastUpdated": "2025-12-20T15:18:12.688Z"
   },
   "awesome-claude-code-plugins": {
     "source": {
@@ -21,7 +21,7 @@
       "repo": "ccplugins/marketplace"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/awesome-claude-code-plugins",
-    "lastUpdated": "2025-12-16T14:09:54.412Z"
+    "lastUpdated": "2025-12-17T02:57:40.982Z"
   },
   "anthropic-agent-skills": {
     "source": {
@@ -29,7 +29,7 @@
       "repo": "anthropics/skills"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
-    "lastUpdated": "2025-12-16T15:09:22.147Z"
+    "lastUpdated": "2025-12-16T23:33:35.835Z"
   },
   "tanzu-cf-architect": {
     "source": {
@@ -37,7 +37,7 @@
       "repo": "malston/tanzu-cf-architect-claude-plugin"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
-    "lastUpdated": "2025-12-16T14:53:28.346Z"
+    "lastUpdated": "2025-12-17T02:32:30.560Z"
   },
   "every-marketplace": {
     "source": {
@@ -53,7 +53,7 @@
       "repo": "malston/claude-code-templates"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
-    "lastUpdated": "2025-12-16T14:01:09.586Z"
+    "lastUpdated": "2025-12-17T02:57:16.982Z"
   },
   "thedotmack": {
     "source": {
@@ -61,7 +61,7 @@
       "repo": "thedotmack/claude-mem"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/thedotmack",
-    "lastUpdated": "2025-12-16T04:03:49.142Z"
+    "lastUpdated": "2025-12-16T21:04:21.373Z"
   },
   "claude-plugins-official": {
     "source": {
@@ -69,7 +69,7 @@
       "repo": "anthropics/claude-plugins-official"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2025-12-16T15:06:17.968Z"
+    "lastUpdated": "2025-12-20T15:18:25.301Z"
   },
   "claude-code-workflows": {
     "source": {
