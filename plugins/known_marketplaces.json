@@ -13,7 +13,7 @@
       "repo": "anthropics/claude-code"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
-    "lastUpdated": "2025-12-20T15:39:21.678Z"
+    "lastUpdated": "2025-12-20T21:59:17.434Z"
   },
   "awesome-claude-code-plugins": {
     "source": {
@@ -69,7 +69,7 @@
       "repo": "anthropics/claude-plugins-official"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2025-12-20T15:39:19.392Z"
+    "lastUpdated": "2025-12-20T21:59:29.684Z"
   },
   "claude-code-workflows": {
     "source": {
