@@ -15,11 +15,8 @@ Portable configuration for Claude Code CLI.
 | `output-styles/` | Custom output style definitions |
 | `plugins/` | Plugin configuration and marketplace list |
 
-## Quick Start (Newcomers)
-
-New to Claude Code? Get started in 2 minutes:
+## Quick Start
 
 ```bash
 git clone https://github.com/malston/claude-config.git --branch claudeup ~/.claude
-cd ~/.claude
 ```
