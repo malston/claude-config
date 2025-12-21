@@ -1,5 +1,6 @@
 {
   "includeCoAuthoredBy": false,
+  "model": "default",
   "permissions": {
     "allow": [
       "Bash(python3:*)",
