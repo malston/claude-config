@@ -1,67 +1,11 @@
 {
-  "superpowers-marketplace": {
-    "source": {
-      "source": "github",
-      "repo": "obra/superpowers-marketplace"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/superpowers-marketplace",
-    "lastUpdated": "2025-12-17T02:58:03.597Z"
-  },
   "claude-code-plugins": {
     "source": {
       "source": "github",
       "repo": "anthropics/claude-code"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
-    "lastUpdated": "2025-12-20T21:59:17.434Z"
-  },
-  "awesome-claude-code-plugins": {
-    "source": {
-      "source": "github",
-      "repo": "ccplugins/marketplace"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/awesome-claude-code-plugins",
-    "lastUpdated": "2025-12-17T02:57:40.982Z"
-  },
-  "anthropic-agent-skills": {
-    "source": {
-      "source": "github",
-      "repo": "anthropics/skills"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
-    "lastUpdated": "2025-12-16T23:33:35.835Z"
-  },
-  "tanzu-cf-architect": {
-    "source": {
-      "source": "github",
-      "repo": "malston/tanzu-cf-architect-claude-plugin"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
-    "lastUpdated": "2025-12-17T02:32:30.560Z"
-  },
-  "every-marketplace": {
-    "source": {
-      "source": "git",
-      "url": "https://github.com/EveryInc/compound-engineering-plugin.git"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/every-marketplace",
-    "lastUpdated": "2025-12-16T04:48:52.679Z"
-  },
-  "claude-code-templates": {
-    "source": {
-      "source": "github",
-      "repo": "malston/claude-code-templates"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
-    "lastUpdated": "2025-12-17T02:57:16.982Z"
-  },
-  "thedotmack": {
-    "source": {
-      "source": "github",
-      "repo": "thedotmack/claude-mem"
-    },
-    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/thedotmack",
-    "lastUpdated": "2025-12-16T21:04:21.373Z"
+    "lastUpdated": "2025-12-21T01:52:54.426Z"
   },
   "claude-plugins-official": {
     "source": {
@@ -69,7 +13,63 @@
       "repo": "anthropics/claude-plugins-official"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2025-12-20T21:59:29.684Z"
+    "lastUpdated": "2025-12-21T04:06:01.884Z"
+  },
+  "anthropic-agent-skills": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/skills"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/anthropic-agent-skills",
+    "lastUpdated": "2025-12-21T04:06:05.721Z"
+  },
+  "awesome-claude-code-plugins": {
+    "source": {
+      "source": "github",
+      "repo": "ccplugins/marketplace"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/awesome-claude-code-plugins",
+    "lastUpdated": "2025-12-21T04:06:08.711Z"
+  },
+  "every-marketplace": {
+    "source": {
+      "source": "git",
+      "url": "https://github.com/EveryInc/compound-engineering-plugin.git"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/every-marketplace",
+    "lastUpdated": "2025-12-21T04:06:09.911Z"
+  },
+  "claude-code-templates": {
+    "source": {
+      "source": "github",
+      "repo": "malston/claude-code-templates"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-templates",
+    "lastUpdated": "2025-12-21T04:06:14.720Z"
+  },
+  "tanzu-cf-architect": {
+    "source": {
+      "source": "github",
+      "repo": "malston/tanzu-cf-architect-claude-plugin"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/tanzu-cf-architect",
+    "lastUpdated": "2025-12-21T04:06:17.846Z"
+  },
+  "superpowers-marketplace": {
+    "source": {
+      "source": "github",
+      "repo": "obra/superpowers-marketplace"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/superpowers-marketplace",
+    "lastUpdated": "2025-12-21T04:06:20.557Z"
+  },
+  "thedotmack": {
+    "source": {
+      "source": "github",
+      "repo": "thedotmack/claude-mem"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/thedotmack",
+    "lastUpdated": "2025-12-21T04:06:24.366Z"
   },
   "claude-code-workflows": {
     "source": {
@@ -77,6 +77,6 @@
       "repo": "wshobson/agents"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-workflows",
-    "lastUpdated": "2025-12-16T13:53:54.094Z"
+    "lastUpdated": "2025-12-21T04:06:27.524Z"
   }
 }
