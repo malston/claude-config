@@ -87,6 +87,7 @@
     "command": "~/.claude/scripts/context-bar.sh"
   },
   "enabledPlugins": {
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "conductor@claude-conductor": true
   }
 }
