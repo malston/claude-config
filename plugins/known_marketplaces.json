@@ -46,5 +46,13 @@
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/Mixedbread-Grep",
     "lastUpdated": "2025-12-26T02:24:38.085Z"
+  },
+  "claude-conductor": {
+    "source": {
+      "source": "github",
+      "repo": "claudeup/claude-conductor"
+    },
+    "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-conductor",
+    "lastUpdated": "2025-12-26T19:09:14.868Z"
   }
 }
