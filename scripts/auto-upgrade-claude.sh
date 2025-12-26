@@ -30,7 +30,8 @@ echo "Checking for Claude Code updates..."
 OLD_VERSION=$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
 # Run the upgrade
-UPGRADE_OUTPUT=$(brew upgrade --cask claude-code 2>&1)
+# UPGRADE_OUTPUT=$(brew upgrade --cask claude-code 2>&1)
+UPGRADE_OUTPUT=$(claude update 2>&1)
 
 # Get new version after upgrading
 NEW_VERSION=$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
