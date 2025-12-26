@@ -33,7 +33,7 @@ Automatically upgrades Claude Code and claudeup, then displays the changelog.
 
 **Example output:**
 
-```
+```bash
 Checking for Claude Code updates...
 
 ✨ Claude Code upgraded: 2.0.59 → 2.0.60
@@ -114,6 +114,71 @@ direnv allow
 
 - `direnv` installed: `brew install direnv` (macOS) or `sudo apt-get install direnv` (Ubuntu/Debian)
 - Shell integration: Add `eval "$(direnv hook zsh)"` to `~/.zshrc` (or bash equivalent)
+
+---
+
+### find-mcp-servers.sh
+
+Discovers and displays all MCP server configuration sources across different scopes.
+
+**Usage:**
+
+```bash
+# Run the discovery script
+~/.claude/scripts/find-mcp-servers.sh
+```
+
+**What it does:**
+
+1. Checks user-scoped configuration (`~/.claude.json`)
+2. Checks project-scoped configuration (`.mcp.json` in current directory)
+3. Checks local-scoped configuration (project-specific in `~/.claude.json`)
+4. Checks enterprise managed configuration (system-wide)
+5. Scans installed plugins for bundled MCP servers
+
+**When to use:**
+
+- Troubleshooting: "Why am I seeing these MCP servers?"
+- Documentation: Understanding your MCP server setup
+- Auditing: Verifying which plugins provide which MCP servers
+
+**What it shows:**
+
+For each scope, the script displays:
+- Whether configuration exists
+- Server names and types (stdio, http, sse)
+- Commands or URLs for each server
+- Plugin-bundled servers (inline or in `.mcp.json`)
+
+**Example output:**
+
+```bash
+=== MCP Server Configuration Discovery ===
+
+[1] User Scope (Global)
+    File: ~/.claude.json
+  File exists but no mcpServers configured
+
+[2] Project Scope (Current Project)
+    File: /path/to/project/.mcp.json
+  Not found
+
+[3] Local Scope (Project-Specific in User Config)
+    Path: Project-specific entries in ~/.claude.json
+  No local-scoped servers for this project
+
+[4] Enterprise Managed (System-Wide)
+    File: /Library/Application Support/ClaudeCode/managed-mcp.json
+  Not configured
+
+[5] Installed Plugins
+    Checking: /Users/you/.claude/plugins
+
+  Plugin: my-plugin
+    Inline MCP servers in plugin.json:
+      - server-name-1
+      - server-name-2
+```
 
 ---
 
