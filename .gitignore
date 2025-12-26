@@ -38,6 +38,7 @@ plugins/*.local.json
 
 # CLI-managed state (don't commit)
 plugins/known_marketplaces.json
+chrome/chrome-native-host
 
 # Local node modules and runtime
 local/
