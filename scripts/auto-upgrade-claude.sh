@@ -5,7 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LAST_CHECK_FILE="$SCRIPT_DIR/../.last_brew_check"
+LAST_CHECK_FILE="$SCRIPT_DIR/../.last_claude_update_check"
 
 # Parse arguments
 FORCE=false
@@ -30,7 +30,6 @@ echo "Checking for Claude Code updates..."
 OLD_VERSION=$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
 # Run the upgrade
-# UPGRADE_OUTPUT=$(brew upgrade --cask claude-code 2>&1)
 UPGRADE_OUTPUT=$(claude update 2>&1)
 
 # Get new version after upgrading
