@@ -12,6 +12,7 @@ security_warnings_state_*.json
 .claude.json
 .envrc
 .last_brew_check
+.last_claude_update_check
 .last_plugin_check
 notifications.log
 .credentials.json
