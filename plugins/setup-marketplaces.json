@@ -11,26 +11,6 @@
       "repo": "obra/superpowers-marketplace",
       "description": "Productivity toolkit by Jesse Vincent",
       "essential": true
-    },
-    "awesome-claude-code-plugins": {
-      "source": "github",
-      "repo": "ccplugins/marketplace",
-      "description": "Community contributed plugins"
-    },
-    "every-marketplace": {
-      "source": "git",
-      "url": "https://github.com/EveryInc/compound-engineering-plugin.git",
-      "description": "Compound Engineering tools"
-    },
-    "anthropic-agent-skills": {
-      "source": "github",
-      "repo": "anthropics/skills",
-      "description": "Example agent patterns"
-    },
-    "claude-code-templates": {
-      "source": "github",
-      "repo": "malston/claude-code-templates",
-      "description": "DevOps and web development templates"
     }
   }
 }
