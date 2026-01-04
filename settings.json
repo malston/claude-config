@@ -50,15 +50,6 @@
             "command": "~/.claude/hooks/markdown_formatter.py"
           }
         ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.ts$'; then npx prettier --write \"$file_path\"; fi; }"
-          }
-        ]
       }
     ],
     "PreToolUse": [
@@ -87,7 +78,10 @@
     "command": "~/.claude/scripts/context-bar.sh"
   },
   "enabledPlugins": {
+    "claude-mem@thedotmack": true,
+    "conductor@claude-conductor": true,
+    "elements-of-style@superpowers-marketplace": true,
     "gopls-lsp@claude-plugins-official": true,
-    "conductor@claude-conductor": true
+    "superpowers@superpowers-marketplace": true
   }
 }
