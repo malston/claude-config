@@ -59,13 +59,13 @@ Run Claude Code in a containerized environment with pre-configured settings:
 
 ```bash
 # Build the image
-docker build -t claude-code:latest .
+docker-compose build
 
-# Run interactively
-docker run -it --rm -v $(pwd)/workspace:/home/claude/workspace claude-code:latest /bin/bash
+# Run Claude (setup runs automatically on first start)
+docker-compose run --rm claude
 ```
 
-For complete Docker documentation, build options, and usage examples, see [docs/DOCKER.md](docs/DOCKER.md).
+Setup runs automatically on first container start, installing all configured marketplaces and plugins. For complete Docker documentation, build options, and usage examples, see [docs/DOCKER.md](docs/DOCKER.md).
 
 ## Managing Context Usage
 
