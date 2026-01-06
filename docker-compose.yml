@@ -17,11 +17,12 @@ services:
       # Persist setup state (avoids re-running setup on each container start)
       - claude-state:/home/claude/.claude-state
 
+      # Persist Claude config, marketplaces, and plugins across container restarts
+      # On first run, Docker copies image content into empty volume
+      - claude-config:/home/claude/.claude
+
       # Optional: Mount secrets (uncomment if using)
       # - ./config/.env:/home/claude/.claude/config/.env:ro
-
-      # Optional: Persist plugin data across rebuilds
-      # - claude-plugins:/home/claude/.claude/plugins
 
     # Environment variables
     environment:
@@ -54,4 +55,4 @@ services:
 # Named volumes for persistent data
 volumes:
   claude-state:
-  # claude-plugins:
+  claude-config:
