@@ -460,14 +460,27 @@ docker-compose run --rm claude /bin/bash
 
 ## Maintenance
 
-### Rebuild After Config Changes
+### When to Rebuild
+
+**Use `docker-compose build` (with cache)** for:
+- Changes to `docker-compose.yml` (volumes, environment variables)
+- Changes to override files (`docker-compose.auth.yml`, etc.)
+
+**Use `docker-compose build --no-cache`** for:
+- Changes to `Dockerfile`
+- Changes to files copied INTO the image:
+  - `docker-entrypoint.sh`
+  - `setup.sh`
+  - `plugins/docker-profile.json`
+  - Any file in the `.claude/` directory
+- Updating base image or dependencies
 
 ```bash
-# Rebuild image
-docker-compose build --no-cache
+# With cache (fast, for compose config changes)
+docker-compose build
 
-# Or with Docker
-docker build --no-cache -t claude-code:latest .
+# Without cache (slow, for Dockerfile/entrypoint changes)
+docker-compose build --no-cache
 ```
 
 ### Update Plugins
