@@ -208,18 +208,36 @@ def cmd_add(category: str, source_path: str) -> None:
     if category not in config:
         config[category] = {}
 
-    # Check if source is a directory containing multiple items
+    # Determine if source is a single item or a container of multiple items
     items_to_add = []
     if source.is_dir():
         children = [c for c in source.iterdir() if not c.name.startswith(".")]
-        # If directory contains subdirs or .md files, add each individually
-        has_subdirs = any(c.is_dir() for c in children)
-        has_md_files = any(c.suffix == ".md" for c in children)
-        if has_subdirs or has_md_files:
-            items_to_add = children
-        else:
-            # Single item (directory)
+
+        # Check if source itself is a single item:
+        # - For skills: directory contains SKILL.md
+        # - For agents: directory contains .md files (agent definitions)
+        # - For commands/rules/output-styles: would be a .md file, not a directory
+        is_single_skill = category == "skills" and (source / "SKILL.md").exists()
+        is_single_agent = category == "agents" and any(c.suffix == ".md" for c in children)
+
+        if is_single_skill or is_single_agent:
+            # Source is a single item
             items_to_add = [source]
+        else:
+            # Check if children look like items to add individually
+            child_dirs = [c for c in children if c.is_dir()]
+            child_mds = [c for c in children if c.suffix == ".md"]
+
+            if category == "skills":
+                # Add child directories that contain SKILL.md
+                skill_dirs = [c for c in child_dirs if (c / "SKILL.md").exists()]
+                items_to_add = skill_dirs if skill_dirs else [source]
+            elif category == "agents":
+                # Add child directories (agent groups)
+                items_to_add = child_dirs if child_dirs else [source]
+            else:
+                # commands, rules, output-styles: add .md files and directories
+                items_to_add = child_dirs + child_mds if (child_dirs or child_mds) else [source]
     else:
         # Single item (file)
         items_to_add = [source]
