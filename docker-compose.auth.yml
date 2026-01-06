@@ -1,0 +1,7 @@
+# ABOUTME: Override file to mount host Claude credentials into container
+# ABOUTME: Use with: docker-compose -f docker-compose.yml -f docker-compose.auth.yml run --rm claude
+
+services:
+  claude:
+    volumes:
+      - ~/.claude.json:/home/claude/.claude.json:ro

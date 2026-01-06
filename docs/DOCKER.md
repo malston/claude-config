@@ -67,15 +67,23 @@ Set these in `docker-compose.yml` or pass with `-e`:
 
 ### Authentication
 
-To avoid re-authenticating Claude Code on each container start, mount your host's credentials file:
+To avoid re-authenticating Claude Code on each container start, use the auth override file:
 
-```yaml
-# Uncomment in docker-compose.yml
-volumes:
-  - ~/.claude.json:/home/claude/.claude.json:ro
+```bash
+# With credentials (uses ~/.claude.json from host)
+docker-compose -f docker-compose.yml -f docker-compose.auth.yml run --rm claude
+
+# Without credentials (will prompt for login)
+docker-compose run --rm claude
 ```
 
-This mounts your existing authentication tokens (read-only) into the container.
+Or create a shell alias for convenience:
+
+```bash
+alias claude-docker='docker-compose -f docker-compose.yml -f docker-compose.auth.yml run --rm claude'
+```
+
+The override file (`docker-compose.auth.yml`) mounts your `~/.claude.json` read-only into the container.
 
 ### Secrets and Private Config
 

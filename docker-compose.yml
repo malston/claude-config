@@ -21,9 +21,6 @@ services:
       # On first run, Docker copies image content into empty volume
       - claude-config:/home/claude/.claude
 
-      # Optional: Mount host Claude credentials to avoid re-authenticating
-      # - ~/.claude.json:/home/claude/.claude.json:ro
-
       # Optional: Mount secrets (uncomment if using)
       # - ./config/.env:/home/claude/.claude/config/.env:ro
 
