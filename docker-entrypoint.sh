@@ -15,6 +15,19 @@ if [ -n "$GITHUB_TOKEN" ]; then
     git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 fi
 
+# Clone dotfiles if repo is set and directory is empty
+if [ -n "$DOTFILES_REPO" ] && [ -z "$(ls -A ~/dotfiles 2>/dev/null)" ]; then
+    echo "Cloning dotfiles from $DOTFILES_REPO (branch: ${DOTFILES_BRANCH:-main})..."
+    git clone --branch "${DOTFILES_BRANCH:-main}" "$DOTFILES_REPO" ~/dotfiles
+    echo "  ✓ Dotfiles cloned to ~/dotfiles"
+
+    # Run install script if it exists
+    if [ -f ~/dotfiles/install.sh ]; then
+        echo "Running dotfiles install script..."
+        cd ~/dotfiles && ./install.sh
+    fi
+fi
+
 # Use persistent state directory if available, otherwise fall back to home
 STATE_DIR="$HOME/.claude-state"
 if [ -d "$STATE_DIR" ]; then

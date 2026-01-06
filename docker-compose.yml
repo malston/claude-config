@@ -24,8 +24,8 @@ services:
       # Optional: Mount secrets (uncomment if using)
       # - ./config/.env:/home/claude/.claude/config/.env:ro
 
-      # Optional: Mount host dotfiles (uncomment and adjust path)
-      # - ~/my-dotfiles:/home/claude/dotfiles
+      # Persist dotfiles across container restarts (cloned on first run if DOTFILES_REPO is set)
+      - claude-dotfiles:/home/claude/dotfiles
 
     # Environment variables
     environment:
@@ -48,6 +48,10 @@ services:
       # Get your key at: https://context7.com
       - CONTEXT7_API_KEY=${CONTEXT7_API_KEY}
 
+      # Optional: Clone dotfiles repo into container on first run
+      - DOTFILES_REPO=${DOTFILES_REPO}
+      - DOTFILES_BRANCH=${DOTFILES_BRANCH:-linux}
+
     # Keep container running for interactive use
     stdin_open: true
     tty: true
@@ -62,3 +66,4 @@ services:
 volumes:
   claude-state:
   claude-config:
+  claude-dotfiles:
