@@ -41,9 +41,10 @@ RUN curl -fsSL https://bun.sh/install | bash && \
 # Install 1Password CLI (optional, for MCP secrets)
 ARG INSTALL_1PASSWORD=false
 RUN if [ "$INSTALL_1PASSWORD" = "true" ]; then \
+    ARCH=$(dpkg --print-architecture) && \
     curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
       gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && \
-    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' | \
+    echo "deb [arch=${ARCH} signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/${ARCH} stable main" | \
       tee /etc/apt/sources.list.d/1password.list && \
     apt-get update && \
     apt-get install -y 1password-cli && \
