@@ -14,7 +14,16 @@ GIT_CACHE_FILE="/tmp/claude-statusline-git-cache-$$"
 C_RESET='\033[0m'
 C_GRAY='\033[38;5;245m'
 C_DIM='\033[38;5;240m'
+C_WHITE='\033[38;5;252m'
 C_BAR_EMPTY='\033[38;5;238m'
+
+# Semantic colors
+C_CLEAN='\033[38;5;71m'    # green - clean/synced state
+C_DIRTY='\033[38;5;173m'   # orange - uncommitted changes
+C_WARN='\033[38;5;136m'    # gold - behind/diverged
+C_COST='\033[38;5;139m'    # lavender - cost display
+
+# Theme accent color
 case "$COLOR" in
     orange)   C_ACCENT='\033[38;5;173m' ;;
     blue)     C_ACCENT='\033[38;5;74m' ;;
@@ -59,6 +68,8 @@ cost_usd=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
 
 # --- Git Status with Caching ---
+# Returns: branch|file_count|file_info|sync_state|sync_text
+# sync_state: synced, ahead, behind, diverged, none
 get_git_status() {
     local cwd="$1"
     local cache_file="${GIT_CACHE_FILE}-${cwd//\//_}"
@@ -75,15 +86,22 @@ get_git_status() {
 
     # Generate fresh git status
     local branch=""
-    local git_status=""
+    local file_count=0
+    local file_info=""
+    local sync_state="none"
+    local sync_text=""
 
     branch=$(git -C "$cwd" branch --show-current 2>/dev/null)
     if [[ -n "$branch" ]]; then
         # Count uncommitted files
-        local file_count=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | wc -l | tr -d ' ')
+        file_count=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | wc -l | tr -d ' ')
+
+        # Get single filename if only one file
+        if [[ "$file_count" -eq 1 ]]; then
+            file_info=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | head -1 | sed 's/^...//')
+        fi
 
         # Check sync status with upstream
-        local sync_status=""
         local upstream=$(git -C "$cwd" rev-parse --abbrev-ref @{upstream} 2>/dev/null)
         if [[ -n "$upstream" ]]; then
             # Get last fetch time
@@ -94,13 +112,13 @@ get_git_status() {
                 if [[ -n "$fetch_time" ]]; then
                     local diff=$((now - fetch_time))
                     if [[ $diff -lt 60 ]]; then
-                        fetch_ago="<1m ago"
+                        fetch_ago="<1m"
                     elif [[ $diff -lt 3600 ]]; then
-                        fetch_ago="$((diff / 60))m ago"
+                        fetch_ago="$((diff / 60))m"
                     elif [[ $diff -lt 86400 ]]; then
-                        fetch_ago="$((diff / 3600))h ago"
+                        fetch_ago="$((diff / 3600))h"
                     else
-                        fetch_ago="$((diff / 86400))d ago"
+                        fetch_ago="$((diff / 86400))d"
                     fi
                 fi
             fi
@@ -109,51 +127,40 @@ get_git_status() {
             local ahead=$(echo "$counts" | cut -f1)
             local behind=$(echo "$counts" | cut -f2)
             if [[ "$ahead" -eq 0 && "$behind" -eq 0 ]]; then
-                if [[ -n "$fetch_ago" ]]; then
-                    sync_status="synced ${fetch_ago}"
-                else
-                    sync_status="synced"
-                fi
+                sync_state="synced"
+                sync_text="✓${fetch_ago:+ $fetch_ago}"
             elif [[ "$ahead" -gt 0 && "$behind" -eq 0 ]]; then
-                sync_status="${ahead} ahead"
+                sync_state="ahead"
+                sync_text="↑${ahead}"
             elif [[ "$ahead" -eq 0 && "$behind" -gt 0 ]]; then
-                sync_status="${behind} behind"
+                sync_state="behind"
+                sync_text="↓${behind}"
             else
-                sync_status="${ahead} ahead, ${behind} behind"
+                sync_state="diverged"
+                sync_text="↑${ahead}↓${behind}"
             fi
-        else
-            sync_status="no upstream"
-        fi
-
-        # Build git status string
-        if [[ "$file_count" -eq 0 ]]; then
-            git_status="(0 files uncommitted, ${sync_status})"
-        elif [[ "$file_count" -eq 1 ]]; then
-            local single_file=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | head -1 | sed 's/^...//')
-            git_status="(${single_file} uncommitted, ${sync_status})"
-        else
-            git_status="(${file_count} files uncommitted, ${sync_status})"
         fi
     fi
 
-    # Write to cache
+    # Write to cache (pipe-delimited for easy parsing)
+    local result="${branch}|${file_count}|${file_info}|${sync_state}|${sync_text}"
     {
         echo "$now"
-        echo "$branch"
-        echo "$git_status"
+        echo "$result"
     } > "$cache_file"
 
-    echo "$branch"
-    echo "$git_status"
+    echo "$result"
 }
 
 # Get cached git status
 branch=""
-git_status=""
+file_count=0
+file_info=""
+sync_state=""
+sync_text=""
 if [[ -n "$cwd" && -d "$cwd" ]]; then
-    git_output=$(get_git_status "$cwd")
-    branch=$(echo "$git_output" | head -1)
-    git_status=$(echo "$git_output" | tail -1)
+    git_data=$(get_git_status "$cwd")
+    IFS='|' read -r branch file_count file_info sync_state sync_text <<< "$git_data"
 fi
 
 # --- Build Context Bar ---
@@ -185,29 +192,53 @@ cost_display=""
 if [[ "$cost_usd" != "0" && "$cost_usd" != "null" ]]; then
     # Format cost nicely (show cents for small amounts)
     if (( $(echo "$cost_usd < 0.01" | bc -l) )); then
-        cost_display=" ${C_DIM}|${C_RESET} ${C_GRAY}<\$0.01"
+        cost_display=" ${C_DIM}|${C_RESET} ${C_COST}<\$0.01"
     elif (( $(echo "$cost_usd < 1" | bc -l) )); then
         cost_cents=$(printf "%.0f" $(echo "$cost_usd * 100" | bc -l))
-        cost_display=" ${C_DIM}|${C_RESET} ${C_GRAY}${cost_cents}¢"
+        cost_display=" ${C_DIM}|${C_RESET} ${C_COST}${cost_cents}¢"
     else
         cost_formatted=$(printf "%.2f" "$cost_usd")
-        cost_display=" ${C_DIM}|${C_RESET} ${C_GRAY}\$${cost_formatted}"
+        cost_display=" ${C_DIM}|${C_RESET} ${C_COST}\$${cost_formatted}"
+    fi
+fi
+
+# --- Build Git Status Display ---
+git_display=""
+if [[ -n "$branch" ]]; then
+    # Branch name in accent color
+    git_display="${C_ACCENT}${branch}${C_RESET}"
+
+    # File count with semantic color
+    if [[ "$file_count" -eq 0 ]]; then
+        git_display+=" ${C_CLEAN}✓${C_RESET}"
+    elif [[ "$file_count" -eq 1 ]]; then
+        git_display+=" ${C_DIRTY}*${file_info}${C_RESET}"
+    else
+        git_display+=" ${C_DIRTY}*${file_count}${C_RESET}"
+    fi
+
+    # Sync status with semantic color
+    if [[ -n "$sync_text" ]]; then
+        case "$sync_state" in
+            synced)   git_display+=" ${C_CLEAN}${sync_text}${C_RESET}" ;;
+            ahead)    git_display+=" ${C_ACCENT}${sync_text}${C_RESET}" ;;
+            behind)   git_display+=" ${C_WARN}${sync_text}${C_RESET}" ;;
+            diverged) git_display+=" ${C_WARN}${sync_text}${C_RESET}" ;;
+        esac
     fi
 fi
 
 # --- Build Output ---
-output="${C_ACCENT}${model}${C_GRAY} | ${dir}"
-[[ -n "$branch" ]] && output+=" | ${branch} ${git_status}"
-output+=" | ${ctx}${cost_display}${C_RESET}"
+output="${C_ACCENT}${model}${C_RESET} ${C_DIM}|${C_RESET} ${C_WHITE}${dir}${C_RESET}"
+[[ -n "$git_display" ]] && output+=" ${C_DIM}|${C_RESET} ${git_display}"
+output+=" ${C_DIM}|${C_RESET} ${ctx}${cost_display}${C_RESET}"
 
 printf '%b\n' "$output"
 
 # --- Optional: Last User Message (second line) ---
 if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
-    # Calculate max length for truncation
-    plain_output="${model} | ${dir}"
-    [[ -n "$branch" ]] && plain_output+=" | ${branch} ${git_status}"
-    plain_output+=" | xxxxxxxxxx ${pct}% of ${max_k}k"
+    # Calculate max length for truncation (rough estimate)
+    plain_output="${model} | ${dir} | ${branch} *${file_count} ${sync_text} | xxxxxxxxxx ${pct}% of ${max_k}k"
     max_len=${#plain_output}
 
     last_user_msg=$(jq -rs '
