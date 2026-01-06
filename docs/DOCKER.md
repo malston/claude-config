@@ -352,6 +352,64 @@ docker run --rm -it claude-test /bin/bash
 claudeup doctor
 ```
 
+## Testing Changes
+
+When modifying Docker configuration, follow this workflow to test from a clean state:
+
+### 1. Clean Up Existing State
+
+```bash
+# Stop any running containers and remove volumes
+docker-compose down -v
+
+# Verify volume is removed (compose prefixes with project name)
+docker volume ls | grep claude
+# Should not show: claude_claude-state
+```
+
+### 2. Rebuild the Image
+
+```bash
+# Rebuild with no cache to ensure changes are picked up
+docker-compose build --no-cache
+
+# Or with Docker directly
+docker build --no-cache -t claude-code:latest .
+```
+
+### 3. Test Fresh Setup
+
+```bash
+# Run and verify automatic setup executes
+docker-compose run --rm claude /bin/bash
+
+# You should see "First run detected - running setup..."
+# followed by setup.sh output and claudeup setup output
+```
+
+### 4. Test Subsequent Runs
+
+```bash
+# Run again - setup should be skipped (marker file persisted)
+docker-compose run --rm claude /bin/bash
+
+# Should NOT see "First run detected..."
+# Should go directly to bash prompt
+```
+
+### Common Issues
+
+**Setup runs every time:**
+- Volume not persisting - check `docker volume ls | grep claude`
+- Wrong volume name - compose uses `<project>_<volume>` format
+
+**Setup doesn't run at all:**
+- Stale marker file in volume - run `docker-compose down -v` to reset
+
+**Changes not taking effect:**
+- Image not rebuilt - run `docker-compose build --no-cache`
+- Using cached layers - ensure you're building the right context
+
 ## Maintenance
 
 ### Rebuild After Config Changes
