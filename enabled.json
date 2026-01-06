@@ -4,7 +4,16 @@
     "code-reviewer": true,
     "commit-helper": true,
     "frontend-web-dev": true,
-    "security-lens": true
+    "security-lens": true,
+    "skills": true,
+    "terraform": true,
+    "python": true,
+    "golang": true,
+    "typescript": true,
+    "bash": true,
+    "cloud": true,
+    "kubernetes": true,
+    "clean-architecture": true
   },
   "commands": {
     "cl": true,

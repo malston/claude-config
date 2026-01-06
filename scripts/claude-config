@@ -185,7 +185,13 @@ def cmd_disable(category: str, item: str) -> None:
 
 
 def cmd_add(category: str, source_path: str) -> None:
-    """Add a new item to the library from a source path."""
+    """Add a new item to the library from a source path.
+
+    If source is a directory containing multiple items (subdirs or .md files),
+    adds each item individually. Otherwise adds the source as a single item.
+    """
+    import shutil
+
     if category not in CATEGORIES:
         print(f"Unknown category: {category}")
         sys.exit(1)
@@ -198,27 +204,52 @@ def cmd_add(category: str, source_path: str) -> None:
     lib_dir = LIBRARY_DIR / category
     lib_dir.mkdir(parents=True, exist_ok=True)
 
-    target = lib_dir / source.name
-    if target.exists():
-        print(f"Item already exists: {category}/{source.name}")
-        sys.exit(1)
-
-    # Copy or move based on whether it's a file or directory
-    import shutil
-    if source.is_dir():
-        shutil.copytree(source, target)
-    else:
-        shutil.copy2(source, target)
-
-    # Enable by default
     config = load_config()
     if category not in config:
         config[category] = {}
-    config[category][source.name] = True
+
+    # Check if source is a directory containing multiple items
+    items_to_add = []
+    if source.is_dir():
+        children = [c for c in source.iterdir() if not c.name.startswith(".")]
+        # If directory contains subdirs or .md files, add each individually
+        has_subdirs = any(c.is_dir() for c in children)
+        has_md_files = any(c.suffix == ".md" for c in children)
+        if has_subdirs or has_md_files:
+            items_to_add = children
+        else:
+            # Single item (directory)
+            items_to_add = [source]
+    else:
+        # Single item (file)
+        items_to_add = [source]
+
+    added_count = 0
+    skipped_count = 0
+
+    for item in items_to_add:
+        target = lib_dir / item.name
+        if target.exists():
+            print(f"  Skipped (exists): {category}/{item.name}")
+            skipped_count += 1
+            continue
+
+        if item.is_dir():
+            shutil.copytree(item, target)
+        else:
+            shutil.copy2(item, target)
+
+        config[category][item.name] = True
+        added_count += 1
+        print(f"  Added: {category}/{item.name}")
+
     save_config(config)
     sync_category(category, config)
 
-    print(f"Added and enabled: {category}/{source.name}")
+    if added_count > 0:
+        print(f"Added and enabled {added_count} items in {category}/")
+    if skipped_count > 0:
+        print(f"Skipped {skipped_count} existing items")
 
 
 def print_usage() -> None:
