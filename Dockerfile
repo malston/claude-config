@@ -68,8 +68,8 @@ ENV PATH="/home/claude/.local/bin:/home/claude/.bun/bin:${PATH}"
 # Copy Claude Code configuration
 COPY --chown=claude:claude . /home/claude/.claude/
 
-# Create workspace directory
-RUN mkdir -p /home/claude/workspace
+# Create workspace and state directories
+RUN mkdir -p /home/claude/workspace /home/claude/.claude-state
 WORKDIR /home/claude/workspace
 
 # Entrypoint runs setup on first start, then executes command
