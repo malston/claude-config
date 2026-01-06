@@ -17,6 +17,10 @@ fi
 
 # Clone dotfiles if repo is set and directory is empty
 if [ -n "$DOTFILES_REPO" ] && [ -z "$(ls -A ~/dotfiles 2>/dev/null)" ]; then
+    # Ensure dotfiles directory is owned by claude user (volume may be created as root)
+    if [ -d ~/dotfiles ] && [ ! -w ~/dotfiles ]; then
+        sudo chown -R claude:claude ~/dotfiles
+    fi
     echo "Cloning dotfiles from $DOTFILES_REPO (branch: ${DOTFILES_BRANCH:-main})..."
     git clone --branch "${DOTFILES_BRANCH:-main}" "$DOTFILES_REPO" ~/dotfiles
     echo "  ✓ Dotfiles cloned to ~/dotfiles"
