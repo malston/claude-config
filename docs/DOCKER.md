@@ -111,6 +111,21 @@ If you have private marketplaces in `plugins/setup-marketplaces.local.json`:
 
 ## Persistence
 
+### Setup State
+
+The `claude-state` volume automatically persists setup completion state, so setup only runs once even with `--rm`:
+
+```yaml
+volumes:
+  - claude-state:/home/claude/.claude-state
+```
+
+To force re-running setup, remove the volume:
+
+```bash
+docker volume rm claude_claude-state
+```
+
 ### Persist Plugin Data Across Rebuilds
 
 Uncomment the volume in `docker-compose.yml`:
@@ -196,28 +211,22 @@ MCP tools use ~53k tokens (26% of context) with all plugins enabled. See the mai
 
 ## Troubleshooting
 
-### Build Fails During Setup
+### Setup Fails on First Run
 
-If `setup.sh` fails during build (e.g., private marketplace not accessible):
+If setup fails (e.g., private marketplace not accessible), you can:
 
-**Option 1:** Skip setup during build, run manually:
-
-```dockerfile
-# Comment out the RUN setup.sh line
-# RUN SETUP_MODE=auto ./setup.sh
-```
-
-Then run setup inside the container:
+**Option 1:** Run setup manually with different options:
 
 ```bash
-docker run -it claude-code:latest /bin/bash
-cd ~/.claude && ./setup.sh
+docker-compose run --rm claude /bin/bash
+cd ~/.claude && SETUP_MODE=interactive ./setup.sh
 ```
 
-**Option 2:** Build with `--network host` for access to private repos:
+**Option 2:** Force re-run setup after fixing the issue:
 
 ```bash
-docker build --network host -t claude-code:latest .
+docker volume rm claude_claude-state
+docker-compose run --rm claude
 ```
 
 ### Plugin Installation Fails
@@ -399,6 +408,7 @@ docker-compose down
 # Remove image
 docker rmi claude-code:latest
 
-# Remove volumes
-docker volume rm claude-code_claude-plugins
+# Remove volumes (reset setup state)
+docker volume rm claude_claude-state
+# docker volume rm claude_claude-plugins  # if using plugin persistence
 ```
