@@ -4,6 +4,17 @@
 
 set -e
 
+# Always configure git identity if env vars are set (not persisted in volume)
+if [ -n "$GIT_USER_NAME" ]; then
+    git config --global user.name "$GIT_USER_NAME"
+fi
+if [ -n "$GIT_USER_EMAIL" ]; then
+    git config --global user.email "$GIT_USER_EMAIL"
+fi
+if [ -n "$GITHUB_TOKEN" ]; then
+    git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+fi
+
 # Use persistent state directory if available, otherwise fall back to home
 STATE_DIR="$HOME/.claude-state"
 if [ -d "$STATE_DIR" ]; then
