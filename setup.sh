@@ -533,59 +533,62 @@ echo "To install plugins: claude plugin install <plugin>@<marketplace>"
 echo "To list plugins:    claude plugin marketplace list"
 echo ""
 
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Auto-update Configuration"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-
-# Check if direnv is installed
-if command -v direnv &> /dev/null; then
-    echo "✓ direnv detected"
+# Auto-update configuration (interactive mode only)
+if [ "$SETUP_MODE" = "interactive" ]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Auto-update Configuration"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
-    echo "Would you like to enable automatic daily updates?"
-    echo "  • Claude Code version checks"
-    echo "  • Plugin and marketplace updates"
-    echo ""
-    read -r -p "Add auto-update scripts to .envrc? [Y/n] " response
 
-    case $response in
-        [nN][oO]|[nN])
-            echo "Skipping auto-update configuration"
-            ;;
-        *)
-            # Create or append to .envrc
-            ENVRC_FILE="$SCRIPT_DIR/.envrc"
+    # Check if direnv is installed
+    if command -v direnv &> /dev/null; then
+        echo "✓ direnv detected"
+        echo ""
+        echo "Would you like to enable automatic daily updates?"
+        echo "  • Claude Code version checks"
+        echo "  • Plugin and marketplace updates"
+        echo ""
+        read -r -p "Add auto-update scripts to .envrc? [Y/n] " response
 
-            if [ ! -f "$ENVRC_FILE" ]; then
-                echo "# Claude Code auto-updates" > "$ENVRC_FILE"
-            fi
+        case $response in
+            [nN][oO]|[nN])
+                echo "Skipping auto-update configuration"
+                ;;
+            *)
+                # Create or append to .envrc
+                ENVRC_FILE="$SCRIPT_DIR/.envrc"
 
-            # Add auto-upgrade-claude.sh if not already present
-            if ! grep -q "auto-upgrade-claude.sh" "$ENVRC_FILE"; then
-                echo "" >> "$ENVRC_FILE"
-                echo "# Auto-upgrade Claude Code and claudeup daily" >> "$ENVRC_FILE"
-                echo 'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"' >> "$ENVRC_FILE"
-                echo '"$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" &' >> "$ENVRC_FILE"
-            fi
+                if [ ! -f "$ENVRC_FILE" ]; then
+                    echo "# Claude Code auto-updates" > "$ENVRC_FILE"
+                fi
 
-            # Add auto-update-plugins.sh if not already present
-            if ! grep -q "auto-update-plugins.sh" "$ENVRC_FILE"; then
-                echo "" >> "$ENVRC_FILE"
-                echo "# Auto-update plugins and marketplaces daily" >> "$ENVRC_FILE"
-                echo '"$SCRIPT_DIR/scripts/auto-update-plugins.sh"' >> "$ENVRC_FILE"
-            fi
+                # Add auto-upgrade-claude.sh if not already present
+                if ! grep -q "auto-upgrade-claude.sh" "$ENVRC_FILE"; then
+                    echo "" >> "$ENVRC_FILE"
+                    echo "# Auto-upgrade Claude Code and claudeup daily" >> "$ENVRC_FILE"
+                    echo 'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"' >> "$ENVRC_FILE"
+                    echo '"$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" &' >> "$ENVRC_FILE"
+                fi
 
-            echo "✓ Added auto-update scripts to .envrc"
-            echo ""
-            echo "Run 'direnv allow .' to enable"
-            ;;
-    esac
-else
-    echo "⚠ direnv not installed"
-    echo ""
-    echo "To enable automatic daily updates:"
-    echo "  1. Install direnv:"
-    show_direnv_install
-    echo "  2. Add to shell: eval \"\$(direnv hook zsh)\"  # or bash"
-    echo "  3. Re-run: ./setup.sh"
+                # Add auto-update-plugins.sh if not already present
+                if ! grep -q "auto-update-plugins.sh" "$ENVRC_FILE"; then
+                    echo "" >> "$ENVRC_FILE"
+                    echo "# Auto-update plugins and marketplaces daily" >> "$ENVRC_FILE"
+                    echo '"$SCRIPT_DIR/scripts/auto-update-plugins.sh"' >> "$ENVRC_FILE"
+                fi
+
+                echo "✓ Added auto-update scripts to .envrc"
+                echo ""
+                echo "Run 'direnv allow .' to enable"
+                ;;
+        esac
+    else
+        echo "⚠ direnv not installed"
+        echo ""
+        echo "To enable automatic daily updates:"
+        echo "  1. Install direnv:"
+        show_direnv_install
+        echo "  2. Add to shell: eval \"\$(direnv hook zsh)\"  # or bash"
+        echo "  3. Re-run: ./setup.sh"
+    fi
 fi
