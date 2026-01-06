@@ -4,7 +4,13 @@
 
 set -e
 
-MARKER_FILE="$HOME/.claude-setup-complete"
+# Use persistent state directory if available, otherwise fall back to home
+STATE_DIR="$HOME/.claude-state"
+if [ -d "$STATE_DIR" ]; then
+    MARKER_FILE="$STATE_DIR/.setup-complete"
+else
+    MARKER_FILE="$HOME/.claude-setup-complete"
+fi
 
 # Run setup if not already done
 if [ ! -f "$MARKER_FILE" ]; then

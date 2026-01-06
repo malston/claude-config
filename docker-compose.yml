@@ -14,6 +14,9 @@ services:
       # Mount your workspace directory (default: ~/workspace, override with WORKSPACE env var)
       - ${WORKSPACE:-~/workspace}:/home/claude/workspace
 
+      # Persist setup state (avoids re-running setup on each container start)
+      - claude-state:/home/claude/.claude-state
+
       # Optional: Mount secrets (uncomment if using)
       # - ./config/.env:/home/claude/.claude/config/.env:ro
 
@@ -48,6 +51,7 @@ services:
     # Network mode
     network_mode: bridge
 
-# Optional: Named volumes for persistent data
-# volumes:
-#   claude-plugins:
+# Named volumes for persistent data
+volumes:
+  claude-state:
+  # claude-plugins:
