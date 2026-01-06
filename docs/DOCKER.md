@@ -27,7 +27,7 @@ The 1Password CLI is optional and only needed if you use MCP servers that requir
 docker-compose run --rm claude /bin/bash
 
 # First time: run setup inside the container
-cd ~/.claude && SETUP_MODE=auto ./setup.sh
+cd ~/.claude && ./setup.sh
 
 # Then start Claude (I usually pass this flag when I'm running in a docker container)
 claude --dangerously-skip-permissions
@@ -44,7 +44,7 @@ docker run -it --rm \
   claude-code:latest
 
 # Inside the container, run setup on first use:
-cd ~/.claude && SETUP_MODE=auto ./setup.sh
+cd ~/.claude && ./setup.sh
 
 # Then start Claude
 claude
@@ -73,8 +73,8 @@ docker run -it --rm \
 
 Set these in `docker-compose.yml` or pass with `-e`:
 
-- `SETUP_MODE=auto` - Install all configured plugins automatically
-- `SETUP_MODE=interactive` - Guided setup (requires TTY)
+- `SETUP_MODE=auto` (default) - Install all configured plugins automatically
+- `SETUP_MODE=interactive` - Guided setup (requires TTY, not recommended)
 - `ANTHROPIC_API_KEY` - Your Anthropic API key
 - `GITHUB_TOKEN` - GitHub personal access token for cloning plugin marketplaces (optional but recommended)
 - `CONTEXT7_API_KEY` - Context7 API key for documentation MCP server (optional)
@@ -147,7 +147,7 @@ volumes:
 
 ### Interactive Mode
 
-For guided setup during first run:
+Auto mode is recommended and is now the default. Interactive mode is available but less reliable:
 
 ```yaml
 environment:
@@ -159,7 +159,7 @@ Then start with:
 ```bash
 docker-compose run --rm claude /bin/bash
 # Inside container:
-cd ~/.claude && ./setup.sh
+cd ~/.claude && SETUP_MODE=interactive ./setup.sh
 ```
 
 ### Add Additional Tools
@@ -213,7 +213,7 @@ Then run setup inside the container:
 
 ```bash
 docker run -it claude-code:latest /bin/bash
-cd ~/.claude && SETUP_MODE=auto ./setup.sh
+cd ~/.claude && ./setup.sh
 ```
 
 **Option 2:** Build with `--network host` for access to private repos:
@@ -254,7 +254,7 @@ docker-compose run --rm claude cat ~/.claude/config/.env
 
 ### Container Exits Immediately
 
-The default CMD is `claude --help`. For interactive use:
+The default CMD displays a welcome message and drops into bash. For interactive use:
 
 ```bash
 # Use docker-compose
@@ -320,9 +320,9 @@ The Docker image includes:
 
 - **Base**: Ubuntu 22.04
 - **Runtime**: Python 3, Node.js 20, direnv
-- **Claude PM**: Installed via setup.sh
+- **claudeup**: Pre-installed in image, manages plugins and marketplaces
 - **Configuration**: Your .claude directory (CLAUDE.md, settings.json, hooks, skills, etc.)
-- **Plugins**: Installed during build via `SETUP_MODE=auto`
+- **Plugins**: Installed during first run via `./setup.sh`
 - **Workspace**: Mounted volume at `/home/claude/workspace`
 
 **Build time**: ~5-10 minutes (depending on plugin count)
@@ -363,8 +363,7 @@ docker build -t claude-test .
 docker run --rm -it claude-test /bin/bash
 
 # Verify plugins loaded
-cd ~/.claude
-claude plugin list
+claudeup doctor
 ```
 
 ## Maintenance
@@ -391,8 +390,8 @@ docker-compose build
 
 ```bash
 docker-compose exec claude /bin/bash
-cd ~/.claude/scripts
-./check-updates.sh
+claudeup marketplace update
+claudeup plugin update
 ```
 
 ### Clean Up

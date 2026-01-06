@@ -128,21 +128,24 @@ fi
 
 echo ""
 
-# Install claudeup
-echo "Installing claudeup..."
-
-if curl -fsSL https://raw.githubusercontent.com/claudeup/claudeup/main/install.sh | bash; then
-    echo "  ✓ claudeup installed"
-else
-    echo "  ✗ Failed to install claudeup"
-    exit 1
-fi
-
-# Verify installation
+# Install claudeup (skip if already available)
 if command -v claudeup &> /dev/null; then
-    echo "  ✓ claudeup is in PATH"
+    echo "  ✓ claudeup already installed"
 else
-    echo "  ⚠ Add ~/.local/bin to your PATH"
+    echo "Installing claudeup..."
+    if curl -fsSL https://raw.githubusercontent.com/claudeup/claudeup/main/install.sh | bash; then
+        echo "  ✓ claudeup installed"
+    else
+        echo "  ✗ Failed to install claudeup"
+        exit 1
+    fi
+
+    # Verify installation
+    if command -v claudeup &> /dev/null; then
+        echo "  ✓ claudeup is in PATH"
+    else
+        echo "  ⚠ Add ~/.local/bin to your PATH"
+    fi
 fi
 
 echo ""
