@@ -24,6 +24,9 @@ services:
       # Optional: Mount secrets (uncomment if using)
       # - ./config/.env:/home/claude/.claude/config/.env:ro
 
+      # Optional: Mount host dotfiles (uncomment and adjust path)
+      # - ~/my-dotfiles:/home/claude/dotfiles:ro
+
     # Environment variables
     environment:
       # Set to 'auto' to install all configured plugins on startup
