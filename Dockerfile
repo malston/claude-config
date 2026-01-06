@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     unzip \
     vim \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js (required for some Claude Code plugins)
@@ -58,7 +59,8 @@ RUN useradd -m -s /bin/bash claude && \
     cp /root/.local/bin/claude /home/claude/.local/bin/claude && \
     cp /root/.local/bin/claudeup /home/claude/.local/bin/claudeup && \
     cp -r /root/.bun /home/claude/.bun && \
-    chown -R claude:claude /home/claude
+    chown -R claude:claude /home/claude && \
+    echo "claude ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Switch to non-root user
 USER claude
