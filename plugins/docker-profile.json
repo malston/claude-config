@@ -20,7 +20,7 @@
     },
     {
       "source": "github",
-      "repo": "ccplugins/marketplace"
+      "repo": "ccplugins/awesome-claude-code-plugins"
     },
     {
       "source": "git",
@@ -32,7 +32,7 @@
     },
     {
       "source": "github",
-      "repo": "malston/claude-code-templates"
+      "repo": "wshobson/agents"
     }
   ],
   "plugins": [
@@ -41,6 +41,7 @@
     "elements-of-style@superpowers-marketplace",
     "claude-mem@thedotmack",
     "code-review@claude-plugins-official",
+    "code-documentation@claude-code-workflows",
     "commit-commands@claude-plugins-official",
     "feature-dev@claude-plugins-official",
     "frontend-design@claude-plugins-official",

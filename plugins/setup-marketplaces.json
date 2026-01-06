@@ -42,6 +42,11 @@
       "source": "github",
       "repo": "malston/claude-code-templates",
       "description": "DevOps and web development templates"
+    },
+    "claude-code-workflows": {
+      "source": "github",
+      "repo": "wshobson/agents",
+      "description": "Code workflows and agents"
     }
   }
 }
