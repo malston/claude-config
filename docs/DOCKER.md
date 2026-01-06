@@ -61,8 +61,6 @@ export CONTEXT7_API_KEY=your_context7_key
 
 Set these in `docker-compose.yml` or pass with `-e`:
 
-- `SETUP_MODE=auto` (default) - Install all configured plugins automatically
-- `SETUP_MODE=interactive` - Guided setup (requires TTY, not recommended)
 - `ANTHROPIC_API_KEY` - Your Anthropic API key
 - `GITHUB_TOKEN` - GitHub personal access token for cloning plugin marketplaces (optional but recommended)
 - `CONTEXT7_API_KEY` - Context7 API key for documentation MCP server (optional)
@@ -158,23 +156,6 @@ WORKSPACE=~/projects docker-compose run --rm claude
 
 ## Customization
 
-### Interactive Mode
-
-Auto mode is recommended and is now the default. Interactive mode is available but less reliable:
-
-```yaml
-environment:
-  - SETUP_MODE=interactive
-```
-
-Then start with:
-
-```bash
-docker-compose run --rm claude /bin/bash
-# Inside container:
-cd ~/.claude && SETUP_MODE=interactive ./setup.sh
-```
-
 ### Add Additional Tools
 
 Edit `Dockerfile` to install additional dependencies:
@@ -215,11 +196,11 @@ MCP tools use ~53k tokens (26% of context) with all plugins enabled. See the mai
 
 If setup fails (e.g., private marketplace not accessible), you can:
 
-**Option 1:** Run setup manually with different options:
+**Option 1:** Run setup manually inside the container:
 
 ```bash
 docker-compose run --rm claude /bin/bash
-cd ~/.claude && SETUP_MODE=interactive ./setup.sh
+cd ~/.claude && ./setup.sh
 ```
 
 **Option 2:** Force re-run setup after fixing the issue:
