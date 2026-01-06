@@ -11,8 +11,8 @@ services:
 
     # Mount your workspace and config
     volumes:
-      # Mount your workspace directory
-      - ./workspace:/home/claude/workspace
+      # Mount your workspace directory (default: ~/workspace, override with WORKSPACE env var)
+      - ${WORKSPACE:-~/workspace}:/home/claude/workspace
 
       # Optional: Mount secrets (uncomment if using)
       # - ./config/.env:/home/claude/.claude/config/.env:ro

@@ -124,11 +124,21 @@ This preserves installed plugins between container restarts.
 
 ### Workspace Data
 
-Your workspace is mounted from the host, so files are automatically persistent:
+Your workspace is mounted from the host (defaults to `~/workspace`), so files are automatically persistent:
 
 ```yaml
 volumes:
-  - ./workspace:/home/claude/workspace
+  - ${WORKSPACE:-~/workspace}:/home/claude/workspace
+```
+
+Override the workspace location:
+
+```bash
+# Mount a specific project
+WORKSPACE=~/workspace/my-project docker-compose run --rm claude
+
+# Mount entire projects directory
+WORKSPACE=~/projects docker-compose run --rm claude
 ```
 
 ## Customization
