@@ -109,31 +109,43 @@ If you have private marketplaces in `plugins/setup-marketplaces.local.json`:
 
 ## Persistence
 
+### Claude Config (Marketplaces, Plugins, Settings)
+
+The `claude-config` volume persists the entire `~/.claude` directory, including:
+- Marketplace registrations
+- Installed plugin cache
+- User settings (settings.json)
+- MCP server configurations
+
+```yaml
+volumes:
+  - claude-config:/home/claude/.claude
+```
+
+On first run, Docker copies the image's config into the empty volume, then setup adds marketplaces and plugins. Subsequent runs use the persisted data.
+
+To reset config and reinstall everything:
+
+```bash
+docker-compose down -v  # Removes all volumes
+docker-compose run --rm claude
+```
+
 ### Setup State
 
-The `claude-state` volume automatically persists setup completion state, so setup only runs once even with `--rm`:
+The `claude-state` volume tracks whether setup has completed:
 
 ```yaml
 volumes:
   - claude-state:/home/claude/.claude-state
 ```
 
-To force re-running setup, remove the volume:
+To force re-running setup without losing installed plugins:
 
 ```bash
 docker volume rm claude_claude-state
+docker-compose run --rm claude
 ```
-
-### Persist Plugin Data Across Rebuilds
-
-Uncomment the volume in `docker-compose.yml`:
-
-```yaml
-volumes:
-  - claude-plugins:/home/claude/.claude/plugins
-```
-
-This preserves installed plugins between container restarts.
 
 ### Workspace Data
 
@@ -362,9 +374,9 @@ When modifying Docker configuration, follow this workflow to test from a clean s
 # Stop any running containers and remove volumes
 docker-compose down -v
 
-# Verify volume is removed (compose prefixes with project name)
+# Verify volumes are removed (compose prefixes with project name)
 docker volume ls | grep claude
-# Should not show: claude_claude-state
+# Should not show: claude_claude-state or claude_claude-config
 ```
 
 ### 2. Rebuild the Image
@@ -447,7 +459,10 @@ docker-compose down
 # Remove image
 docker rmi claude-code:latest
 
-# Remove volumes (reset setup state)
-docker volume rm claude_claude-state
-# docker volume rm claude_claude-plugins  # if using plugin persistence
+# Remove all volumes (full reset)
+docker-compose down -v
+
+# Or remove individual volumes
+docker volume rm claude_claude-state   # Reset setup state only
+docker volume rm claude_claude-config  # Reset plugins and marketplaces
 ```
