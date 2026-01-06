@@ -17,7 +17,11 @@ if [ ! -f "$MARKER_FILE" ]; then
     echo "First run detected - running setup..."
     echo ""
 
-    # Install plugins via claudeup profile (skip prompts)
+    # Run setup.sh for MCP servers, git config, env loading
+    cd ~/.claude
+    SETUP_MODE=auto ./setup.sh
+
+    # Install plugins via claudeup profile
     claudeup setup --profile docker -y
 
     # Create marker file
