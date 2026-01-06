@@ -4,8 +4,8 @@
 
 set -e
 
-# Detect setup mode
-SETUP_MODE="${SETUP_MODE:-interactive}"
+# Detect setup mode (default to auto for simplicity)
+SETUP_MODE="${SETUP_MODE:-auto}"
 
 if [ "$SETUP_MODE" = "auto" ]; then
     echo "→ Auto mode: Installing from config..."
