@@ -66,6 +66,8 @@ Set these in `docker-compose.yml` or pass with `-e`:
 - `GIT_USER_NAME` - Git commit author name (e.g., "Your Name")
 - `GIT_USER_EMAIL` - Git commit author email (e.g., "you@example.com")
 - `CONTEXT7_API_KEY` - Context7 API key for documentation MCP server (optional)
+- `DOTFILES_REPO` - Git URL to clone dotfiles from (e.g., `https://github.com/user/dotfiles.git`)
+- `DOTFILES_BRANCH` - Branch to checkout (defaults to `linux`)
 
 ### Git Setup
 
@@ -80,6 +82,27 @@ docker-compose -f docker-compose.yml -f docker-compose.auth.yml run --rm claude 
 ```
 
 Or add to your shell profile (~/.zshrc or ~/.bashrc) for persistence.
+
+### Dotfiles
+
+To clone your dotfiles into the container (useful when host and container OS differ):
+
+```bash
+export DOTFILES_REPO=https://github.com/username/my-dotfiles.git
+export DOTFILES_BRANCH=linux  # defaults to 'linux' if not set
+
+docker-compose run --rm claude /bin/bash
+```
+
+On first run:
+1. Clones repo to `~/dotfiles` using the specified branch
+2. Runs `~/dotfiles/install.sh` if it exists
+3. Persists in `claude-dotfiles` volume for subsequent runs
+
+To reset dotfiles:
+```bash
+docker volume rm claude_claude-dotfiles
+```
 
 ### Authentication
 
