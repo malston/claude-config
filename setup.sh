@@ -420,117 +420,33 @@ if [ "$SETUP_MODE" = "interactive" ]; then
     explore_additional_marketplaces
 fi
 
-# Auto mode: Install all configured marketplaces and plugins
+# Auto mode: Install all configured marketplaces and plugins using claudeup
 auto_mode_install() {
     echo ""
+    echo "Installing marketplaces and plugins via claudeup profile..."
 
-    # Install all marketplaces
-    echo "Installing marketplaces..."
+    # Copy docker-profile.json to claudeup profiles directory
+    local profile_dir="$HOME/.claudeup/profiles"
+    local profile_src="$SCRIPT_DIR/plugins/docker-profile.json"
+    local profile_dst="$profile_dir/docker-setup.json"
 
-    # Load marketplace config with error checking
-    local config_output
-    local config_errors
-
-    config_output=$(load_marketplace_config 2>&1)
-    config_errors=$?
-
-    if [ $config_errors -ne 0 ] || [ -z "$config_output" ]; then
-        echo "  ✗ Failed to load marketplace configuration"
-        echo "$config_output" >&2
+    if [ ! -f "$profile_src" ]; then
+        echo "  ✗ Profile not found: $profile_src"
         return 1
     fi
 
-    python3 << EOF
-import json
-import subprocess
-import sys
+    mkdir -p "$profile_dir"
+    cp "$profile_src" "$profile_dst"
+    echo "  ✓ Copied profile to $profile_dst"
 
-# Read config from environment variable passed as argument
-config_json = '''$config_output'''
-config = json.loads(config_json)
-installed = 0
-skipped = 0
-
-for name, marketplace in config['marketplaces'].items():
-    source_type = marketplace.get('source')
-
-    if source_type == 'github':
-        repo = marketplace.get('repo')
-        try:
-            result = subprocess.run(
-                ['claude', 'plugin', 'marketplace', 'add', repo],
-                check=True, capture_output=True
-            )
-            print(f"  ✓ {name}")
-            installed += 1
-        except subprocess.CalledProcessError as e:
-            if b'already' in e.stderr.lower() or b'already' in e.stdout.lower():
-                print(f"  ✓ {name} (already added)")
-                installed += 1
-            elif b'not found' in e.stderr.lower() or b'access denied' in e.stderr.lower():
-                print(f"  ⚠ {name} (private, skipped)")
-                skipped += 1
-            else:
-                print(f"  ✗ {name} (failed)")
-                skipped += 1
-    elif source_type == 'git':
-        url = marketplace.get('url')
-        try:
-            subprocess.run(
-                ['claude', 'plugin', 'marketplace', 'add', url],
-                check=True, capture_output=True
-            )
-            print(f"  ✓ {name}")
-            installed += 1
-        except subprocess.CalledProcessError:
-            print(f"  ⚠ {name} (skipped)")
-            skipped += 1
-
-print("")
-print(f"Marketplaces: {installed} installed, {skipped} skipped")
-EOF
-
-    # Install plugins from setup-plugins.json if it exists
-    if [ -f "$SCRIPT_DIR/plugins/setup-plugins.json" ]; then
+    # Apply the profile
+    echo ""
+    if claudeup profile apply docker-setup --yes 2>&1; then
         echo ""
-        echo "Installing plugins..."
-
-        python3 << 'PYTHON_SCRIPT'
-import json
-import subprocess
-import os
-
-script_dir = os.environ.get('SCRIPT_DIR', '.')
-plugins_file = os.path.join(script_dir, 'plugins', 'setup-plugins.json')
-
-with open(plugins_file) as f:
-    config = json.load(f)
-
-plugins = config.get('plugins', [])
-installed = 0
-skipped = 0
-
-for plugin_name in plugins:
-    try:
-        subprocess.run(
-            ['claude', 'plugin', 'install', plugin_name],
-            check=True, capture_output=True, text=True
-        )
-        print(f"  ✓ {plugin_name}")
-        installed += 1
-    except subprocess.CalledProcessError as e:
-        stderr = e.stderr.lower() if e.stderr else ''
-        stdout = e.stdout.lower() if e.stdout else ''
-        if 'already' in stderr or 'already' in stdout:
-            print(f"  ✓ {plugin_name} (already installed)")
-            installed += 1
-        else:
-            print(f"  ✗ {plugin_name} (failed)")
-            skipped += 1
-
-print("")
-print(f"Plugins: {installed} installed, {skipped} skipped")
-PYTHON_SCRIPT
+        echo "  ✓ Profile applied successfully"
+    else
+        echo "  ✗ Failed to apply profile"
+        return 1
     fi
 }
 
@@ -540,55 +456,11 @@ fi
 
 echo ""
 
-# Install plugins from installed_plugins.json
-echo "Installing plugins..."
-if [ -f "$SCRIPT_DIR/plugins/installed_plugins.json" ]; then
-    python3 << 'PYTHON_SCRIPT'
-import json
-import subprocess
-import os
-
-script_dir = os.environ.get('SCRIPT_DIR', '.')
-config_path = os.path.join(script_dir, 'plugins', 'installed_plugins.json')
-
-with open(config_path) as f:
-    config = json.load(f)
-
-plugins = config.get('plugins', {})
-
-for plugin_name in plugins.keys():
-    print(f"  Installing {plugin_name}...")
-    try:
-        result = subprocess.run(
-            ['claude', 'plugin', 'install', plugin_name],
-            check=True, capture_output=True, text=True
-        )
-        print(f"  ✓ {plugin_name} installed")
-    except subprocess.CalledProcessError as e:
-        # Plugin might already be installed
-        stderr = e.stderr.lower()
-        stdout = e.stdout.lower()
-        if 'already' in stderr or 'already' in stdout:
-            print(f"  ✓ {plugin_name} already installed")
-        else:
-            print(f"  ✗ {plugin_name} failed: {e.stderr}")
-PYTHON_SCRIPT
-else
-    echo "  No installed_plugins.json found, skipping"
-fi
-
-echo ""
-
 # Run health check
-if [ -f "$SCRIPT_DIR/plugins/installed_plugins.json" ]; then
-    echo "Running health check..."
-    if command -v claudeup &> /dev/null; then
-        claudeup doctor
-        claudeup cleanup --yes
-    fi
-else
-    echo "Skipping health check (plugins not yet initialized)"
-    echo "Run 'claude' to complete initial setup, then run this script again"
+echo "Running health check..."
+if command -v claudeup &> /dev/null; then
+    claudeup doctor
+    claudeup cleanup --yes
 fi
 
 echo ""
