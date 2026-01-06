@@ -5,7 +5,7 @@
       "repo": "anthropics/claude-code"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-code-plugins",
-    "lastUpdated": "2026-01-06T02:29:27.825Z"
+    "lastUpdated": "2026-01-06T02:35:41.064Z"
   },
   "claude-plugins-official": {
     "source": {
@@ -13,7 +13,7 @@
       "repo": "anthropics/claude-plugins-official"
     },
     "installLocation": "/Users/markalston/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2026-01-06T02:30:30.382Z"
+    "lastUpdated": "2026-01-06T02:36:40.124Z"
   },
   "superpowers-marketplace": {
     "source": {
