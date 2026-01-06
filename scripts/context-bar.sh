@@ -1,12 +1,19 @@
 #!/bin/bash
+# ABOUTME: Claude Code statusline script displaying model, directory, git status, context, and cost.
+# ABOUTME: Uses JSON input from Claude Code's statusline API with git caching for performance.
 
 # Color theme: gray, orange, blue, teal, green, lavender, rose, gold, slate, cyan
 # Preview colors with: bash scripts/color-preview.sh
 COLOR="blue"
 
+# Git cache settings (seconds)
+GIT_CACHE_TTL=5
+GIT_CACHE_FILE="/tmp/claude-statusline-git-cache-$$"
+
 # Color codes
 C_RESET='\033[0m'
-C_GRAY='\033[38;5;245m'  # explicit gray for default text
+C_GRAY='\033[38;5;245m'
+C_DIM='\033[38;5;240m'
 C_BAR_EMPTY='\033[38;5;238m'
 case "$COLOR" in
     orange)   C_ACCENT='\033[38;5;173m' ;;
@@ -18,37 +25,74 @@ case "$COLOR" in
     gold)     C_ACCENT='\033[38;5;136m' ;;
     slate)    C_ACCENT='\033[38;5;60m' ;;
     cyan)     C_ACCENT='\033[38;5;37m' ;;
-    *)        C_ACCENT="$C_GRAY" ;;  # gray: all same color
+    *)        C_ACCENT="$C_GRAY" ;;
 esac
 
+# Read JSON input once
 input=$(cat)
 
-# Extract model, directory, and cwd
+# Extract core fields from JSON input
 model=$(echo "$input" | jq -r '.model.display_name // .model.id // "?"')
-cwd=$(echo "$input" | jq -r '.cwd // empty')
+cwd=$(echo "$input" | jq -r '.workspace.current_dir // .cwd // empty')
 dir=$(basename "$cwd" 2>/dev/null || echo "?")
 
-# Get git branch, uncommitted file count, and sync status
-branch=""
-git_status=""
-if [[ -n "$cwd" && -d "$cwd" ]]; then
+# Extract context window info directly from JSON (no transcript parsing needed)
+max_context=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
+max_k=$((max_context / 1000))
+
+# Get current token usage from the API response
+current_usage=$(echo "$input" | jq -r '.context_window.current_usage // empty')
+if [[ -n "$current_usage" && "$current_usage" != "null" ]]; then
+    input_tokens=$(echo "$current_usage" | jq -r '.input_tokens // 0')
+    cache_creation=$(echo "$current_usage" | jq -r '.cache_creation_input_tokens // 0')
+    cache_read=$(echo "$current_usage" | jq -r '.cache_read_input_tokens // 0')
+    context_length=$((input_tokens + cache_creation + cache_read))
+else
+    # Baseline estimate when no usage data yet (~20k for system prompt, tools, memory)
+    context_length=20000
+fi
+
+# Extract session cost
+cost_usd=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
+
+# Get transcript path for last message feature
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+
+# --- Git Status with Caching ---
+get_git_status() {
+    local cwd="$1"
+    local cache_file="${GIT_CACHE_FILE}-${cwd//\//_}"
+    local now=$(date +%s)
+
+    # Check cache validity
+    if [[ -f "$cache_file" ]]; then
+        local cache_time=$(head -1 "$cache_file")
+        if [[ $((now - cache_time)) -lt $GIT_CACHE_TTL ]]; then
+            tail -n +2 "$cache_file"
+            return
+        fi
+    fi
+
+    # Generate fresh git status
+    local branch=""
+    local git_status=""
+
     branch=$(git -C "$cwd" branch --show-current 2>/dev/null)
     if [[ -n "$branch" ]]; then
         # Count uncommitted files
-        file_count=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | wc -l | tr -d ' ')
+        local file_count=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | wc -l | tr -d ' ')
 
         # Check sync status with upstream
-        sync_status=""
-        upstream=$(git -C "$cwd" rev-parse --abbrev-ref @{upstream} 2>/dev/null)
+        local sync_status=""
+        local upstream=$(git -C "$cwd" rev-parse --abbrev-ref @{upstream} 2>/dev/null)
         if [[ -n "$upstream" ]]; then
             # Get last fetch time
-            fetch_head="$cwd/.git/FETCH_HEAD"
-            fetch_ago=""
+            local fetch_head="$cwd/.git/FETCH_HEAD"
+            local fetch_ago=""
             if [[ -f "$fetch_head" ]]; then
-                fetch_time=$(stat -f %m "$fetch_head" 2>/dev/null || stat -c %Y "$fetch_head" 2>/dev/null)
+                local fetch_time=$(stat -f %m "$fetch_head" 2>/dev/null || stat -c %Y "$fetch_head" 2>/dev/null)
                 if [[ -n "$fetch_time" ]]; then
-                    now=$(date +%s)
-                    diff=$((now - fetch_time))
+                    local diff=$((now - fetch_time))
                     if [[ $diff -lt 60 ]]; then
                         fetch_ago="<1m ago"
                     elif [[ $diff -lt 3600 ]]; then
@@ -61,9 +105,9 @@ if [[ -n "$cwd" && -d "$cwd" ]]; then
                 fi
             fi
 
-            counts=$(git -C "$cwd" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
-            ahead=$(echo "$counts" | cut -f1)
-            behind=$(echo "$counts" | cut -f2)
+            local counts=$(git -C "$cwd" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
+            local ahead=$(echo "$counts" | cut -f1)
+            local behind=$(echo "$counts" | cut -f2)
             if [[ "$ahead" -eq 0 && "$behind" -eq 0 ]]; then
                 if [[ -n "$fetch_ago" ]]; then
                     sync_status="synced ${fetch_ago}"
@@ -85,84 +129,88 @@ if [[ -n "$cwd" && -d "$cwd" ]]; then
         if [[ "$file_count" -eq 0 ]]; then
             git_status="(0 files uncommitted, ${sync_status})"
         elif [[ "$file_count" -eq 1 ]]; then
-            # Show the actual filename when only one file is uncommitted
-            single_file=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | head -1 | sed 's/^...//')
+            local single_file=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | head -1 | sed 's/^...//')
             git_status="(${single_file} uncommitted, ${sync_status})"
         else
             git_status="(${file_count} files uncommitted, ${sync_status})"
         fi
     fi
+
+    # Write to cache
+    {
+        echo "$now"
+        echo "$branch"
+        echo "$git_status"
+    } > "$cache_file"
+
+    echo "$branch"
+    echo "$git_status"
+}
+
+# Get cached git status
+branch=""
+git_status=""
+if [[ -n "$cwd" && -d "$cwd" ]]; then
+    git_output=$(get_git_status "$cwd")
+    branch=$(echo "$git_output" | head -1)
+    git_status=$(echo "$git_output" | tail -1)
 fi
 
-# Get transcript path for context calculation and last message feature
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-
-# Get context window size from JSON (accurate), but calculate tokens from transcript
-# (more accurate than total_input_tokens which excludes system prompt/tools/memory)
-# See: github.com/anthropics/claude-code/issues/13652
-max_context=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
-max_k=$((max_context / 1000))
-
-# Calculate context bar from transcript
-if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
-    context_length=$(jq -s '
-        map(select(.message.usage and .isSidechain != true and .isApiErrorMessage != true)) |
-        last |
-        if . then
-            (.message.usage.input_tokens // 0) +
-            (.message.usage.cache_read_input_tokens // 0) +
-            (.message.usage.cache_creation_input_tokens // 0)
-        else 0 end
-    ' < "$transcript_path")
-
-    # 20k baseline: includes system prompt (~3k), tools (~15k), memory (~300),
-    # plus ~2k for git status, env block, XML framing, and other dynamic context
-    baseline=20000
-    bar_width=10
-
-    if [[ "$context_length" -gt 0 ]]; then
-        pct=$((context_length * 100 / max_context))
-    else
-        # At conversation start, ~20k baseline is already loaded
-        pct=$((baseline * 100 / max_context))
-    fi
-
-    [[ $pct -gt 100 ]] && pct=100
-
-    bar=""
-    for ((i=0; i<bar_width; i++)); do
-        bar_start=$((i * 10))
-        progress=$((pct - bar_start))
-        if [[ $progress -ge 8 ]]; then
-            bar+="${C_ACCENT}█${C_RESET}"
-        elif [[ $progress -ge 3 ]]; then
-            bar+="${C_ACCENT}▄${C_RESET}"
-        else
-            bar+="${C_BAR_EMPTY}░${C_RESET}"
-        fi
-    done
-
-    ctx="${bar} ${C_GRAY}${pct}% of ${max_k}k tokens used"
+# --- Build Context Bar ---
+bar_width=10
+if [[ "$context_length" -gt 0 ]]; then
+    pct=$((context_length * 100 / max_context))
 else
-    ctx="${C_ACCENT}█${C_BAR_EMPTY}░░░░░░░░░ ${C_GRAY}~10% of ${max_k}k tokens used"
+    pct=10  # Default ~10% for baseline
+fi
+[[ $pct -gt 100 ]] && pct=100
+
+bar=""
+for ((i=0; i<bar_width; i++)); do
+    bar_start=$((i * 10))
+    progress=$((pct - bar_start))
+    if [[ $progress -ge 8 ]]; then
+        bar+="${C_ACCENT}█${C_RESET}"
+    elif [[ $progress -ge 3 ]]; then
+        bar+="${C_ACCENT}▄${C_RESET}"
+    else
+        bar+="${C_BAR_EMPTY}░${C_RESET}"
+    fi
+done
+
+ctx="${bar} ${C_GRAY}${pct}% of ${max_k}k"
+
+# --- Format Cost ---
+cost_display=""
+if [[ "$cost_usd" != "0" && "$cost_usd" != "null" ]]; then
+    # Format cost nicely (show cents for small amounts)
+    if (( $(echo "$cost_usd < 0.01" | bc -l) )); then
+        cost_display=" ${C_DIM}|${C_RESET} ${C_GRAY}<\$0.01"
+    elif (( $(echo "$cost_usd < 1" | bc -l) )); then
+        cost_cents=$(printf "%.0f" $(echo "$cost_usd * 100" | bc -l))
+        cost_display=" ${C_DIM}|${C_RESET} ${C_GRAY}${cost_cents}¢"
+    else
+        cost_formatted=$(printf "%.2f" "$cost_usd")
+        cost_display=" ${C_DIM}|${C_RESET} ${C_GRAY}\$${cost_formatted}"
+    fi
 fi
 
-# Build output: Model | Dir | Branch (uncommitted) | Context
-output="${C_ACCENT}${model}${C_GRAY} | 📁${dir}"
-[[ -n "$branch" ]] && output+=" | 🔀${branch} ${git_status}"
-output+=" | ${ctx}${C_RESET}"
+# --- Build Output ---
+output="${C_ACCENT}${model}${C_GRAY} | ${dir}"
+[[ -n "$branch" ]] && output+=" | ${branch} ${git_status}"
+output+=" | ${ctx}${cost_display}${C_RESET}"
 
 printf '%b\n' "$output"
 
-# Get user's last message (text only, not tool results, skip unhelpful messages)
+# --- Optional: Last User Message (second line) ---
 if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
-    # Calculate visible length (without ANSI codes) - 10 chars for bar + content
-    plain_output="${model} | 📁${dir}"
-    [[ -n "$branch" ]] && plain_output+=" | 🔀${branch} ${git_status}"
-    plain_output+=" | xxxxxxxxxx ${pct}% of ${max_k}k tokens used"
+    # Calculate max length for truncation
+    plain_output="${model} | ${dir}"
+    [[ -n "$branch" ]] && plain_output+=" | ${branch} ${git_status}"
+    plain_output+=" | xxxxxxxxxx ${pct}% of ${max_k}k"
     max_len=${#plain_output}
+
     last_user_msg=$(jq -rs '
-        # Messages to skip (not useful as context)
         def is_unhelpful:
             startswith("[Request interrupted") or
             startswith("[Request cancelled") or
@@ -182,9 +230,9 @@ if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
 
     if [[ -n "$last_user_msg" ]]; then
         if [[ ${#last_user_msg} -gt $max_len ]]; then
-            echo "💬 ${last_user_msg:0:$((max_len - 3))}..."
+            echo "> ${last_user_msg:0:$((max_len - 3))}..."
         else
-            echo "💬 ${last_user_msg}"
+            echo "> ${last_user_msg}"
         fi
     fi
 fi
