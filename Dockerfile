@@ -29,6 +29,10 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
     # Verify the binary exists (don't run it yet)
     test -f /root/.local/bin/claude && echo "Claude CLI binary installed" || exit 1
 
+# Install claudeup
+RUN curl -fsSL https://raw.githubusercontent.com/claudeup/claudeup/main/install.sh | bash && \
+    test -f /root/.local/bin/claudeup && echo "claudeup binary installed" || exit 1
+
 # Install 1Password CLI (optional, for MCP secrets)
 ARG INSTALL_1PASSWORD=false
 RUN if [ "$INSTALL_1PASSWORD" = "true" ]; then \
@@ -41,10 +45,11 @@ RUN if [ "$INSTALL_1PASSWORD" = "true" ]; then \
     rm -rf /var/lib/apt/lists/*; \
     fi
 
-# Create a non-root user and copy Claude CLI
+# Create a non-root user and copy Claude CLI + claudeup
 RUN useradd -m -s /bin/bash claude && \
     mkdir -p /home/claude/.local/bin && \
     cp /root/.local/bin/claude /home/claude/.local/bin/claude && \
+    cp /root/.local/bin/claudeup /home/claude/.local/bin/claudeup && \
     chown -R claude:claude /home/claude
 
 # Switch to non-root user
