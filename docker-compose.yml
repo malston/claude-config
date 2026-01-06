@@ -25,7 +25,7 @@ services:
       # - ./config/.env:/home/claude/.claude/config/.env:ro
 
       # Optional: Mount host dotfiles (uncomment and adjust path)
-      # - ~/my-dotfiles:/home/claude/dotfiles:ro
+      # - ~/my-dotfiles:/home/claude/dotfiles
 
     # Environment variables
     environment:
