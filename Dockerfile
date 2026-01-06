@@ -41,9 +41,10 @@ RUN if [ "$INSTALL_1PASSWORD" = "true" ]; then \
     rm -rf /var/lib/apt/lists/*; \
     fi
 
-# Create a non-root user
+# Create a non-root user and copy Claude CLI
 RUN useradd -m -s /bin/bash claude && \
     mkdir -p /home/claude/.local/bin && \
+    cp /root/.local/bin/claude /home/claude/.local/bin/claude && \
     chown -R claude:claude /home/claude
 
 # Switch to non-root user
