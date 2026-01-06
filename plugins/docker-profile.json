@@ -1,5 +1,5 @@
 {
-  "name": "docker-setup",
+  "name": "docker",
   "description": "Default plugins for Docker environment",
   "marketplaces": [
     {

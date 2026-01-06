@@ -69,6 +69,10 @@ ENV PATH="/home/claude/.local/bin:/home/claude/.bun/bin:${PATH}"
 # Copy Claude Code configuration
 COPY --chown=claude:claude . /home/claude/.claude/
 
+# Copy claudeup docker profile (named docker.json so profile name is "docker")
+RUN mkdir -p /home/claude/.claudeup/profiles
+COPY --chown=claude:claude plugins/docker-profile.json /home/claude/.claudeup/profiles/docker.json
+
 # Create workspace and state directories
 RUN mkdir -p /home/claude/workspace /home/claude/.claude-state
 WORKDIR /home/claude/workspace

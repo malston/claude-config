@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ABOUTME: Docker entrypoint that runs setup on first start, then executes the command.
 # ABOUTME: Tracks setup completion with a marker file to avoid re-running.
 
@@ -17,8 +17,8 @@ if [ ! -f "$MARKER_FILE" ]; then
     echo "First run detected - running setup..."
     echo ""
 
-    cd ~/.claude
-    SETUP_MODE=auto ./setup.sh
+    # Install plugins via claudeup profile
+    claudeup setup --profile docker
 
     # Create marker file
     touch "$MARKER_FILE"
