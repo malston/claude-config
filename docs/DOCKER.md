@@ -65,6 +65,18 @@ Set these in `docker-compose.yml` or pass with `-e`:
 - `GITHUB_TOKEN` - GitHub personal access token for cloning plugin marketplaces (optional but recommended)
 - `CONTEXT7_API_KEY` - Context7 API key for documentation MCP server (optional)
 
+### Authentication
+
+To avoid re-authenticating Claude Code on each container start, mount your host's credentials file:
+
+```yaml
+# Uncomment in docker-compose.yml
+volumes:
+  - ~/.claude.json:/home/claude/.claude.json:ro
+```
+
+This mounts your existing authentication tokens (read-only) into the container.
+
 ### Secrets and Private Config
 
 **Option 1: Environment Variables**
