@@ -1,5 +1,5 @@
 #!/bin/bash
-# ABOUTME: Bootstraps Claude Code by installing claude-pm, MCP servers, marketplaces, and plugins.
+# ABOUTME: Bootstraps Claude Code by installing claudeup, MCP servers, marketplaces, and plugins.
 # ABOUTME: Supports interactive mode (essentials only) and auto mode (all configured items).
 
 set -e
@@ -128,36 +128,21 @@ fi
 
 echo ""
 
-# Install claude-pm
-echo "Installing claude-pm..."
-CLAUDE_PM_VERSION="latest"
+# Install claudeup
+echo "Installing claudeup..."
 
-# Detect platform
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-ARCH=$(uname -m)
-case $ARCH in
-    x86_64) ARCH="amd64" ;;
-    aarch64|arm64) ARCH="arm64" ;;
-esac
-
-# Download binary
-DOWNLOAD_URL="https://github.com/malston/claude-pm/releases/latest/download/claude-pm-${OS}-${ARCH}"
-INSTALL_DIR="$HOME/.local/bin"
-mkdir -p "$INSTALL_DIR"
-
-if curl -sL -o "$INSTALL_DIR/claude-pm" "$DOWNLOAD_URL"; then
-    chmod +x "$INSTALL_DIR/claude-pm"
-    echo "  ✓ claude-pm installed to $INSTALL_DIR/claude-pm"
+if curl -fsSL https://raw.githubusercontent.com/claudeup/claudeup/main/install.sh | bash; then
+    echo "  ✓ claudeup installed"
 else
-    echo "  ✗ Failed to install claude-pm"
+    echo "  ✗ Failed to install claudeup"
     exit 1
 fi
 
 # Verify installation
-if command -v claude-pm &> /dev/null; then
-    echo "  ✓ claude-pm is in PATH"
+if command -v claudeup &> /dev/null; then
+    echo "  ✓ claudeup is in PATH"
 else
-    echo "  ⚠ Add $INSTALL_DIR to your PATH"
+    echo "  ⚠ Add ~/.local/bin to your PATH"
 fi
 
 echo ""
@@ -597,9 +582,9 @@ echo ""
 # Run health check
 if [ -f "$SCRIPT_DIR/plugins/installed_plugins.json" ]; then
     echo "Running health check..."
-    if command -v claude-pm &> /dev/null; then
-        claude-pm doctor
-        claude-pm cleanup --yes
+    if command -v claudeup &> /dev/null; then
+        claudeup doctor
+        claudeup cleanup --yes
     fi
 else
     echo "Skipping health check (plugins not yet initialized)"
@@ -703,7 +688,7 @@ if command -v direnv &> /dev/null; then
             # Add auto-upgrade-claude.sh if not already present
             if ! grep -q "auto-upgrade-claude.sh" "$ENVRC_FILE"; then
                 echo "" >> "$ENVRC_FILE"
-                echo "# Auto-upgrade Claude Code and claude-pm daily" >> "$ENVRC_FILE"
+                echo "# Auto-upgrade Claude Code and claudeup daily" >> "$ENVRC_FILE"
                 echo 'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"' >> "$ENVRC_FILE"
                 echo '"$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" &' >> "$ENVRC_FILE"
             fi
