@@ -74,6 +74,17 @@ Only pause to ask for confirmation when:
   **Style Decisions** | <https://google.github.io/styleguide/go/decisions>      | Readability Mentors | Yes         | No
   **Best Practices**  | <https://google.github.io/styleguide/go/best-practices> | Anyone interested   | No          | No
 
+### JavaScript/TypeScript Tooling
+
+- ALWAYS use `bun` instead of `npm` for package management and script execution
+- Use `bun install` instead of `npm install`
+- Use `bun run` instead of `npm run`
+- Use `bun test` instead of `npm test`
+
+### Bash Scripting
+
+- ALWAYS use `#!/usr/bin/env bash` instead of `#!/bin/bash` for portability across different systems
+
 ## Naming
 
 - Names MUST tell what code does, not how it's implemented or its history
