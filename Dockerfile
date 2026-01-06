@@ -68,18 +68,13 @@ ENV PATH="/home/claude/.local/bin:/home/claude/.bun/bin:${PATH}"
 # Copy Claude Code configuration
 COPY --chown=claude:claude . /home/claude/.claude/
 
-# Set working directory to config
-WORKDIR /home/claude/.claude
-
-# Note: setup.sh is not run during build because it requires interactive input
-# from Claude CLI's first-run wizard. Run it manually after starting the container:
-#   docker run -it --rm claude-code:latest /bin/bash
-#   cd ~/.claude && SETUP_MODE=auto ./setup.sh
-
 # Create workspace directory
 RUN mkdir -p /home/claude/workspace
 WORKDIR /home/claude/workspace
 
-# Default command: provide helpful instructions
-# Users can override with: docker run -it claude-code:latest /bin/bash
-CMD ["/bin/bash", "-c", "echo 'Welcome to Claude Code Docker Environment!' && echo '' && echo 'To set up Claude Code and plugins, run:' && echo '  cd ~/.claude && SETUP_MODE=auto ./setup.sh' && echo '' && echo 'Then start Claude:' && echo '  claude' && echo '' && exec /bin/bash"]
+# Entrypoint runs setup on first start, then executes command
+ENTRYPOINT ["/home/claude/.claude/docker-entrypoint.sh"]
+
+# Default: start claude (entrypoint handles setup automatically)
+# Override with: docker run -it claude-code:latest /bin/bash
+CMD []

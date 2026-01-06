@@ -23,31 +23,29 @@ The 1Password CLI is optional and only needed if you use MCP servers that requir
 ### Run with Docker Compose (Recommended)
 
 ```bash
-# Start container with interactive shell
+# Start Claude (setup runs automatically on first start)
+docker-compose run --rm claude
+```
+
+The container automatically:
+1. Detects first run and executes setup.sh
+2. Installs marketplaces and plugins via claudeup
+3. Starts Claude with `--dangerously-skip-permissions`
+
+To get a shell instead of starting Claude:
+
+```bash
 docker-compose run --rm claude /bin/bash
-
-# First time: run setup inside the container
-cd ~/.claude && ./setup.sh
-
-# Then start Claude (I usually pass this flag when I'm running in a docker container)
-claude --dangerously-skip-permissions
 ```
 
 ### Run with Docker Directly
 
 ```bash
-# Interactive shell (recommended for first run)
 docker run -it --rm \
   -v $(pwd)/workspace:/home/claude/workspace \
   -e GITHUB_TOKEN=${GITHUB_TOKEN} \
   -e CONTEXT7_API_KEY=${CONTEXT7_API_KEY} \
   claude-code:latest
-
-# Inside the container, run setup on first use:
-cd ~/.claude && ./setup.sh
-
-# Then start Claude
-claude
 ```
 
 **Note:** Set `GITHUB_TOKEN` and `CONTEXT7_API_KEY` in your environment first:
@@ -55,16 +53,6 @@ claude
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
 export CONTEXT7_API_KEY=your_context7_key
-```
-
-Or pass it directly:
-
-```bash
-docker run -it --rm \
-  -v $(pwd)/workspace:/home/claude/workspace \
-  -e GITHUB_TOKEN=ghp_your_token_here \
-  -e CONTEXT7_API_KEY=your_context7_key \
-  claude-code:latest
 ```
 
 ## Configuration
@@ -254,15 +242,11 @@ docker-compose run --rm claude cat ~/.claude/config/.env
 
 ### Container Exits Immediately
 
-The default CMD displays a welcome message and drops into bash. For interactive use:
+The default command starts Claude interactively. If the container exits immediately:
 
-```bash
-# Use docker-compose
-docker-compose run --rm claude /bin/bash
-
-# Or override CMD
-docker run -it --rm claude-code:latest /bin/bash
-```
+1. Ensure you're running with `-it` flags for interactive mode
+2. Check that ANTHROPIC_API_KEY is set
+3. For a shell instead: `docker run -it --rm claude-code:latest /bin/bash`
 
 ## Production Use
 
@@ -319,14 +303,16 @@ jobs:
 The Docker image includes:
 
 - **Base**: Ubuntu 22.04
-- **Runtime**: Python 3, Node.js 20, direnv
-- **claudeup**: Pre-installed in image, manages plugins and marketplaces
+- **Runtime**: Python 3, Node.js 20, Bun, direnv
+- **Claude CLI**: Pre-installed
+- **claudeup**: Pre-installed, manages plugins and marketplaces
 - **Configuration**: Your .claude directory (CLAUDE.md, settings.json, hooks, skills, etc.)
-- **Plugins**: Installed during first run via `./setup.sh`
+- **Entrypoint**: Runs setup.sh automatically on first start, tracks completion with marker file
+- **Plugins**: Installed during first run via entrypoint
 - **Workspace**: Mounted volume at `/home/claude/workspace`
 
-**Build time**: ~5-10 minutes (depending on plugin count)
-**Image size**: ~2-3 GB (base + dependencies + plugins)
+**Build time**: ~3-5 minutes
+**Image size**: ~1.5-2 GB
 
 ## Examples
 
