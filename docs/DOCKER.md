@@ -83,7 +83,7 @@ Or create a shell alias for convenience:
 alias claude-docker='docker-compose -f docker-compose.yml -f docker-compose.auth.yml run --rm claude'
 ```
 
-The override file (`docker-compose.auth.yml`) mounts your `~/.claude.json` read-only into the container.
+The override file (`docker-compose.auth.yml`) mounts your `~/.claude.json` into the container (read-write so Claude can refresh tokens).
 
 ### Secrets and Private Config
 

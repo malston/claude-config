@@ -4,4 +4,4 @@
 services:
   claude:
     volumes:
-      - ~/.claude.json:/home/claude/.claude.json:ro
+      - ~/.claude.json:/home/claude/.claude.json
