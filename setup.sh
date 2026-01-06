@@ -94,6 +94,14 @@ show_direnv_install() {
 echo "Setting up Claude Code configuration..."
 echo ""
 
+# Configure git identity if provided
+if [ -n "$GIT_USER_NAME" ]; then
+    git config --global user.name "$GIT_USER_NAME"
+fi
+if [ -n "$GIT_USER_EMAIL" ]; then
+    git config --global user.email "$GIT_USER_EMAIL"
+fi
+
 # Configure git to use GitHub token if provided
 if [ -n "$GITHUB_TOKEN" ]; then
     echo "Configuring git with GitHub token..."

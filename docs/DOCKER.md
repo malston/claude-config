@@ -62,8 +62,24 @@ export CONTEXT7_API_KEY=your_context7_key
 Set these in `docker-compose.yml` or pass with `-e`:
 
 - `ANTHROPIC_API_KEY` - Your Anthropic API key
-- `GITHUB_TOKEN` - GitHub personal access token for cloning plugin marketplaces (optional but recommended)
+- `GITHUB_TOKEN` - GitHub personal access token for cloning marketplaces and pushing code
+- `GIT_USER_NAME` - Git commit author name (e.g., "Your Name")
+- `GIT_USER_EMAIL` - Git commit author email (e.g., "you@example.com")
 - `CONTEXT7_API_KEY` - Context7 API key for documentation MCP server (optional)
+
+### Git Setup
+
+To commit and push code from inside the container, set these environment variables before running:
+
+```bash
+export GITHUB_TOKEN=ghp_your_token_here
+export GIT_USER_NAME="Your Name"
+export GIT_USER_EMAIL="you@example.com"
+
+docker-compose -f docker-compose.yml -f docker-compose.auth.yml run --rm claude /bin/bash
+```
+
+Or add to your shell profile (~/.zshrc or ~/.bashrc) for persistence.
 
 ### Authentication
 
