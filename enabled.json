@@ -1,0 +1,35 @@
+{
+  "skills": {
+    "claude-docs-consultant": true,
+    "code-reviewer": true,
+    "commit-helper": true,
+    "frontend-web-dev": true,
+    "security-lens": true
+  },
+  "commands": {
+    "cl": true,
+    "commit.md": true,
+    "create-release.md": true,
+    "dev-workflow": true,
+    "iterm": true,
+    "promptengineering": true,
+    "recovery-prompt.md": true
+  },
+  "agents": {
+    "business-product": true,
+    "cl": true,
+    "core-development": true,
+    "data-ai": true,
+    "developer-experience": true,
+    "infrastructure": true,
+    "language-specialists": true,
+    "meta-orchestration": true,
+    "quality-security": true,
+    "research-analysis": true,
+    "specialized-domains": true
+  },
+  "rules": {},
+  "output-styles": {
+    "technical-evangelist.md": true
+  }
+}

@@ -8,13 +8,17 @@ Portable configuration for Claude Code CLI.
 |----------------|---------|
 | `CLAUDE.md` | Primary user instructions and coding standards |
 | `settings.json` | Permissions, hooks, status line, plugin settings |
-| `commands/` | Custom slash commands |
-| `skills/` | Custom skills |
-| `agents/` | Custom agent definitions (active in root, disabled in `disabled/`) |
+| `enabled.json` | Enable/disable state for skills, commands, agents, rules, output-styles |
+| `.library/` | Canonical storage for all manageable items |
+| `commands/` | Symlinks to enabled commands in `.library/commands/` |
+| `skills/` | Symlinks to enabled skills in `.library/skills/` |
+| `agents/` | Symlinks to enabled agents in `.library/agents/` |
+| `rules/` | Symlinks to enabled rules in `.library/rules/` |
+| `output-styles/` | Symlinks to enabled output styles in `.library/output-styles/` |
 | `hooks/` | Hook scripts (e.g., markdown formatter) |
-| `output-styles/` | Custom output style definitions |
 | `plugins/` | Plugin configuration and marketplace list |
 | `config/` | MCP server definitions and environment templates |
+| `scripts/` | Utility scripts including `claude-config` |
 | `setup.sh` | Post-clone setup script |
 | `Dockerfile` | Docker configuration for containerized environments |
 | `docs/DOCKER.md` | Docker setup and usage guide |
@@ -83,6 +87,40 @@ claude mcp remove chrome-devtools --scope user
 ```
 
 After disabling, your MCP context drops from ~53k to ~5k tokens (90% reduction).
+
+## Managing Skills, Commands, Agents, Rules, and Output Styles
+
+This config uses a library-based enable/disable system. All items live in `.library/` and symlinks in discovery directories control what Claude Code sees.
+
+**List all items and their status:**
+
+```bash
+./scripts/claude-config list
+./scripts/claude-config list agents    # specific category
+```
+
+**Disable/enable items:**
+
+```bash
+./scripts/claude-config disable agents business-product
+./scripts/claude-config enable agents business-product
+./scripts/claude-config disable agents '*'    # disable all agents
+./scripts/claude-config enable skills '*'     # enable all skills
+```
+
+**Sync after manual edits to `enabled.json`:**
+
+```bash
+./scripts/claude-config sync
+```
+
+**Add new items to the library:**
+
+```bash
+./scripts/claude-config add skills ~/path/to/my-skill
+```
+
+Categories: `skills`, `commands`, `agents`, `rules`, `output-styles`
 
 **Re-enable when needed:**
 
