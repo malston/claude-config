@@ -17,8 +17,8 @@ if [ ! -f "$MARKER_FILE" ]; then
     echo "First run detected - running setup..."
     echo ""
 
-    # Install plugins via claudeup profile
-    claudeup setup --profile docker
+    # Install plugins via claudeup profile (skip prompts)
+    claudeup setup --profile docker -y
 
     # Create marker file
     touch "$MARKER_FILE"
