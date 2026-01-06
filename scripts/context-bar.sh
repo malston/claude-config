@@ -208,23 +208,43 @@ if [[ -n "$branch" ]]; then
     # Branch name in accent color
     git_display="${C_ACCENT}${branch}${C_RESET}"
 
-    # File count with semantic color
+    # Combine clean/dirty state with sync status
+    # Clean + synced: ✓ 27m (single checkmark with time)
+    # Clean + ahead/behind: ✓ ↑1 or ✓ ↓2
+    # Dirty + synced: *3 27m
+    # Dirty + ahead/behind: *3 ↑1 or *3 ↓2
     if [[ "$file_count" -eq 0 ]]; then
-        git_display+=" ${C_CLEAN}✓${C_RESET}"
-    elif [[ "$file_count" -eq 1 ]]; then
-        git_display+=" ${C_DIRTY}*${file_info}${C_RESET}"
+        # Clean state
+        if [[ "$sync_state" == "synced" ]]; then
+            # Extract just the time from sync_text (remove the ✓)
+            sync_time="${sync_text#✓}"
+            git_display+=" ${C_CLEAN}✓${sync_time}${C_RESET}"
+        elif [[ -n "$sync_text" ]]; then
+            git_display+=" ${C_CLEAN}✓${C_RESET}"
+            case "$sync_state" in
+                ahead)    git_display+=" ${C_ACCENT}${sync_text}${C_RESET}" ;;
+                behind)   git_display+=" ${C_WARN}${sync_text}${C_RESET}" ;;
+                diverged) git_display+=" ${C_WARN}${sync_text}${C_RESET}" ;;
+            esac
+        else
+            git_display+=" ${C_CLEAN}✓${C_RESET}"
+        fi
     else
-        git_display+=" ${C_DIRTY}*${file_count}${C_RESET}"
-    fi
-
-    # Sync status with semantic color
-    if [[ -n "$sync_text" ]]; then
-        case "$sync_state" in
-            synced)   git_display+=" ${C_CLEAN}${sync_text}${C_RESET}" ;;
-            ahead)    git_display+=" ${C_ACCENT}${sync_text}${C_RESET}" ;;
-            behind)   git_display+=" ${C_WARN}${sync_text}${C_RESET}" ;;
-            diverged) git_display+=" ${C_WARN}${sync_text}${C_RESET}" ;;
-        esac
+        # Dirty state
+        if [[ "$file_count" -eq 1 ]]; then
+            git_display+=" ${C_DIRTY}*${file_info}${C_RESET}"
+        else
+            git_display+=" ${C_DIRTY}*${file_count}${C_RESET}"
+        fi
+        # Add sync status
+        if [[ -n "$sync_text" ]]; then
+            case "$sync_state" in
+                synced)   sync_time="${sync_text#✓}"; git_display+=" ${C_DIM}${sync_time}${C_RESET}" ;;
+                ahead)    git_display+=" ${C_ACCENT}${sync_text}${C_RESET}" ;;
+                behind)   git_display+=" ${C_WARN}${sync_text}${C_RESET}" ;;
+                diverged) git_display+=" ${C_WARN}${sync_text}${C_RESET}" ;;
+            esac
+        fi
     fi
 fi
 
