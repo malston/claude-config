@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     direnv \
     ca-certificates \
     gnupg \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js (required for some Claude Code plugins)
@@ -33,6 +34,10 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
 RUN curl -fsSL https://raw.githubusercontent.com/claudeup/claudeup/main/install.sh | bash && \
     test -f /root/.local/bin/claudeup && echo "claudeup binary installed" || exit 1
 
+# Install Bun (required for Claude Code plugins)
+RUN curl -fsSL https://bun.sh/install | bash && \
+    test -f /root/.bun/bin/bun && echo "Bun installed" || exit 1
+
 # Install 1Password CLI (optional, for MCP secrets)
 ARG INSTALL_1PASSWORD=false
 RUN if [ "$INSTALL_1PASSWORD" = "true" ]; then \
@@ -45,19 +50,20 @@ RUN if [ "$INSTALL_1PASSWORD" = "true" ]; then \
     rm -rf /var/lib/apt/lists/*; \
     fi
 
-# Create a non-root user and copy Claude CLI + claudeup
+# Create a non-root user and copy Claude CLI, claudeup, and Bun
 RUN useradd -m -s /bin/bash claude && \
     mkdir -p /home/claude/.local/bin && \
     cp /root/.local/bin/claude /home/claude/.local/bin/claude && \
     cp /root/.local/bin/claudeup /home/claude/.local/bin/claudeup && \
+    cp -r /root/.bun /home/claude/.bun && \
     chown -R claude:claude /home/claude
 
 # Switch to non-root user
 USER claude
 WORKDIR /home/claude
 
-# Add local bin to PATH
-ENV PATH="/home/claude/.local/bin:${PATH}"
+# Add local bin and Bun to PATH
+ENV PATH="/home/claude/.local/bin:/home/claude/.bun/bin:${PATH}"
 
 # Copy Claude Code configuration
 COPY --chown=claude:claude . /home/claude/.claude/
