@@ -27,6 +27,9 @@ services:
       # Persist dotfiles across container restarts (cloned on first run if DOTFILES_REPO is set)
       - claude-dotfiles:/home/claude/dotfiles
 
+      # Mount claude-mem from host for persistent memory/journal
+      - ~/.claude-mem:/home/claude/.claude-mem
+
     # Environment variables
     environment:
       # Set to 'auto' to install all configured plugins on startup
