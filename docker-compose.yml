@@ -38,18 +38,18 @@ services:
 
       # Optional: GitHub personal access token for cloning marketplaces and pushing code
       # Generate at: https://github.com/settings/tokens
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
 
       # Optional: Git identity for commits (uses host values if set)
-      - GIT_USER_NAME=${GIT_USER_NAME}
-      - GIT_USER_EMAIL=${GIT_USER_EMAIL}
+      - GIT_USER_NAME=${GIT_USER_NAME:-}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-}
 
       # Optional: Context7 API key for documentation MCP server
       # Get your key at: https://context7.com
-      - CONTEXT7_API_KEY=${CONTEXT7_API_KEY}
+      - CONTEXT7_API_KEY=${CONTEXT7_API_KEY:-}
 
       # Optional: Clone dotfiles repo into container on first run
-      - DOTFILES_REPO=${DOTFILES_REPO}
+      - DOTFILES_REPO=${DOTFILES_REPO:-}
       - DOTFILES_BRANCH=${DOTFILES_BRANCH:-linux}
 
     # Keep container running for interactive use
