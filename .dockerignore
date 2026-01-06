@@ -44,3 +44,4 @@ config/.env
 Dockerfile
 .dockerignore
 docker-compose.yml
+.claude/

@@ -1,9 +1,15 @@
 {
   "marketplaces": {
+    "claude-plugins-official": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official",
+      "description": "Official Anthropic plugins",
+      "essential": true
+    },
     "claude-code-plugins": {
       "source": "github",
       "repo": "anthropics/claude-code",
-      "description": "Official Anthropic plugins",
+      "description": "Anthropic claude-code plugins",
       "essential": true
     },
     "superpowers-marketplace": {
@@ -11,6 +17,11 @@
       "repo": "obra/superpowers-marketplace",
       "description": "Productivity toolkit by Jesse Vincent",
       "essential": true
+    },
+    "thedotmack": {
+      "source": "github",
+      "repo": "thedotmack/claude-mem",
+      "description": "Claude memory plugin"
     },
     "awesome-claude-code-plugins": {
       "source": "github",
