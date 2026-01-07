@@ -12,7 +12,8 @@
     "bash": true,
     "cloud": true,
     "kubernetes": true,
-    "clean-architecture": true
+    "clean-architecture": true,
+    "vsphere-architect": true
   },
   "commands": {
     "cl": true,
