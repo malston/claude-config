@@ -1,5 +1,7 @@
 # Claude Code Configuration
 
+> **Looking for a simpler starting point?** This is my personal setup with opinionated defaults and tooling that may not work for everyone. For a cleaner, general-purpose Claude Code sandbox, see **[claudeup/claude-config-dir](https://github.com/claudeup/claude-config-dir)** - it includes auto-updates via claudeup and works great in devcontainers.
+
 Portable configuration for Claude Code CLI.
 
 ## Contents
