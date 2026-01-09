@@ -5,7 +5,6 @@ description: Create a git pull request
 
 ## Context
 
-- Current pull request: !`gh pr view` $1
 - Recent tags: !`git tag --sort=-version:refname | head -10`
 - Current git status: !`git status`
 - Current git diff (staged and unstaged changes): !`git diff HEAD`
@@ -15,6 +14,7 @@ description: Create a git pull request
 ## Your task
 
 When the all the checks pass in CI workflow, I want you to:
+
 - Merge the pull request (if I haven't already merged it)
 - Create and push new release tag with the latest commits since last release
 - Wait for release workflow to complete
