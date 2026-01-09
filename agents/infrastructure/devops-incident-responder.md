@@ -1,1 +1,0 @@
-../../.library/agents/infrastructure/devops-incident-responder.md

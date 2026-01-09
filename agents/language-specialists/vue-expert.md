@@ -1,1 +1,0 @@
-../../.library/agents/language-specialists/vue-expert.md

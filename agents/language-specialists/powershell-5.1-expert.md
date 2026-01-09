@@ -1,1 +1,0 @@
-../../.library/agents/language-specialists/powershell-5.1-expert.md

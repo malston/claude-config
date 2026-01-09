@@ -1,1 +1,0 @@
-../../.library/agents/core-development/mobile-developer.md

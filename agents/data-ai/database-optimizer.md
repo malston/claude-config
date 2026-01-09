@@ -1,1 +1,0 @@
-../../.library/agents/data-ai/database-optimizer.md

@@ -20,6 +20,8 @@ notifications.log
 plans/
 plugins/install-counts-cache.json
 telemetry/
+paste-cache/
+cache/
 
 # IDE and lock files
 ide/

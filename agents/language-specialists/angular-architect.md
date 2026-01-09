@@ -1,1 +1,0 @@
-../../.library/agents/language-specialists/angular-architect.md

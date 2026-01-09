@@ -1,1 +1,0 @@
-../../.library/agents/infrastructure/devops-engineer.md

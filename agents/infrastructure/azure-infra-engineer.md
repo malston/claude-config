@@ -1,1 +1,0 @@
-../../.library/agents/infrastructure/azure-infra-engineer.md
