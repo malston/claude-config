@@ -1,0 +1,1 @@
+../../.library/agents/specialized-domains/m365-admin.md

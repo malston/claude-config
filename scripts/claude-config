@@ -11,7 +11,7 @@ CLAUDE_DIR = Path.home() / ".claude"
 LIBRARY_DIR = CLAUDE_DIR / ".library"
 CONFIG_FILE = CLAUDE_DIR / "enabled.json"
 
-CATEGORIES = ["skills", "commands", "agents", "rules", "output-styles"]
+CATEGORIES = sorted(["skills", "commands", "agents", "rules", "output-styles", "hooks"])
 
 
 def load_config() -> dict:
@@ -30,11 +30,67 @@ def save_config(config: dict) -> None:
 
 
 def get_library_items(category: str) -> list[str]:
-    """Get all items in the library for a category."""
+    """Get all items in the library for a category.
+
+    For agents, returns 'group/agent' format for individual agents.
+    """
     lib_path = LIBRARY_DIR / category
     if not lib_path.exists():
         return []
-    return sorted([p.name for p in lib_path.iterdir() if not p.name.startswith(".")])
+
+    if category == "agents":
+        # Return individual agents as 'group/agent.md'
+        items = []
+        for group_dir in lib_path.iterdir():
+            if group_dir.is_dir() and not group_dir.name.startswith("."):
+                for agent_file in group_dir.iterdir():
+                    if agent_file.suffix == ".md" and agent_file.name != "CLAUDE.md":
+                        items.append(f"{group_dir.name}/{agent_file.name}")
+        return sorted(items)
+
+    return sorted([
+        p.name for p in lib_path.iterdir()
+        if not p.name.startswith(".") and p.name != "CLAUDE.md"
+    ])
+
+
+def resolve_item_name(category: str, item: str) -> str | None:
+    """Resolve an item name, allowing partial matches without extension.
+
+    Returns the full item name if found, None otherwise.
+    For agents, returns 'group/agent.md' format.
+    """
+    if category == "agents":
+        # Handle 'group/agent' or just 'agent' format
+        if "/" in item:
+            # Full path provided
+            group, agent = item.split("/", 1)
+            if not agent.endswith(".md"):
+                agent = agent + ".md"
+            full_path = LIBRARY_DIR / category / group / agent
+            if full_path.exists():
+                return f"{group}/{agent}"
+        else:
+            # Just agent name - search all groups
+            agent_name = item if item.endswith(".md") else f"{item}.md"
+            for group_dir in (LIBRARY_DIR / category).iterdir():
+                if group_dir.is_dir() and not group_dir.name.startswith("."):
+                    agent_path = group_dir / agent_name
+                    if agent_path.exists():
+                        return f"{group_dir.name}/{agent_name}"
+        return None
+
+    lib_path = LIBRARY_DIR / category / item
+    if lib_path.exists():
+        return item
+
+    # Try common extensions
+    for ext in [".md", ".py", ".sh"]:
+        full_name = item + ext
+        if (LIBRARY_DIR / category / full_name).exists():
+            return full_name
+
+    return None
 
 
 def sync_category(category: str, config: dict) -> tuple[int, int]:
@@ -54,23 +110,55 @@ def sync_category(category: str, config: dict) -> tuple[int, int]:
     enabled_count = 0
     disabled_count = 0
 
-    # Remove existing symlinks (only symlinks, preserve any real files)
-    for item in target_dir.iterdir():
-        if item.is_symlink():
-            item.unlink()
+    if category == "agents":
+        # For agents, remove all symlinks and group directories that are empty or only contain symlinks
+        for group_dir in list(target_dir.iterdir()):
+            if group_dir.is_symlink():
+                group_dir.unlink()
+            elif group_dir.is_dir():
+                # Remove symlinks inside group directories
+                for item in list(group_dir.iterdir()):
+                    if item.is_symlink():
+                        item.unlink()
+                # Remove group dir if empty
+                if not any(group_dir.iterdir()):
+                    group_dir.rmdir()
 
-    # Create symlinks for enabled items (using relative paths for portability)
-    for item_name in library_items:
-        is_enabled = cat_config.get(item_name, True)  # Default to enabled
+        # Create symlinks for enabled agents
+        for item_name in library_items:
+            is_enabled = cat_config.get(item_name, True)  # Default to enabled
 
-        if is_enabled:
-            target = target_dir / item_name
-            # Relative path: ../.library/{category}/{item}
-            relative_source = Path("..") / ".library" / category / item_name
-            target.symlink_to(relative_source)
-            enabled_count += 1
-        else:
-            disabled_count += 1
+            if is_enabled:
+                # item_name is 'group/agent.md'
+                group, agent = item_name.split("/", 1)
+                group_target_dir = target_dir / group
+                group_target_dir.mkdir(parents=True, exist_ok=True)
+
+                target = group_target_dir / agent
+                # Relative path: ../../.library/agents/{group}/{agent}
+                relative_source = Path("..") / ".." / ".library" / category / group / agent
+                target.symlink_to(relative_source)
+                enabled_count += 1
+            else:
+                disabled_count += 1
+    else:
+        # Remove existing symlinks (only symlinks, preserve any real files)
+        for item in target_dir.iterdir():
+            if item.is_symlink():
+                item.unlink()
+
+        # Create symlinks for enabled items (using relative paths for portability)
+        for item_name in library_items:
+            is_enabled = cat_config.get(item_name, True)  # Default to enabled
+
+            if is_enabled:
+                target = target_dir / item_name
+                # Relative path: ../.library/{category}/{item}
+                relative_source = Path("..") / ".library" / category / item_name
+                target.symlink_to(relative_source)
+                enabled_count += 1
+            else:
+                disabled_count += 1
 
     return enabled_count, disabled_count
 
@@ -90,8 +178,11 @@ def cmd_sync() -> None:
     print("Done.")
 
 
-def cmd_list(category: str | None = None) -> None:
-    """List items and their enabled status."""
+def cmd_list(category: str | None = None, filter_status: str | None = None) -> None:
+    """List items and their enabled status.
+
+    filter_status can be "enabled", "disabled", or None (show all).
+    """
     config = load_config()
 
     categories_to_list = [category] if category else CATEGORIES
@@ -105,83 +196,222 @@ def cmd_list(category: str | None = None) -> None:
         items = get_library_items(cat)
         cat_config = config.get(cat, {})
 
+        # Filter items based on status
+        filtered_items = []
+        for item in items:
+            is_enabled = cat_config.get(item, True)
+            if filter_status == "enabled" and is_enabled:
+                filtered_items.append((item, is_enabled))
+            elif filter_status == "disabled" and not is_enabled:
+                filtered_items.append((item, is_enabled))
+            elif filter_status is None:
+                filtered_items.append((item, is_enabled))
+
         if not items:
             print(f"\n{cat}/: (empty)")
             continue
 
+        if not filtered_items:
+            continue
+
         print(f"\n{cat}/:")
-        for item in items:
-            is_enabled = cat_config.get(item, True)
-            status = "✓" if is_enabled else "✗"
-            print(f"  {status} {item}")
+
+        if cat == "agents":
+            # Group agents by their group directory
+            groups: dict[str, list[tuple[str, bool]]] = {}
+            for item, is_enabled in filtered_items:
+                group, agent = item.split("/", 1)
+                if group not in groups:
+                    groups[group] = []
+                groups[group].append((agent.replace(".md", ""), is_enabled))
+
+            for group in sorted(groups.keys()):
+                agents = groups[group]
+                print(f"  {group}/")
+                for agent, is_enabled in agents:
+                    status = "✓" if is_enabled else "✗"
+                    print(f"    {status} {agent}")
+        else:
+            for item, is_enabled in filtered_items:
+                status = "✓" if is_enabled else "✗"
+                print(f"  {status} {item}")
 
 
-def cmd_enable(category: str, item: str) -> None:
-    """Enable an item."""
+def cmd_enable(category: str, items: list[str]) -> None:
+    """Enable one or more items."""
     if category not in CATEGORIES:
         print(f"Unknown category: {category}")
         sys.exit(1)
 
     config = load_config()
+    library_items = get_library_items(category)
 
-    # Handle wildcard
-    if item == "*":
-        items = get_library_items(category)
+    # Handle global wildcard
+    if "*" in items:
         if category not in config:
             config[category] = {}
-        for i in items:
+        for i in library_items:
             config[category][i] = True
         save_config(config)
         sync_category(category, config)
-        print(f"Enabled all {len(items)} items in {category}/")
+        print(f"Enabled all {len(library_items)} items in {category}/")
         return
-
-    # Check if item exists in library
-    lib_path = LIBRARY_DIR / category / item
-    if not lib_path.exists():
-        print(f"Item not found in library: {category}/{item}")
-        sys.exit(1)
 
     if category not in config:
         config[category] = {}
-    config[category][item] = True
-    save_config(config)
-    sync_category(category, config)
-    print(f"Enabled: {category}/{item}")
+
+    enabled = []
+    not_found = []
+
+    for item in items:
+        # Handle group wildcard for agents (e.g., 'business-product/*')
+        if category == "agents" and item.endswith("/*"):
+            group = item[:-2]
+            group_items = [i for i in library_items if i.startswith(f"{group}/")]
+            if group_items:
+                for gi in group_items:
+                    config[category][gi] = True
+                    enabled.append(gi)
+            else:
+                not_found.append(item)
+            continue
+
+        resolved = resolve_item_name(category, item)
+        if resolved is None:
+            not_found.append(item)
+        else:
+            config[category][resolved] = True
+            enabled.append(resolved)
+
+    if enabled:
+        save_config(config)
+        sync_category(category, config)
+        for item in enabled:
+            print(f"Enabled: {category}/{item}")
+
+    for item in not_found:
+        print(f"Item not found in library: {category}/{item}")
+
+    if not_found and not enabled:
+        sys.exit(1)
 
 
-def cmd_disable(category: str, item: str) -> None:
-    """Disable an item."""
+def cmd_disable(category: str, items: list[str]) -> None:
+    """Disable one or more items."""
     if category not in CATEGORIES:
         print(f"Unknown category: {category}")
         sys.exit(1)
 
     config = load_config()
+    library_items = get_library_items(category)
 
-    # Handle wildcard
-    if item == "*":
-        items = get_library_items(category)
+    # Handle global wildcard
+    if "*" in items:
         if category not in config:
             config[category] = {}
-        for i in items:
+        for i in library_items:
             config[category][i] = False
         save_config(config)
         sync_category(category, config)
-        print(f"Disabled all {len(items)} items in {category}/")
+        print(f"Disabled all {len(library_items)} items in {category}/")
         return
-
-    # Check if item exists in library
-    lib_path = LIBRARY_DIR / category / item
-    if not lib_path.exists():
-        print(f"Item not found in library: {category}/{item}")
-        sys.exit(1)
 
     if category not in config:
         config[category] = {}
-    config[category][item] = False
-    save_config(config)
-    sync_category(category, config)
-    print(f"Disabled: {category}/{item}")
+
+    disabled = []
+    not_found = []
+
+    for item in items:
+        # Handle group wildcard for agents (e.g., 'business-product/*')
+        if category == "agents" and item.endswith("/*"):
+            group = item[:-2]
+            group_items = [i for i in library_items if i.startswith(f"{group}/")]
+            if group_items:
+                for gi in group_items:
+                    config[category][gi] = False
+                    disabled.append(gi)
+            else:
+                not_found.append(item)
+            continue
+
+        resolved = resolve_item_name(category, item)
+        if resolved is None:
+            not_found.append(item)
+        else:
+            config[category][resolved] = False
+            disabled.append(resolved)
+
+    if disabled:
+        save_config(config)
+        sync_category(category, config)
+        for item in disabled:
+            print(f"Disabled: {category}/{item}")
+
+    for item in not_found:
+        print(f"Item not found in library: {category}/{item}")
+
+    if not_found and not disabled:
+        sys.exit(1)
+
+
+def cmd_view(category: str, item: str) -> None:
+    """View the contents of an item."""
+    if category not in CATEGORIES:
+        print(f"Unknown category: {category}")
+        sys.exit(1)
+
+    # Resolve item name (handles missing extensions)
+    resolved = resolve_item_name(category, item)
+
+    if category == "skills":
+        # Skills are directories with SKILL.md inside
+        if resolved:
+            skill_file = LIBRARY_DIR / category / resolved / "SKILL.md"
+        else:
+            # Try as directory name directly
+            skill_file = LIBRARY_DIR / category / item / "SKILL.md"
+        if skill_file.exists():
+            print(skill_file.read_text())
+            return
+        print(f"Skill not found: {item}")
+        sys.exit(1)
+
+    elif category == "agents":
+        agents_dir = LIBRARY_DIR / category
+
+        # Check if item is an agent group directory
+        group_dir = agents_dir / item
+        if group_dir.is_dir():
+            # List agents in the group
+            print(f"Agent group: {item}/")
+            for agent_file in sorted(group_dir.iterdir()):
+                if agent_file.suffix == ".md" and agent_file.name != "CLAUDE.md":
+                    print(f"  {agent_file.stem}")
+            return
+
+        # Try to resolve the agent name
+        resolved = resolve_item_name(category, item)
+        if resolved:
+            group, agent = resolved.split("/", 1)
+            agent_file = agents_dir / group / agent
+            if agent_file.exists():
+                print(agent_file.read_text())
+                return
+
+        print(f"Agent not found: {item}")
+        sys.exit(1)
+
+    else:
+        # hooks, commands, rules, output-styles are files
+        if resolved:
+            file_path = LIBRARY_DIR / category / resolved
+            if file_path.exists():
+                print(file_path.read_text())
+                return
+
+        print(f"Item not found: {category}/{item}")
+        sys.exit(1)
 
 
 def cmd_add(category: str, source_path: str) -> None:
@@ -275,20 +505,28 @@ def print_usage() -> None:
     print("""claude-config - Manage Claude Code skills, commands, agents, rules, and output-styles
 
 Usage:
-  claude-config sync                    Sync symlinks based on enabled.json
-  claude-config list [CATEGORY]         List items and their status
-  claude-config enable CATEGORY ITEM    Enable an item (use * for all)
-  claude-config disable CATEGORY ITEM   Disable an item (use * for all)
-  claude-config add CATEGORY PATH       Add a new item from source path
+  claude-config sync                        Sync symlinks based on enabled.json
+  claude-config list [CATEGORY] [FLAGS]     List items and their status
+  claude-config view CATEGORY ITEM          View contents of an item
+  claude-config enable CATEGORY ITEM...     Enable one or more items (use * for all)
+  claude-config disable CATEGORY ITEM...    Disable one or more items (use * for all)
+  claude-config add CATEGORY PATH           Add a new item from source path
 
-Categories: skills, commands, agents, rules, output-styles
+Categories: skills, commands, agents, rules, output-styles, hooks
+
+Flags for list:
+  -e, --enabled     Show only enabled items
+  -d, --disabled    Show only disabled items
 
 Examples:
-  claude-config list                    List all items
-  claude-config list agents             List agents only
-  claude-config disable agents business-product
-  claude-config enable skills *         Enable all skills
-  claude-config sync                    Apply configuration
+  claude-config list                        List all items
+  claude-config list skills --enabled       List enabled skills only
+  claude-config list --disabled             List all disabled items
+  claude-config view skills bash            View skill's SKILL.md
+  claude-config view agents business-analyst  View agent definition
+  claude-config view hooks save-iterm-session View hook script
+  claude-config disable skills kubernetes cloud terraform
+  claude-config enable skills *             Enable all skills
 """)
 
 
@@ -302,18 +540,32 @@ def main() -> None:
     if cmd == "sync":
         cmd_sync()
     elif cmd == "list":
-        category = sys.argv[2] if len(sys.argv) > 2 else None
-        cmd_list(category)
+        # Parse flags and category
+        filter_status = None
+        category = None
+        for arg in sys.argv[2:]:
+            if arg in ("--enabled", "-e"):
+                filter_status = "enabled"
+            elif arg in ("--disabled", "-d"):
+                filter_status = "disabled"
+            elif not arg.startswith("-"):
+                category = arg
+        cmd_list(category, filter_status)
     elif cmd == "enable":
         if len(sys.argv) < 4:
-            print("Usage: claude-config enable CATEGORY ITEM")
+            print("Usage: claude-config enable CATEGORY ITEM...")
             sys.exit(1)
-        cmd_enable(sys.argv[2], sys.argv[3])
+        cmd_enable(sys.argv[2], sys.argv[3:])
     elif cmd == "disable":
         if len(sys.argv) < 4:
-            print("Usage: claude-config disable CATEGORY ITEM")
+            print("Usage: claude-config disable CATEGORY ITEM...")
             sys.exit(1)
-        cmd_disable(sys.argv[2], sys.argv[3])
+        cmd_disable(sys.argv[2], sys.argv[3:])
+    elif cmd == "view":
+        if len(sys.argv) < 4:
+            print("Usage: claude-config view CATEGORY ITEM")
+            sys.exit(1)
+        cmd_view(sys.argv[2], sys.argv[3])
     elif cmd == "add":
         if len(sys.argv) < 4:
             print("Usage: claude-config add CATEGORY PATH")

@@ -1,0 +1,1 @@
+../../.library/agents/quality-security/security-auditor.md

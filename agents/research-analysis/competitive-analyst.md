@@ -1,0 +1,1 @@
+../../.library/agents/research-analysis/competitive-analyst.md

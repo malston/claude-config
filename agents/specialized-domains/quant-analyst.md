@@ -1,0 +1,1 @@
+../../.library/agents/specialized-domains/quant-analyst.md

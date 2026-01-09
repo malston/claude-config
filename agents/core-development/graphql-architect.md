@@ -1,0 +1,1 @@
+../../.library/agents/core-development/graphql-architect.md
