@@ -40,7 +40,7 @@
     },
     "claude-code-templates": {
       "source": "github",
-      "repo": "malston/claude-code-templates",
+      "repo": "davila7/claude-code-templates",
       "description": "DevOps and web development templates"
     },
     "claude-code-workflows": {

@@ -163,7 +163,7 @@ SETUP_MODE=auto ./setup.sh
     },
     "claude-code-templates": {
       "source": "github",
-      "repo": "malston/claude-code-templates",
+      "repo": "davila7/claude-code-templates",
       "description": "DevOps and web development templates"
     }
   }
@@ -207,6 +207,7 @@ Similar format, lists plugins to auto-install in auto mode:
 ### Graceful Degradation
 
 1. **Missing secrets (MCP servers)**:
+
    ```
    ⚠ Skipping context7: CONTEXT7_API_KEY not found
      → Set in config/.env or 1Password
@@ -214,6 +215,7 @@ Similar format, lists plugins to auto-install in auto mode:
    ```
 
 2. **Private repo access denied**:
+
    ```
    ⚠ Skipping tanzu-cf-architect: repository not found
      → This is a private marketplace
@@ -221,11 +223,13 @@ Similar format, lists plugins to auto-install in auto mode:
    ```
 
 3. **Marketplace already added**:
+
    ```
    ✓ superpowers-marketplace (already added)
    ```
 
 4. **Plugin installation failures**:
+
    ```
    ✗ some-plugin@broken-marketplace failed
      → Check 'claude plugin list broken-marketplace'
@@ -253,6 +257,7 @@ Next steps:
 ### README.md Sections
 
 1. **Quick Start** (newcomers):
+
    ```markdown
    ## Quick Start
 
@@ -263,9 +268,11 @@ Next steps:
    ```
 
    Answer a few questions and you'll have a working setup in 2 minutes.
+
    ```
 
 2. **Power User Setup**:
+
    ```markdown
    ## Power User Setup
 
@@ -278,9 +285,11 @@ Next steps:
    ```
 
    Installs your complete config including private marketplaces.
+
    ```
 
 3. **Adding Private Marketplaces**:
+
    ```markdown
    ## Customization
 
@@ -299,9 +308,11 @@ Next steps:
    ```
 
    This file is gitignored and won't be committed, even in your fork.
+
    ```
 
 4. **Attribution**:
+
    ```markdown
    ## Credits
 
@@ -344,6 +355,7 @@ plugins/known_marketplaces.json
 ### Migration from Current Setup
 
 First run after deploying this design:
+
 1. Detect if `setup-marketplaces.json` doesn't exist
 2. Copy `known_marketplaces.json` → `setup-marketplaces.json`
 3. Prompt: "Migrating to new config format..."

@@ -85,6 +85,7 @@
     "commit-commands@claude-code-plugins": true,
     "feature-dev@claude-code-plugins": true,
     "hookify@claude-code-plugins": true,
-    "plugin-dev@claude-code-plugins": true
+    "plugin-dev@claude-code-plugins": true,
+    "tanzu-cf-architect@tanzu-cf-architect": true
   }
 }
