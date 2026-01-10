@@ -1,1 +1,0 @@
-../../.library/agents/data-ai/data-scientist.md

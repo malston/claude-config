@@ -1,1 +1,0 @@
-../../.library/agents/meta-orchestration/multi-agent-coordinator.md

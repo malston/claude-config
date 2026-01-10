@@ -1,1 +1,0 @@
-../../.library/agents/language-specialists/rust-engineer.md

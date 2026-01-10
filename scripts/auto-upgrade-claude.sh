@@ -64,6 +64,8 @@ for section in sections:
     fi
 elif echo "$UPGRADE_OUTPUT" | grep -q "is already installed"; then
     echo "Claude Code is up to date ($OLD_VERSION)"
+else
+    echo "$UPGRADE_OUTPUT"
 fi
 
 # Update claudeup tool itself

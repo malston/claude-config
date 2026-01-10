@@ -1,1 +1,0 @@
-../../.library/agents/specialized-domains/iot-engineer.md

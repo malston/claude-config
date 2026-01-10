@@ -1,1 +1,0 @@
-../../.library/agents/developer-experience/powershell-module-architect.md

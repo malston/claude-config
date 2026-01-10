@@ -1,1 +1,0 @@
-../../.library/agents/meta-orchestration/error-coordinator.md

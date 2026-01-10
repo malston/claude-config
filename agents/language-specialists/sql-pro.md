@@ -1,1 +1,0 @@
-../../.library/agents/language-specialists/sql-pro.md

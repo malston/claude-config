@@ -1,1 +1,0 @@
-../../.library/agents/developer-experience/dependency-manager.md

@@ -1,1 +1,0 @@
-../../.library/agents/developer-experience/git-workflow-manager.md

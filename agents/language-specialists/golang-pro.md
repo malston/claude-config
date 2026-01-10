@@ -1,1 +1,0 @@
-../../.library/agents/language-specialists/golang-pro.md

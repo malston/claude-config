@@ -1,1 +1,0 @@
-../../.library/agents/business-product/business-analyst.md

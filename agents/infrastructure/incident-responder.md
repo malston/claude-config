@@ -1,1 +1,0 @@
-../../.library/agents/infrastructure/incident-responder.md
