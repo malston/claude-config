@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
@@ -82,7 +83,7 @@
     "pr-review-toolkit@claude-plugins-official": false,
     "security-guidance@claude-plugins-official": false,
     "code-review@claude-code-plugins": false,
-    "commit-commands@claude-code-plugins": false,
+    "commit-commands@claude-code-plugins": true,
     "feature-dev@claude-code-plugins": false,
     "hookify@claude-code-plugins": false,
     "plugin-dev@claude-code-plugins": false,
