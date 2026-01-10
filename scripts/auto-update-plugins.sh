@@ -4,6 +4,9 @@
 
 set -e
 
+BLUE='\033[38;2;6;176;204m'
+NC='\033[0m' # No Color
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LAST_CHECK_FILE="$SCRIPT_DIR/../.last_plugin_check"
 
@@ -23,7 +26,11 @@ if [ "$FORCE" = false ] && [ -f "$LAST_CHECK_FILE" ]; then
     fi
 fi
 
-echo "Checking for plugin/marketplace updates..."
+# Display current settings
+printf "\n${BLUE}ℹ %s${NC}\n" "Displaying Claude Code user settings..."
+"$SCRIPT_DIR"/claude-config list -e
+
+printf "\n${BLUE}ℹ %s${NC}\n" "Checking for plugin/marketplace updates..."
 
 # Use claudeup to check and prompt for updates
 claudeup update
