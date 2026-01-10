@@ -2,7 +2,7 @@
   "skills": {
     "claude-docs-consultant": false,
     "code-reviewer": true,
-    "commit-helper": true,
+    "commit-helper": false,
     "frontend-web-dev": false,
     "security-lens": false,
     "terraform": false,
@@ -12,7 +12,7 @@
     "bash": true,
     "cloud": false,
     "kubernetes": false,
-    "clean-architecture": true,
+    "clean-architecture": false,
     "vsphere-architect": false
   },
   "commands": {

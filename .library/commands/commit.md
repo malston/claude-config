@@ -9,6 +9,8 @@ description: Create a git commit
 - Current git diff (staged and unstaged changes): !`git diff HEAD`
 - Current branch: !`git branch --show-current`
 - Recent commits: !`git log --oneline -10`
+- Use present tense
+- Explain what and why, not how
 
 ## Your task
 
