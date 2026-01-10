@@ -527,6 +527,10 @@ Examples:
   claude-config view hooks save-iterm-session View hook script
   claude-config disable skills kubernetes cloud terraform
   claude-config enable skills *             Enable all skills
+
+Zsh Completion:
+  Add to ~/.zshrc:  fpath=(~/.claude/completions $fpath)
+  Then restart shell or run: autoload -Uz compinit && compinit
 """)
 
 
