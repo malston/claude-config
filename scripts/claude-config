@@ -126,7 +126,7 @@ def sync_category(category: str, config: dict) -> tuple[int, int]:
 
         # Create symlinks for enabled agents
         for item_name in library_items:
-            is_enabled = cat_config.get(item_name, True)  # Default to enabled
+            is_enabled = cat_config.get(item_name, False)  # Default to disabled
 
             if is_enabled:
                 # item_name is 'group/agent.md'
@@ -149,7 +149,7 @@ def sync_category(category: str, config: dict) -> tuple[int, int]:
 
         # Create symlinks for enabled items (using relative paths for portability)
         for item_name in library_items:
-            is_enabled = cat_config.get(item_name, True)  # Default to enabled
+            is_enabled = cat_config.get(item_name, False)  # Default to disabled
 
             if is_enabled:
                 target = target_dir / item_name
@@ -199,7 +199,7 @@ def cmd_list(category: str | None = None, filter_status: str | None = None) -> N
         # Filter items based on status
         filtered_items = []
         for item in items:
-            is_enabled = cat_config.get(item, True)
+            is_enabled = cat_config.get(item, False)
             if filter_status == "enabled" and is_enabled:
                 filtered_items.append((item, is_enabled))
             elif filter_status == "disabled" and not is_enabled:

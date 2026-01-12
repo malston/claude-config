@@ -13,7 +13,8 @@
     "cloud": false,
     "kubernetes": false,
     "clean-architecture": false,
-    "vsphere-architect": false
+    "vsphere-architect": false,
+    "test-driven-development": false
   },
   "commands": {
     "cl": false,
