@@ -22,6 +22,7 @@ plugins/install-counts-cache.json
 telemetry/
 paste-cache/
 cache/
+exports/
 
 # IDE and lock files
 ide/
