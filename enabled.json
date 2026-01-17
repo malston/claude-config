@@ -13,8 +13,10 @@
     "cloud": false,
     "kubernetes": false,
     "clean-architecture": false,
-    "vsphere-architect": false,
-    "test-driven-development": false
+    "vsphere-architect": true,
+    "test-driven-development": false,
+    "web-design-guidelines": true,
+    "vercel-react-best-practices": true
   },
   "commands": {
     "cl": false,

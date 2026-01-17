@@ -87,6 +87,8 @@
     "feature-dev@claude-code-plugins": false,
     "hookify@claude-code-plugins": false,
     "plugin-dev@claude-code-plugins": false,
-    "tanzu-cf-architect@tanzu-cf-architect": false
+    "tanzu-cf-architect@tanzu-cf-architect": false,
+    "commit-commands@awesome-claude-code-plugins": true,
+    "textual-tui@textual-tui-marketplace": true
   }
 }
