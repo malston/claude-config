@@ -67,7 +67,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/scripts/context-bar.sh"
+    "command": "bash -c '\"/Users/markalston/.bun/bin/bun\" \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)src/index.ts\"'"
   },
   "enabledPlugins": {
     "superpowers@superpowers-marketplace": true,
@@ -89,6 +89,6 @@
     "plugin-dev@claude-code-plugins": false,
     "tanzu-cf-architect@tanzu-cf-architect": false,
     "commit-commands@awesome-claude-code-plugins": true,
-    "textual-tui@textual-tui-marketplace": true
+    "claude-hud@claude-hud": true
   }
 }

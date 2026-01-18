@@ -145,6 +145,7 @@ Discovers and displays all MCP server configuration sources across different sco
 **What it shows:**
 
 For each scope, the script displays:
+
 - Whether configuration exists
 - Server names and types (stdio, http, sse)
 - Commands or URLs for each server
@@ -202,7 +203,7 @@ claude plugin install <plugin-name>@<marketplace>
 ```
 
 For more information, run `claudeup --help` or visit:
-https://github.com/malston/claudeup
+<https://github.com/malston/claudeup>
 
 ---
 
@@ -212,3 +213,220 @@ https://github.com/malston/claudeup
 - `~/.claude/.last_plugin_check` - Tracks last plugin update check
 
 These files prevent the scripts from running multiple times per day.
+
+## TMUX
+
+These commands automate running Claude Code in a tmux session and capturing its output. Here's what each does:
+
+**Command breakdown:**
+
+1. `tmux kill-session -t test-session 2>/dev/null` - Kills any existing session (suppresses errors if none exists)
+2. `tmux new-session -d -s test-session` - Creates a new detached session named "test-session"
+3. `tmux send-keys -t test-session 'claude' Enter` - Starts Claude Code CLI
+4. `sleep 2` - Waits for Claude to initialize
+5. `tmux send-keys -t test-session '/context' Enter` - Sends the `/context` command
+6. `sleep 1` - Waits for command to execute
+7. `tmux capture-pane -t test-session -p` - Captures and prints the pane content
+
+## Bash Scripts
+
+### Option 1: Simple wrapper script
+
+```bash
+#!/usr/bin/env bash
+# run-claude-context.sh
+# Executes a Claude command in tmux and captures output
+
+set -euo pipefail
+
+SESSION_NAME="${1:-claude-session}"
+COMMAND="${2:-/context}"
+STARTUP_WAIT="${3:-2}"
+COMMAND_WAIT="${4:-1}"
+
+# Clean up any existing session
+tmux kill-session -t "$SESSION_NAME" 2>/dev/null || true
+
+# Create new detached session
+tmux new-session -d -s "$SESSION_NAME"
+
+# Start Claude
+tmux send-keys -t "$SESSION_NAME" 'claude' Enter
+sleep "$STARTUP_WAIT"
+
+# Send command
+tmux send-keys -t "$SESSION_NAME" "$COMMAND" Enter
+sleep "$COMMAND_WAIT"
+
+# Capture and print output
+tmux capture-pane -t "$SESSION_NAME" -p
+
+# Optional: keep session alive or kill it
+# tmux kill-session -t "$SESSION_NAME"
+```
+
+**Usage:**
+
+```bash
+chmod +x run-claude-context.sh
+./run-claude-context.sh                    # Uses defaults
+./run-claude-context.sh my-session         # Custom session name
+./run-claude-context.sh my-session /help 3 2  # All custom params
+```
+
+### Option 2: Enhanced script with options
+
+```bash
+#!/usr/bin/env bash
+# claude-tmux-runner.sh
+# Advanced wrapper for running Claude commands in tmux
+
+set -euo pipefail
+
+# Defaults
+SESSION_NAME="claude-session"
+COMMAND="/context"
+STARTUP_WAIT=2
+COMMAND_WAIT=1
+KEEP_SESSION=false
+VERBOSE=false
+
+# Usage function
+usage() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Run Claude Code commands in a tmux session and capture output.
+
+OPTIONS:
+    -s, --session NAME      Session name (default: claude-session)
+    -c, --command CMD       Command to send (default: /context)
+    -w, --startup-wait SEC  Wait time for Claude startup (default: 2)
+    -d, --command-wait SEC  Wait time for command execution (default: 1)
+    -k, --keep-session      Keep tmux session alive after capture
+    -v, --verbose           Show debug output
+    -h, --help              Show this help message
+
+EXAMPLES:
+    $(basename "$0") --command /help
+    $(basename "$0") -s my-session -c "/context" -k
+    $(basename "$0") -c "/tools" -w 3 -d 2 --verbose
+EOF
+    exit 0
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -s|--session)
+            SESSION_NAME="$2"
+            shift 2
+            ;;
+        -c|--command)
+            COMMAND="$2"
+            shift 2
+            ;;
+        -w|--startup-wait)
+            STARTUP_WAIT="$2"
+            shift 2
+            ;;
+        -d|--command-wait)
+            COMMAND_WAIT="$2"
+            shift 2
+            ;;
+        -k|--keep-session)
+            KEEP_SESSION=true
+            shift
+            ;;
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
+    esac
+done
+
+# Logging function
+log() {
+    if [[ "$VERBOSE" == true ]]; then
+        echo "[DEBUG] $*" >&2
+    fi
+}
+
+# Main execution
+main() {
+    log "Session: $SESSION_NAME, Command: $COMMAND"
+
+    # Kill existing session
+    log "Cleaning up existing session..."
+    tmux kill-session -t "$SESSION_NAME" 2>/dev/null || true
+
+    # Create new session
+    log "Creating new tmux session..."
+    tmux new-session -d -s "$SESSION_NAME"
+
+    # Start Claude
+    log "Starting Claude (waiting ${STARTUP_WAIT}s)..."
+    tmux send-keys -t "$SESSION_NAME" 'claude' Enter
+    sleep "$STARTUP_WAIT"
+
+    # Send command
+    log "Sending command: $COMMAND (waiting ${COMMAND_WAIT}s)..."
+    tmux send-keys -t "$SESSION_NAME" "$COMMAND" Enter
+    sleep "$COMMAND_WAIT"
+
+    # Capture output
+    log "Capturing pane output..."
+    tmux capture-pane -t "$SESSION_NAME" -p
+
+    # Cleanup
+    if [[ "$KEEP_SESSION" == false ]]; then
+        log "Killing session..."
+        tmux kill-session -t "$SESSION_NAME" 2>/dev/null || true
+    else
+        log "Session kept alive: tmux attach -t $SESSION_NAME"
+    fi
+}
+
+main
+```
+
+**Usage:**
+
+```bash
+chmod +x claude-tmux-runner.sh
+./claude-tmux-runner.sh --help
+./claude-tmux-runner.sh -c /tools -v
+./claude-tmux-runner.sh -s well-fargo-session -c "/context" -k
+```
+
+### Option 3: Function for your `.bashrc`
+
+```bash
+# Add to ~/.bashrc or ~/.bash_profile
+claude-tmux() {
+    local session="${1:-claude-tmp-$$}"
+    local command="${2:-/context}"
+    local startup_wait="${3:-2}"
+    local command_wait="${4:-1}"
+
+    tmux kill-session -t "$session" 2>/dev/null || true
+    tmux new-session -d -s "$session"
+    tmux send-keys -t "$session" 'claude' Enter
+    sleep "$startup_wait"
+    tmux send-keys -t "$session" "$command" Enter
+    sleep "$command_wait"
+    tmux capture-pane -t "$session" -p
+    tmux kill-session -t "$session" 2>/dev/null || true
+}
+
+# Usage: claude-tmux [session] [command] [startup_wait] [command_wait]
+```
+
+The enhanced script (Option 2) is probably most useful for your consulting work - it gives you flexibility and clean output capture for automation workflows. Would you like me to add features like output file saving or multiple command execution?
