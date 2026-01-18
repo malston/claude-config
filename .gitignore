@@ -19,6 +19,7 @@ notifications.log
 .update.lock
 plans/
 plugins/install-counts-cache.json
+plugins/claude-hud/.usage-cache.json
 telemetry/
 paste-cache/
 cache/
