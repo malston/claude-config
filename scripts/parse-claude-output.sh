@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # .claude/scripts/parse-claude-output.sh
-# Fixed - ensure all format cases work
+# Fixed JSON escaping
 
 set -euo pipefail
 
@@ -17,21 +17,18 @@ FILTERED_OUTPUT=$(echo "$RAW_OUTPUT" | grep -v "^Starting\|^Waiting\|^Sending\|^
 
 parse_context() {
     local output="$1"
-    local format="$2"  # Explicitly pass format
+    local format="$2"
 
-    # Extract model and plan
     MODEL=$(echo "$output" | grep -oE '(Opus|Sonnet|Haiku) [0-9.]+' | head -1 || echo "")
     PLAN=$(echo "$output" | grep -oE 'Claude (Max|Pro|Free)' | sed 's/Claude //' | head -1 || echo "")
     [[ -z "$PLAN" ]] && PLAN=$(echo "$output" | grep -oE '\| (Max|Pro|Free)\]' | grep -oE 'Max|Pro|Free' | head -1 || echo "")
     USERNAME=$(echo "$output" | grep -E '^\s*[a-zA-Z0-9_-]+\s*$' | tr -d '[:space:]' | head -1 || echo "")
 
-    # Parse stats
     STATS_LINE=$(echo "$output" | grep -E 'CLAUDE\.md.*MCP.*hook' | sed 's/^[[:space:]]*//' || echo "")
     CLAUDE_MD=$(echo "$STATS_LINE" | grep -oE '[0-9]+[[:space:]]+CLAUDE\.md' | grep -oE '[0-9]+' || echo "0")
     MCPS=$(echo "$STATS_LINE" | grep -oE '[0-9]+[[:space:]]+MCPs?' | grep -oE '[0-9]+' || echo "0")
     HOOKS=$(echo "$STATS_LINE" | grep -oE '[0-9]+[[:space:]]+hooks?' | grep -oE '[0-9]+' || echo "0")
 
-    # Parse usage
     USAGE_LINE=$(echo "$output" | grep -E '[0-9]+h:.*[0-9]+%' || echo "")
     TIME_LIMIT=$(echo "$USAGE_LINE" | grep -oE '[0-9]+h' | head -1 | grep -oE '[0-9]+' || echo "0")
     USAGE_PERCENT=$(echo "$output" | grep -oE '[0-9]+%' | head -1 | grep -oE '[0-9]+' || echo "0")
@@ -90,18 +87,33 @@ EOF
         raw)
             echo "$FILTERED_OUTPUT"
             ;;
-        *)
-            echo "Error: Unknown format '$format'. Use: json, yaml, env, or raw" >&2
-            exit 1
-            ;;
     esac
 }
 
 case "$COMMAND" in
-    /context)
-        parse_context "$FILTERED_OUTPUT" "$FORMAT"  # Pass FORMAT explicitly
+    /context|/mcp)
+        # Both commands produce the same output
+        parse_context "$FILTERED_OUTPUT" "$FORMAT"
         ;;
     *)
-        echo "$FILTERED_OUTPUT"
+        # For unknown commands, return raw or JSON-wrapped output
+        case "$FORMAT" in
+            json)
+                # Use jq to properly escape the output
+                RAW_JSON=$(echo "$FILTERED_OUTPUT" | jq -Rs .)
+                echo "{\"command\": \"$COMMAND\", \"raw_output\": $RAW_JSON}"
+                ;;
+            yaml)
+                echo "command: $COMMAND"
+                echo "raw_output: |"
+                echo "$FILTERED_OUTPUT" | sed 's/^/  /'
+                ;;
+            env)
+                echo "CLAUDE_COMMAND=\"$COMMAND\""
+                ;;
+            raw|*)
+                echo "$FILTERED_OUTPUT"
+                ;;
+        esac
         ;;
 esac
