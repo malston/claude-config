@@ -1,6 +1,68 @@
 #!/usr/bin/env bash
 # ABOUTME: PreToolUse hook that blocks dangerous Bash commands.
 # ABOUTME: Exits with code 2 to block, 0 to allow.
+#
+# USAGE:
+#     As a Claude Code hook (automatic):
+#         Triggered automatically before Bash tool execution.
+#
+#     Manual invocation (test blocking):
+#         echo '{"tool_input": {"command": "rm -rf /"}}' | ./block-dangerous-commands.sh
+#         # Returns exit code 2 (blocked)
+#
+#     Manual invocation (test allowing):
+#         echo '{"tool_input": {"command": "git status"}}' | ./block-dangerous-commands.sh
+#         # Returns exit code 0 (allowed)
+#
+# CONFIGURATION:
+#     Add to ~/.claude/settings.json:
+#
+#     {
+#       "hooks": {
+#         "PreToolUse": [
+#           {
+#             "matcher": "Bash",
+#             "hooks": [
+#               {
+#                 "type": "command",
+#                 "command": "~/.claude/hooks/block-dangerous-commands.sh"
+#               }
+#             ]
+#           }
+#         ]
+#       }
+#     }
+#
+# INPUT FORMAT (stdin):
+#     {
+#       "tool_input": {
+#         "command": "rm -rf /"
+#       }
+#     }
+#
+# BLOCKED COMMANDS:
+#     - rm -rf / or ~            - Recursive delete of root/home
+#     - rm -rf *                 - Recursive delete with wildcard
+#     - rm lock files            - package-lock.json, yarn.lock, go.sum
+#     - git push --force/-f      - Force push (suggests --force-with-lease)
+#     - git reset --hard origin  - Destructive reset
+#     - cf delete-org/space      - Cloud Foundry resource deletion
+#     - kubectl delete --all     - Kubernetes mass deletion
+#     - docker system prune -a   - Full Docker prune
+#     - chmod -R 777             - Insecure permissions
+#     - curl/wget | bash/sh      - Piping to shell
+#     - > /etc/                  - Writing to /etc
+#     - dd if=* of=/dev/         - Direct disk write
+#     - mkfs.*                   - Filesystem format
+#     - :(){:|:&};:              - Fork bomb
+#
+# DEPENDENCIES:
+#     - jq (required for JSON parsing)
+#     - grep with -E (extended regex)
+#
+# EXIT CODES:
+#     0 - Command allowed
+#     2 - Command blocked (Claude Code convention for blocking)
 
 set -uo pipefail
 

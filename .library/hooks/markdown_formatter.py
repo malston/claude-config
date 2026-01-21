@@ -1,7 +1,55 @@
 #!/usr/bin/env python3
+# ABOUTME: PostToolUse hook that auto-formats markdown files after Claude edits them.
+# ABOUTME: Adds missing language tags to code fences and fixes excessive blank lines.
 """
 Markdown formatter for Claude Code output.
 Fixes missing language tags and spacing issues while preserving code content.
+
+USAGE:
+    As a Claude Code hook (automatic):
+        Triggered automatically after Edit|Write operations on .md/.mdx files.
+
+    Manual invocation:
+        echo '{"tool_input": {"file_path": "/path/to/file.md"}}' | ./markdown_formatter.py
+
+    Test language detection:
+        python3 -c "from markdown_formatter import detect_language; print(detect_language('def foo(): pass'))"
+
+CONFIGURATION:
+    Add to ~/.claude/settings.json:
+
+    {
+      "hooks": {
+        "PostToolUse": [
+          {
+            "matcher": "Edit|Write",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "~/.claude/hooks/markdown_formatter.py"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+INPUT FORMAT (stdin):
+    {
+      "tool_input": {
+        "file_path": "/path/to/document.md"
+      }
+    }
+
+FEATURES:
+    - Detects unlabeled code fences and adds language tags (python, javascript, bash, json, sql, text)
+    - Reduces excessive blank lines (3+ newlines → 2 newlines)
+    - Only processes .md and .mdx files
+    - Preserves code content exactly
+
+EXIT CODES:
+    0 - Success (file formatted or skipped if not markdown)
+    1 - Error (JSON parse error, file read/write error, encoding error)
 """
 import json
 import sys
@@ -17,7 +65,7 @@ def detect_language(code):
         try:
             json.loads(s)
             return 'json'
-        except:
+        except (json.JSONDecodeError, ValueError):
             pass
 
     # Python detection
@@ -41,7 +89,7 @@ def detect_language(code):
 
     return 'text'
 
-def format_markdown(content):
+def format_markdown(text):
     """Format markdown content with language detection."""
     # Fix unlabeled code fences
     def add_lang_to_fence(match):
@@ -52,12 +100,12 @@ def format_markdown(content):
         return match.group(0)
 
     fence_pattern = r'(?ms)^([ \t]{0,3})```([^\n]*)\n(.*?)(\n\1```)\s*$'
-    content = re.sub(fence_pattern, add_lang_to_fence, content)
+    formatted_content = re.sub(fence_pattern, add_lang_to_fence, text)
 
     # Fix excessive blank lines (only outside code fences)
-    content = re.sub(r'\n{3,}', '\n\n', content)
+    formatted_content = re.sub(r'\n{3,}', '\n\n', formatted_content)
 
-    return content.rstrip() + '\n'
+    return formatted_content.rstrip() + '\n'
 
 # Main execution
 try:
@@ -78,6 +126,6 @@ try:
                 f.write(formatted)
             print(f"✓ Fixed markdown formatting in {file_path}")
 
-except Exception as e:
+except (json.JSONDecodeError, OSError, UnicodeDecodeError) as e:
     print(f"Error formatting markdown: {e}", file=sys.stderr)
     sys.exit(1)

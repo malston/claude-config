@@ -1,6 +1,53 @@
 #!/usr/bin/env bash
 # ABOUTME: PostToolUse hook that auto-formats files after Claude edits them.
 # ABOUTME: Runs gofmt for Go files and prettier for JS/TS/JSX/TSX files.
+#
+# USAGE:
+#     As a Claude Code hook (automatic):
+#         Triggered automatically after Edit|Write operations.
+#
+#     Manual invocation:
+#         echo '{"tool_input": {"file_path": "/path/to/file.go"}}' | ./format-on-save.sh
+#
+# CONFIGURATION:
+#     Add to ~/.claude/settings.json:
+#
+#     {
+#       "hooks": {
+#         "PostToolUse": [
+#           {
+#             "matcher": "Edit|Write",
+#             "hooks": [
+#               {
+#                 "type": "command",
+#                 "command": "~/.claude/hooks/format-on-save.sh"
+#               }
+#             ]
+#           }
+#         ]
+#       }
+#     }
+#
+# INPUT FORMAT (stdin):
+#     {
+#       "tool_input": {
+#         "file_path": "/path/to/file.go"
+#       }
+#     }
+#
+# SUPPORTED FILE TYPES:
+#     .go                 - Formatted with gofmt
+#     .js, .jsx, .ts, .tsx - Formatted with prettier
+#     .json, .css, .scss   - Formatted with prettier
+#     .md, .yaml, .yml     - Formatted with prettier
+#
+# DEPENDENCIES:
+#     - jq (required for JSON parsing)
+#     - gofmt (for Go files)
+#     - prettier or npx (for JS/TS/CSS/etc files)
+#
+# EXIT CODES:
+#     0 - Success (file formatted or skipped if unsupported type)
 
 set -euo pipefail
 

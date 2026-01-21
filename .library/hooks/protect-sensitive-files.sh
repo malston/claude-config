@@ -1,6 +1,70 @@
 #!/usr/bin/env bash
 # ABOUTME: PreToolUse hook that blocks edits to sensitive files.
 # ABOUTME: Exits with code 2 to block, 0 to allow.
+#
+# USAGE:
+#     As a Claude Code hook (automatic):
+#         Triggered automatically before Edit|Write tool execution.
+#
+#     Manual invocation (test blocking):
+#         echo '{"tool_input": {"file_path": "/path/to/.env"}}' | ./protect-sensitive-files.sh
+#         # Returns exit code 2 (blocked)
+#
+#     Manual invocation (test allowing):
+#         echo '{"tool_input": {"file_path": "/path/to/main.go"}}' | ./protect-sensitive-files.sh
+#         # Returns exit code 0 (allowed)
+#
+# CONFIGURATION:
+#     Add to ~/.claude/settings.json:
+#
+#     {
+#       "hooks": {
+#         "PreToolUse": [
+#           {
+#             "matcher": "Edit|Write",
+#             "hooks": [
+#               {
+#                 "type": "command",
+#                 "command": "~/.claude/hooks/protect-sensitive-files.sh"
+#               }
+#             ]
+#           }
+#         ]
+#       }
+#     }
+#
+# INPUT FORMAT (stdin):
+#     {
+#       "tool_input": {
+#         "file_path": "/path/to/file.env"
+#       }
+#     }
+#
+# PROTECTED FILES (exact match):
+#     - .env, .env.local, .env.production, .env.development
+#     - go.sum, package-lock.json, yarn.lock
+#     - pnpm-lock.yaml, bun.lockb
+#     - Gemfile.lock, poetry.lock, Cargo.lock
+#
+# PROTECTED PATTERNS (regex match on full path):
+#     - .env.*                   - All environment files
+#     - /.git/                   - Git internals
+#     - node_modules/            - Node dependencies
+#     - vendor/                  - Go/PHP vendor directories
+#     - .vscode/settings.json    - VS Code settings
+#     - .idea/                   - JetBrains IDE settings
+#     - id_rsa, id_ed25519       - SSH private keys
+#     - *.pem, *.key             - Certificates and keys
+#     - credentials.json         - Credential files
+#     - secrets.yaml, secrets.yml - Secret configurations
+#
+# DEPENDENCIES:
+#     - jq (required for JSON parsing)
+#     - grep with -E (extended regex)
+#
+# EXIT CODES:
+#     0 - Edit allowed
+#     2 - Edit blocked (Claude Code convention for blocking)
 
 set -uo pipefail
 

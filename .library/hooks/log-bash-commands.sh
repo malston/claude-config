@@ -1,6 +1,55 @@
 #!/usr/bin/env bash
 # ABOUTME: PreToolUse hook that logs all Bash commands to an audit file.
 # ABOUTME: Useful for debugging and reviewing what Claude executed.
+#
+# USAGE:
+#     As a Claude Code hook (automatic):
+#         Triggered automatically before Bash tool execution.
+#
+#     Manual invocation:
+#         echo '{"tool_input": {"command": "ls -la", "description": "List files"}}' | ./log-bash-commands.sh
+#
+#     View log:
+#         tail -f ~/.claude/bash-command-log.txt
+#
+# CONFIGURATION:
+#     Add to ~/.claude/settings.json:
+#
+#     {
+#       "hooks": {
+#         "PreToolUse": [
+#           {
+#             "matcher": "Bash",
+#             "hooks": [
+#               {
+#                 "type": "command",
+#                 "command": "~/.claude/hooks/log-bash-commands.sh"
+#               }
+#             ]
+#           }
+#         ]
+#       }
+#     }
+#
+# INPUT FORMAT (stdin):
+#     {
+#       "tool_input": {
+#         "command": "git status",
+#         "description": "Check git status"
+#       }
+#     }
+#
+# OUTPUT FORMAT (log file):
+#     [2026-01-21 09:48:25] git status - Check git status
+#
+# LOG FILE:
+#     ~/.claude/bash-command-log.txt
+#
+# DEPENDENCIES:
+#     - jq (required for JSON parsing)
+#
+# EXIT CODES:
+#     0 - Always (logging should never block commands)
 
 set -uo pipefail
 
