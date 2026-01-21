@@ -177,6 +177,10 @@
     "technical-evangelist.md": true
   },
   "hooks": {
-    "save-iterm-session.py": false
+    "save-iterm-session.py": false,
+    "markdown_formatter.py": true,
+    "block-dangerous-commands.sh": true,
+    "format-on-save.sh": true,
+    "protect-sensitive-files.sh": true
   }
 }

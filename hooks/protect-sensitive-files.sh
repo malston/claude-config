@@ -1,0 +1,1 @@
+../.library/hooks/protect-sensitive-files.sh
