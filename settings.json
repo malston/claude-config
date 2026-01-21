@@ -70,9 +70,9 @@
     "command": "bash -c '\"/Users/markalston/.bun/bin/bun\" \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)src/index.ts\"'"
   },
   "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true,
+    "superpowers@superpowers-marketplace": false,
     "episodic-memory@superpowers-marketplace": false,
-    "elements-of-style@superpowers-marketplace": true,
+    "elements-of-style@superpowers-marketplace": false,
     "claude-mem@thedotmack": true,
     "code-review@claude-plugins-official": false,
     "code-documentation@claude-code-workflows": false,
@@ -88,9 +88,9 @@
     "hookify@claude-code-plugins": true,
     "plugin-dev@claude-code-plugins": false,
     "tanzu-cf-architect@tanzu-cf-architect": false,
-    "commit-commands@awesome-claude-code-plugins": true,
+    "commit-commands@awesome-claude-code-plugins": false,
     "claude-hud@claude-hud": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "openapi@openapi-dev": true
+    "typescript-lsp@claude-plugins-official": false,
+    "openapi@openapi-dev": false
   }
 }
