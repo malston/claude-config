@@ -181,6 +181,7 @@
     "markdown_formatter.py": true,
     "block-dangerous-commands.sh": true,
     "format-on-save.sh": true,
-    "protect-sensitive-files.sh": true
+    "protect-sensitive-files.sh": true,
+    "log-bash-commands.sh": true
   }
 }

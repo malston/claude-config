@@ -1,0 +1,1 @@
+../.library/hooks/log-bash-commands.sh

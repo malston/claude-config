@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '\"\\(.tool_input.command) - \\(.tool_input.description // \"No description\")\"' >> ~/.claude/bash-command-log.txt"
+            "command": "~/.claude/hooks/log-bash-commands.sh"
           },
           {
             "type": "command",
