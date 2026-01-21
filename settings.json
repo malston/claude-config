@@ -85,10 +85,12 @@
     "code-review@claude-code-plugins": false,
     "commit-commands@claude-code-plugins": true,
     "feature-dev@claude-code-plugins": false,
-    "hookify@claude-code-plugins": false,
+    "hookify@claude-code-plugins": true,
     "plugin-dev@claude-code-plugins": false,
     "tanzu-cf-architect@tanzu-cf-architect": false,
     "commit-commands@awesome-claude-code-plugins": true,
-    "claude-hud@claude-hud": true
+    "claude-hud@claude-hud": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "openapi@openapi-dev": true
   }
 }

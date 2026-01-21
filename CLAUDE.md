@@ -91,10 +91,10 @@ Only pause to ask for confirmation when:
 
 ### JavaScript/TypeScript Tooling
 
-- ALWAYS use `bun` instead of `npm` for package management and script execution
-- Use `bun install` instead of `npm install`
-- Use `bun run` instead of `npm run`
-- Use `bun test` instead of `npm test`
+- When available, ALWAYS use `bun` instead of `npm` for package management and script execution
+- When available, use `bun install` instead of `npm install`
+- When available, use `bun run` instead of `npm run`
+- When available, use `bun test` instead of `npm test`
 
 ### Bash Scripting
 
