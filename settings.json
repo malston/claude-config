@@ -1,5 +1,47 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": {
+    "claude-hud@claude-hud": true,
+    "claude-mem@thedotmack": true,
+    "commit-commands@claude-code-plugins": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "hookify@claude-code-plugins": true
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "notify-send 'Claude Code' 'Awaiting your input'",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/markdown_formatter.py",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "jq -r '\"\\(.tool_input.command) - \\(.tool_input.description // \"No description\")\"' \u003e\u003e ~/.claude/bash-command-log.txt",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ]
+  },
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
@@ -26,71 +68,12 @@
       "Bash(git add:*)",
       "Bash(HEADLESS=true npm run test:e2e:*)"
     ],
-    "deny": [],
     "ask": [],
-    "defaultMode": "acceptEdits"
-  },
-  "hooks": {
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "notify-send 'Claude Code' 'Awaiting your input'"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/markdown_formatter.py"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '\"\\(.tool_input.command) - \\(.tool_input.description // \"No description\")\"' >> ~/.claude/bash-command-log.txt"
-          }
-        ]
-      }
-    ]
+    "defaultMode": "acceptEdits",
+    "deny": []
   },
   "statusLine": {
-    "type": "command",
-    "command": "bash -c '\"/Users/markalston/.bun/bin/bun\" \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)src/index.ts\"'"
-  },
-  "enabledPlugins": {
-    "superpowers@superpowers-marketplace": false,
-    "episodic-memory@superpowers-marketplace": false,
-    "elements-of-style@superpowers-marketplace": false,
-    "claude-mem@thedotmack": true,
-    "code-review@claude-plugins-official": false,
-    "code-documentation@claude-code-workflows": false,
-    "commit-commands@claude-plugins-official": false,
-    "feature-dev@claude-plugins-official": false,
-    "frontend-design@claude-plugins-official": false,
-    "github@claude-plugins-official": false,
-    "pr-review-toolkit@claude-plugins-official": false,
-    "security-guidance@claude-plugins-official": false,
-    "code-review@claude-code-plugins": false,
-    "commit-commands@claude-code-plugins": true,
-    "feature-dev@claude-code-plugins": false,
-    "hookify@claude-code-plugins": true,
-    "plugin-dev@claude-code-plugins": false,
-    "tanzu-cf-architect@tanzu-cf-architect": false,
-    "commit-commands@awesome-claude-code-plugins": false,
-    "claude-hud@claude-hud": true,
-    "typescript-lsp@claude-plugins-official": false,
-    "openapi@openapi-dev": false
+    "command": "bash -c '\"/Users/markalston/.bun/bin/bun\" \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2\u003e/dev/null | head -1)src/index.ts\"'",
+    "type": "command"
   }
 }
