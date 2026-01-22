@@ -1,0 +1,1 @@
+../.library/commands/update-memory.md
