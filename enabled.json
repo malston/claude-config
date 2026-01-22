@@ -27,7 +27,8 @@
     "iterm": false,
     "promptengineering": false,
     "recovery-prompt.md": true,
-    "vsphere-architect": false
+    "vsphere-architect": false,
+    "update-memory.md": true
   },
   "agents": {
     "business-product": false,
