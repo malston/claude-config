@@ -80,7 +80,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash -c '\"/Users/markalston/.bun/bin/bun\" \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)src/index.ts\"'"
+    "command": "bash -c '~/.bun/bin/bun \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)src/index.ts\"'"
   },
   "enabledPlugins": {
     "claude-hud@claude-hud": true,
