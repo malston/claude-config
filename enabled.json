@@ -16,7 +16,8 @@
     "vsphere-architect": true,
     "test-driven-development": false,
     "web-design-guidelines": true,
-    "vercel-react-best-practices": true
+    "vercel-react-best-practices": true,
+    "pr-comments": true
   },
   "commands": {
     "cl": false,
