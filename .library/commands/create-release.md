@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git pull:*), Bash(gh:*)
-description: Create a git pull request
+description: Create a github release
 ---
 
 ## Context
