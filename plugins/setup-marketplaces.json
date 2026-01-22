@@ -6,12 +6,6 @@
       "description": "Official Anthropic plugins",
       "essential": true
     },
-    "claude-code-plugins": {
-      "source": "github",
-      "repo": "anthropics/claude-code",
-      "description": "Anthropic claude-code plugins",
-      "essential": true
-    },
     "superpowers-marketplace": {
       "source": "github",
       "repo": "obra/superpowers-marketplace",
