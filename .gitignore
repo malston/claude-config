@@ -24,6 +24,7 @@ telemetry/
 paste-cache/
 cache/
 exports/
+tasks/
 
 # IDE and lock files
 ide/
@@ -60,6 +61,7 @@ config/.env
 .claude/
 
 # Claude
+CLAUDE.local.md
 **/CLAUDE.md
 !.claude/CLAUDE.md
 !/CLAUDE.md
