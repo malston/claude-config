@@ -231,3 +231,7 @@ Your context window will be automatically compacted as it approaches its limit, 
 - API URLs: `https://api.acme.com`, `https://github.acme.com/api/v3`
 
 This ensures documentation remains professional and avoids any potential trademark or branding issues.
+
+### Punctuation
+
+- NEVER use em dashes (—) in documentation. Use `--` or rewrite the sentence to avoid the need for either.
