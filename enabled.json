@@ -145,7 +145,7 @@
     "quality-security/ad-security-reviewer.md": false,
     "quality-security/architect-reviewer.md": false,
     "quality-security/chaos-engineer.md": false,
-    "quality-security/code-reviewer.md": false,
+    "quality-security/code-reviewer.md": true,
     "quality-security/compliance-auditor.md": false,
     "quality-security/debugger.md": false,
     "quality-security/error-detective.md": false,
