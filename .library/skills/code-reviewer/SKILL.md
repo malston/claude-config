@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Review code for best practices and potential issues. Use when reviewing code, checking PRs, or analyzing code quality.
-allowed-tools: Read, Grep, Glob
+allowed-tools: [ Read, Grep, Glob ]
 ---
 
 # Code Reviewer

@@ -1,7 +1,7 @@
 {
   "skills": {
     "claude-docs-consultant": false,
-    "code-reviewer": true,
+    "code-reviewer": false,
     "commit-helper": false,
     "frontend-web-dev": false,
     "security-lens": false,
@@ -172,7 +172,8 @@
     "specialized-domains/payment-integration.md": false,
     "specialized-domains/quant-analyst.md": false,
     "specialized-domains/risk-manager.md": false,
-    "specialized-domains/seo-specialist.md": false
+    "specialized-domains/seo-specialist.md": false,
+    "test-runner/test-runner.md": true
   },
   "rules": {},
   "output-styles": {
