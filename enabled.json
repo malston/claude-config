@@ -13,11 +13,12 @@
     "cloud": false,
     "kubernetes": false,
     "clean-architecture": false,
-    "vsphere-architect": true,
+    "vsphere-architect": false,
     "test-driven-development": false,
     "web-design-guidelines": true,
     "vercel-react-best-practices": true,
-    "pr-comments": true
+    "pr-comments": true,
+    "rust-engineer": false
   },
   "commands": {
     "cl": false,
@@ -145,7 +146,7 @@
     "quality-security/ad-security-reviewer.md": false,
     "quality-security/architect-reviewer.md": false,
     "quality-security/chaos-engineer.md": false,
-    "quality-security/code-reviewer.md": true,
+    "quality-security/code-reviewer.md": false,
     "quality-security/compliance-auditor.md": false,
     "quality-security/debugger.md": false,
     "quality-security/error-detective.md": false,

@@ -1,1 +1,0 @@
-../../.library/agents/quality-security/code-reviewer.md
