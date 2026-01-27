@@ -96,7 +96,6 @@
     "security-guidance@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true,
-    "everything-claude-code@everything-claude-code": true
+    "vercel@claude-plugins-official": true
   }
 }
