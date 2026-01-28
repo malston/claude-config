@@ -26,61 +26,61 @@
       "Bash(git add:*)",
       "Bash(HEADLESS=true npm run test:e2e:*)"
     ],
-    "deny": [],
     "ask": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "deny": []
   },
   "hooks": {
     "Notification": [
       {
-        "matcher": "",
         "hooks": [
           {
-            "type": "command",
-            "command": "notify-send 'Claude Code' 'Awaiting your input'"
+            "command": "notify-send 'Claude Code' 'Awaiting your input'",
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": ""
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write",
         "hooks": [
           {
-            "type": "command",
-            "command": "~/.claude/hooks/format-on-save.sh"
+            "command": "~/.claude/hooks/format-on-save.sh",
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": "Edit|Write"
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
         "hooks": [
           {
-            "type": "command",
-            "command": "~/.claude/hooks/log-bash-commands.sh"
+            "command": "~/.claude/hooks/log-bash-commands.sh",
+            "type": "command"
           },
           {
-            "type": "command",
-            "command": "~/.claude/hooks/block-dangerous-commands.sh"
+            "command": "~/.claude/hooks/block-dangerous-commands.sh",
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": "Bash"
       },
       {
-        "matcher": "Edit|Write",
         "hooks": [
           {
-            "type": "command",
-            "command": "~/.claude/hooks/protect-sensitive-files.sh"
+            "command": "~/.claude/hooks/protect-sensitive-files.sh",
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": "Edit|Write"
       }
     ]
   },
   "statusLine": {
-    "type": "command",
-    "command": "bash -c '~/.bun/bin/bun \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)src/index.ts\"'"
+    "command": "bash -c '~/.bun/bin/bun \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2\u003e/dev/null | head -1)src/index.ts\"'",
+    "type": "command"
   },
   "enabledPlugins": {
     "claude-code-setup@claude-plugins-official": true,
