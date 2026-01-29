@@ -26,6 +26,7 @@ paste-cache/
 cache/
 exports/
 tasks/
+.claude.json.backup.*
 
 # IDE and lock files
 ide/
