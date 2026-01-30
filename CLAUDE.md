@@ -158,6 +158,7 @@ Only pause to ask for confirmation when:
 - NEVER SKIP, EVADE OR DISABLE A PRE-COMMIT HOOK
 - NEVER use `git add -A` unless you've just done a `git status` - Don't add random test files to the repo.
 - Be sure to commit all feature development on a "feature" branch AND ask before pushing code to the `main` or `master` branch.
+- **NEVER commit directly to the `main` or `master` branch without explicit permission from Mark.** Always use a feature branch and submit a PR.
 
 ## Systematic Debugging Process
 
