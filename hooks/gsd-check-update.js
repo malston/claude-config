@@ -1,0 +1,1 @@
+../.library/hooks/gsd-check-update.js

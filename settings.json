@@ -76,6 +76,16 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/markalston/.claude/hooks/gsd-check-update.js\""
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

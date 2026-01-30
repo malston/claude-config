@@ -1,0 +1,1 @@
+../.library/agents/gsd-integration-checker.md
