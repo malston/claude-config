@@ -27,6 +27,8 @@ cache/
 exports/
 tasks/
 .claude.json.backup.*
+plugins/claude-hud/.usage-cache.json
+plugins/claude-hud/.keychain-backoff
 
 # IDE and lock files
 ide/
