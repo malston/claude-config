@@ -104,13 +104,13 @@ Only pause to ask for confirmation when:
 
 ### Claude Code Configuration
 
-- Use the `~/.claude/scripts/claude-config` tool to enable/disable commands, skills, agents, hooks, rules and output-styles
-- Commands live in `~/.claude/.library/commands/` with symlinks in `~/.claude/commands/` to enable them
-- Skills live in `~/.claude/.library/skills/` with symlinks in `~/.claude/skills/` to enable them
-- Agents live in `~/.claude/.library/agents/` with symlinks in `~/.claude/agents/` to enable them
-- Hooks live in `~/.claude/.library/hooks/` with symlinks in `~/.claude/hooks/` to enable them
-- Output Styles live in `~/.claude/.library/output-styles/` with symlinks in `~/.claude/output-styles/` to enable them
-- Rules live in `~/.claude/.library/rules/` with symlinks in `~/.claude/rules/` to enable them
+- Use `claudeup local` to manage local extensions (agents, commands, skills, hooks, rules, output-styles)
+- `claudeup local list` - show all items and their enabled status
+- `claudeup local enable <category> <items...>` - enable items (supports wildcards like `gsd-*`)
+- `claudeup local disable <category> <items...>` - disable items
+- `claudeup local install <category> <path>` - install items from external paths
+- `claudeup local view <category> <item>` - view item contents
+- Items live in `~/.claude/.library/<category>/` with symlinks in `~/.claude/<category>/` when enabled
 
 ## Naming
 
