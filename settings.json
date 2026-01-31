@@ -101,6 +101,7 @@
     "claude-md-management@claude-plugins-official": true,
     "claude-hud@claude-hud": true,
     "claude-code-setup@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true
+    "vercel@claude-plugins-official": true,
+    "openapi@openapi-dev": true
   }
 }
