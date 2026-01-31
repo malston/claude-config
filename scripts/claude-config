@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
-# ABOUTME: Manages enable/disable state for Claude Code skills, commands, agents, rules, and output-styles.
-# ABOUTME: Uses relative symlinks from .library/ to discovery directories based on enabled.json config.
+# ABOUTME: DEPRECATED - Use `claudeup local` instead.
+# ABOUTME: This script is deprecated and will be removed in a future update.
 
 import json
+import sys
+
+# Deprecation warning
+print("\033[33m" + "=" * 70 + "\033[0m", file=sys.stderr)
+print("\033[33mDEPRECATED: claude-config is deprecated.\033[0m", file=sys.stderr)
+print("\033[33mUse `claudeup local` instead:\033[0m", file=sys.stderr)
+print(file=sys.stderr)
+print("  claudeup local list              # List items", file=sys.stderr)
+print("  claudeup local enable <cat> ...  # Enable items", file=sys.stderr)
+print("  claudeup local disable <cat> ... # Disable items", file=sys.stderr)
+print("  claudeup local install <cat> ... # Install from path", file=sys.stderr)
+print("  claudeup local view <cat> <item> # View item contents", file=sys.stderr)
+print("  claudeup local sync              # Sync symlinks", file=sys.stderr)
+print(file=sys.stderr)
+print("\033[33m" + "=" * 70 + "\033[0m", file=sys.stderr)
+print(file=sys.stderr)
 import os
 import sys
 from pathlib import Path
