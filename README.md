@@ -6,24 +6,24 @@ Portable configuration for Claude Code CLI.
 
 ## Contents
 
-| Directory/File | Purpose |
-|----------------|---------|
-| `CLAUDE.md` | Primary user instructions and coding standards |
-| `settings.json` | Permissions, hooks, status line, plugin settings |
-| `enabled.json` | Enable/disable state for skills, commands, agents, rules, output-styles |
-| `.library/` | Canonical storage for all manageable items |
-| `commands/` | Symlinks to enabled commands in `.library/commands/` |
-| `skills/` | Symlinks to enabled skills in `.library/skills/` |
-| `agents/` | Symlinks to enabled agents in `.library/agents/` |
-| `rules/` | Symlinks to enabled rules in `.library/rules/` |
-| `output-styles/` | Symlinks to enabled output styles in `.library/output-styles/` |
-| `hooks/` | Hook scripts (e.g., markdown formatter) |
-| `plugins/` | Plugin configuration and marketplace list |
-| `config/` | MCP server definitions and environment templates |
-| `scripts/` | Utility scripts including `claude-config` |
-| `setup.sh` | Post-clone setup script |
-| `Dockerfile` | Docker configuration for containerized environments |
-| `docs/DOCKER.md` | Docker setup and usage guide |
+| Directory/File   | Purpose                                                                 |
+| ---------------- | ----------------------------------------------------------------------- |
+| `CLAUDE.md`      | Primary user instructions and coding standards                          |
+| `settings.json`  | Permissions, hooks, status line, plugin settings                        |
+| `enabled.json`   | Enable/disable state for skills, commands, agents, rules, output-styles |
+| `.library/`      | Canonical storage for all manageable items                              |
+| `commands/`      | Symlinks to enabled commands in `.library/commands/`                    |
+| `skills/`        | Symlinks to enabled skills in `.library/skills/`                        |
+| `agents/`        | Symlinks to enabled agents in `.library/agents/`                        |
+| `rules/`         | Symlinks to enabled rules in `.library/rules/`                          |
+| `output-styles/` | Symlinks to enabled output styles in `.library/output-styles/`          |
+| `hooks/`         | Hook scripts (e.g., markdown formatter)                                 |
+| `plugins/`       | Plugin configuration and marketplace list                               |
+| `config/`        | MCP server definitions and environment templates                        |
+| `scripts/`       | Utility scripts for upgrades and diagnostics                            |
+| `setup.sh`       | Post-clone setup script                                                 |
+| `Dockerfile`     | Docker configuration for containerized environments                     |
+| `docs/DOCKER.md` | Docker setup and usage guide                                            |
 
 ## Quick Start (Newcomers)
 
@@ -36,6 +36,7 @@ cd ~/.claude
 ```
 
 The interactive setup will:
+
 1. Install essential marketplaces (Anthropic official + Superpowers)
 2. Offer optional additional marketplaces
 3. Configure MCP servers
@@ -51,6 +52,7 @@ SETUP_MODE=auto ./setup.sh
 ```
 
 This installs your complete configuration including:
+
 - All public marketplaces from `plugins/setup-marketplaces.json`
 - Your private marketplaces from `plugins/setup-marketplaces.local.json`
 - All plugins from `plugins/setup-plugins.json`
@@ -94,35 +96,47 @@ After disabling, your MCP context drops from ~53k to ~5k tokens (90% reduction).
 
 This config uses a library-based enable/disable system. All items live in `.library/` and symlinks in discovery directories control what Claude Code sees.
 
+Use `claudeup local` to manage local extensions:
+
 **List all items and their status:**
 
 ```bash
-./scripts/claude-config list
-./scripts/claude-config list agents    # specific category
+claudeup local list
+claudeup local list agents    # specific category
+claudeup local list --enabled # only enabled items
 ```
 
 **Disable/enable items:**
 
 ```bash
-./scripts/claude-config disable agents business-product
-./scripts/claude-config enable agents business-product
-./scripts/claude-config disable agents '*'    # disable all agents
-./scripts/claude-config enable skills '*'     # enable all skills
+claudeup local disable agents business-product
+claudeup local enable agents business-product
+claudeup local disable agents '*'    # disable all agents
+claudeup local enable skills '*'     # enable all skills
+claudeup local enable agents gsd-*   # wildcard matching
 ```
 
 **Sync after manual edits to `enabled.json`:**
 
 ```bash
-./scripts/claude-config sync
+claudeup local sync
 ```
 
-**Add new items to the library:**
+**Install items from external paths:**
 
 ```bash
-./scripts/claude-config add skills ~/path/to/my-skill
+claudeup local install skills ~/path/to/my-skill
+claudeup local install hooks ~/Downloads/format-on-save.sh
 ```
 
-Categories: `skills`, `commands`, `agents`, `rules`, `output-styles`
+**View item contents:**
+
+```bash
+claudeup local view skills bash
+claudeup local view agents gsd-planner
+```
+
+Categories: `skills`, `commands`, `agents`, `hooks`, `rules`, `output-styles`
 
 **Re-enable when needed:**
 
@@ -172,11 +186,13 @@ This file stays private even in your fork.
 The `scripts/auto-upgrade-claude.sh` script automatically checks for and installs Claude Code updates when you enter this directory (via direnv).
 
 **Features:**
+
 - Runs once per day to avoid slowness
 - Displays changelog from GitHub when an upgrade occurs
 - Runs in background to avoid blocking your shell
 
 **Setup:**
+
 1. Install direnv: `brew install direnv`
 2. Add to your `~/.zshrc`: `eval "$(direnv hook zsh)"`
 3. Create `.envrc` in this directory (gitignored):
