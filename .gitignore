@@ -32,6 +32,7 @@ plugins/claude-hud/.keychain-backoff
 
 # IDE and lock files
 ide/
+.vscode/
 
 # Analytics and caching
 statsig/
