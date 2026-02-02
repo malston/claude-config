@@ -30,7 +30,6 @@
     "ask": [],
     "defaultMode": "acceptEdits"
   },
-  "model": "Default",
   "hooks": {
     "Notification": [
       {
