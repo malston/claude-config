@@ -12,6 +12,21 @@
       "description": "Productivity toolkit by Jesse Vincent",
       "essential": true
     },
+    "claude-code-templates": {
+      "source": "github",
+      "repo": "davila7/claude-code-templates",
+      "description": "DevOps and web development templates"
+    },
+    "claude-code-workflows": {
+      "source": "github",
+      "repo": "wshobson/agents",
+      "description": "Code workflows and agents"
+    },
+    "anthropic-agent-skills": {
+      "source": "github",
+      "repo": "anthropics/skills",
+      "description": "Example agent patterns"
+    },
     "thedotmack": {
       "source": "github",
       "repo": "thedotmack/claude-mem",
@@ -27,20 +42,10 @@
       "url": "https://github.com/EveryInc/compound-engineering-plugin.git",
       "description": "Compound Engineering tools"
     },
-    "anthropic-agent-skills": {
-      "source": "github",
-      "repo": "anthropics/skills",
-      "description": "Example agent patterns"
-    },
-    "claude-code-templates": {
-      "source": "github",
-      "repo": "davila7/claude-code-templates",
-      "description": "DevOps and web development templates"
-    },
-    "claude-code-workflows": {
-      "source": "github",
-      "repo": "wshobson/agents",
-      "description": "Code workflows and agents"
+    "claude-hud": {
+      "source": "git",
+      "url": "https://github.com/jarrodwatts/claude-hud.git",
+      "description": "Real-time statusline HUD for Claude Code - context health, tool activity, agent tracking, and todo progress"
     }
   }
 }
