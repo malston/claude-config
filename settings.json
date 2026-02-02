@@ -28,7 +28,7 @@
     ],
     "deny": [],
     "ask": [],
-    "defaultMode": "acceptEdits",
+    "defaultMode": "acceptEdits"
   },
   "model": "Default",
   "hooks": {
