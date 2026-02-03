@@ -158,6 +158,18 @@ fi
 
 echo ""
 
+# Install switch-claude-config script
+echo "Installing switch-claude-config..."
+mkdir -p "$HOME/.local/bin"
+if cp "$SCRIPT_DIR/scripts/switch-claude-config" "$HOME/.local/bin/switch-claude-config" 2>/dev/null; then
+    chmod +x "$HOME/.local/bin/switch-claude-config"
+    echo "  ✓ switch-claude-config installed to ~/.local/bin"
+else
+    echo "  ⚠ switch-claude-config not found in scripts/"
+fi
+
+echo ""
+
 # Load environment variables if .env exists
 if [ -f "$ENV_FILE" ]; then
     echo "Loading environment variables from $ENV_FILE"
