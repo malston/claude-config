@@ -218,12 +218,6 @@ Your context window will be automatically compacted as it approaches its limit, 
   - Generic Corp / generic.com
   - Sample Industries / sample.com
 
-### Real Company References to Avoid
-
-- Wells Fargo, Microsoft, Google, Amazon, IBM, etc.
-- Any Fortune 500 companies
-- Any identifiable real-world organizations
-
 ### Preferred Generic Examples
 
 - Domain names: `acme.com`, `example.com`, `your-company.com`
