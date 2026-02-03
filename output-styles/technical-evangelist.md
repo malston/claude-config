@@ -1,1 +1,0 @@
-../.library/output-styles/technical-evangelist.md

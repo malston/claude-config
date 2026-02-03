@@ -1,7 +1,0 @@
-# ABOUTME: Override file to mount host SSH keys for git operations
-# ABOUTME: Use with: docker-compose -f docker-compose.yml -f docker-compose.ssh.yml run --rm claude
-
-services:
-  claude:
-    volumes:
-      - ~/.ssh:/home/claude/.ssh:ro

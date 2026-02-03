@@ -30,76 +30,8 @@
     "ask": [],
     "defaultMode": "acceptEdits"
   },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/log-bash-commands.sh"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/block-dangerous-commands.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/protect-sensitive-files.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/format-on-save.sh"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "notify-send 'Claude Code' 'Awaiting your input'"
-          }
-        ]
-      }
-    ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "bash -c '~/.bun/bin/bun \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)src/index.ts\"'"
-  },
   "enabledPlugins": {
-    "claude-code-setup@claude-plugins-official": true,
-    "claude-hud@claude-hud": true,
-    "claude-md-management@claude-plugins-official": true,
-    "claude-mem@thedotmack": true,
-    "code-review@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "hookify@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
-    "swift-lsp@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true,
-    "code-documentation@claude-code-workflows": true,
-    "elements-of-style@superpowers-marketplace": true,
-    "episodic-memory@superpowers-marketplace": true,
-    "feature-dev@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true
+    "superpowers@superpowers-marketplace": true,
+    "elements-of-style@superpowers-marketplace": true
   }
 }
