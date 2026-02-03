@@ -468,6 +468,7 @@ auto_mode_install() {
     echo ""
     if [ -f "$state_file" ]; then
         echo "  ✓ Profile already applied (skipping)"
+        echo "    To re-apply: rm $state_file"
     elif claudeup profile apply docker --yes 2>&1; then
         mkdir -p "$state_dir"
         date > "$state_file"
