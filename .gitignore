@@ -1,4 +1,5 @@
 # Session-specific data (not portable)
+.setup-state/
 debug/
 projects/
 file-history/

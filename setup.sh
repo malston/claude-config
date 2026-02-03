@@ -452,6 +452,8 @@ auto_mode_install() {
     local profile_dir="$HOME/.claudeup/profiles"
     local profile_src="$SCRIPT_DIR/plugins/docker-profile.json"
     local profile_dst="$profile_dir/docker.json"
+    local state_dir="$SCRIPT_DIR/.setup-state"
+    local state_file="$state_dir/docker-profile-applied"
 
     if [ ! -f "$profile_src" ]; then
         echo "  ✗ Profile not found: $profile_src"
@@ -462,9 +464,13 @@ auto_mode_install() {
     cp "$profile_src" "$profile_dst"
     echo "  ✓ Copied profile to $profile_dst"
 
-    # Apply the profile
+    # Apply the profile (only once)
     echo ""
-    if claudeup profile apply docker --yes 2>&1; then
+    if [ -f "$state_file" ]; then
+        echo "  ✓ Profile already applied (skipping)"
+    elif claudeup profile apply docker --yes 2>&1; then
+        mkdir -p "$state_dir"
+        date > "$state_file"
         echo ""
         echo "  ✓ Profile applied successfully"
     else
