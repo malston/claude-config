@@ -80,10 +80,12 @@ plugins: ## List installed plugins
 	@claude plugin list
 
 plugins-installed: ## List enabled plugins (table format)
-	@claude plugin list --json | jq -r '["ID", "SCOPE", "PATH"], (.[] | select(.enabled==true) | [.id, .scope, .installPath]) | @tsv' | column -t -s $$'\t'
+	@command -v claudeup >/dev/null 2>&1 && claudeup plugin list --enabled --format table || \
+		claude plugin list --json | jq -r '["ID", "SCOPE", "PATH"], (.[] | select(.enabled==true) | [.id, .scope, .installPath]) | @tsv' | column -t -s $$'\t'
 
-available-plugins: ## List plugins from marketplaces
-	@claude plugin list --json --available | jq -r '["NAME", "MARKETPLACE", "DESCRIPTION"], (.available[] | [.name, .marketplaceName, .description]) | @tsv' | column -t -s $$'\t'
+available-plugins: ## List all plugins (installed and available)
+	@command -v claudeup >/dev/null 2>&1 && claudeup plugin list --format table || \
+		claude plugin list --json --available | jq -r '["NAME", "MARKETPLACE", "DESCRIPTION"], (.available[] | [.name, .marketplaceName, .description]) | @tsv' | column -t -s $$'\t'
 
 project-plugins: ## List project-scoped plugins
 	@claude plugin list --json | jq -r '["ID", "PATH"], (.[] | select(.enabled==true and .scope=="project") | [.id, .installPath]) | @tsv' | column -t -s $$'\t'
