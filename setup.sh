@@ -17,6 +17,7 @@ export PROFILE_FILE
 # Load environment variables if .env exists (before checking env vars)
 if [ -f "$ENV_FILE" ]; then
     set -a
+    # shellcheck source=/dev/null
     source "$ENV_FILE"
     set +a
 fi
