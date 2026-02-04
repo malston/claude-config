@@ -14,6 +14,13 @@ export SCRIPT_DIR
 export CONFIG_DIR
 export PROFILE_FILE
 
+# Load environment variables if .env exists (before checking env vars)
+if [ -f "$ENV_FILE" ]; then
+    set -a
+    source "$ENV_FILE"
+    set +a
+fi
+
 echo "Setting up Claude Code configuration..."
 echo ""
 
@@ -87,14 +94,6 @@ else
 fi
 
 echo ""
-
-# Load environment variables if .env exists
-if [ -f "$ENV_FILE" ]; then
-    echo "Loading environment variables from $ENV_FILE"
-    set -a
-    source "$ENV_FILE"
-    set +a
-fi
 
 # Install MCP servers from config
 echo "Installing MCP servers..."
