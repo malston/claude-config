@@ -1,7 +1,7 @@
 # ABOUTME: Makefile for running Claude Code configuration commands.
 # ABOUTME: Provides convenient targets for common operations using claudeup.
 
-.PHONY: help sync list enable disable install upgrade plugins context setup
+.PHONY: help sync list enable disable install upgrade plugins update context setup
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -34,6 +34,9 @@ upgrade: ## Check for and install Claude Code updates
 
 plugins: ## Update installed plugins
 	@./scripts/auto-update-plugins.sh
+
+update: ## Update Claude Code, plugins, and marketplaces
+	@./scripts/auto-update-all.sh
 
 # Status and diagnostics
 context: ## Show context bar status
