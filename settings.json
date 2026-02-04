@@ -100,6 +100,7 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true,
-    "vercel@claude-plugins-official": true
+    "vercel@claude-plugins-official": true,
+    "conductor@claude-code-workflows": true
   }
 }

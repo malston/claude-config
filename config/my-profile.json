@@ -37,6 +37,7 @@
     "claude-md-management@claude-plugins-official",
     "claude-mem@thedotmack",
     "code-documentation@claude-code-workflows",
+    "conductor@claude-code-workflows",
     "code-review@claude-plugins-official",
     "commit-commands@claude-plugins-official",
     "elements-of-style@superpowers-marketplace",
