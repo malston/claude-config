@@ -76,8 +76,8 @@ COPY --chown=claude:claude . /home/claude/.claude/
 RUN mkdir -p /home/claude/.claudeup/profiles
 COPY --chown=claude:claude config/docker-profile.json /home/claude/.claudeup/profiles/docker.json
 
-# Create workspace and state directories
-RUN mkdir -p /home/claude/workspace /home/claude/.claude-state
+# Create workspace, state, and temp directories
+RUN mkdir -p /home/claude/workspace /home/claude/.claude-state /home/claude/.claude/tmp
 WORKDIR /home/claude/workspace
 
 # Entrypoint runs setup on first start, then executes command

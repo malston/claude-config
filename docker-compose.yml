@@ -32,6 +32,9 @@ services:
 
     # Environment variables
     environment:
+      # Use temp directory on same filesystem as .claude to avoid EXDEV errors
+      - TMPDIR=/home/claude/.claude/tmp
+
       # Optional: Anthropic API key
       # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 
