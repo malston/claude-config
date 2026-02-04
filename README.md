@@ -245,6 +245,9 @@ Supported variables:
 | `GIT_USER_EMAIL`   | Git commit author email                         |
 | `GITHUB_TOKEN`     | GitHub token for private repos and pushing code |
 | `CONTEXT7_API_KEY` | Context7 API key for documentation MCP server   |
+| `DOTFILES_REPO`    | Dotfiles repo to clone (Docker only)            |
+| `DOTFILES_BRANCH`  | Dotfiles branch, defaults to `linux` (Docker)   |
+| `WORKSPACE`        | Workspace directory to mount (Docker only)      |
 
 The `.env` file is gitignored so secrets won't be committed.
 
