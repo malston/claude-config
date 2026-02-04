@@ -39,9 +39,6 @@ update: ## Update Claude Code, plugins, and marketplaces
 	@./scripts/auto-update-all.sh
 
 # Status and diagnostics
-context: ## Show context bar status
-	@./scripts/context-bar.sh
-
 mcp-servers: ## Find all MCP servers
 	@./scripts/find-mcp-servers.sh
 
