@@ -26,6 +26,9 @@ plugins/marketplaces/
 plugins/installed_plugins.json
 plugins/known_marketplaces.json
 
+# Settings (generated during setup with installed plugins)
+settings.json
+
 # Backup files
 *.bak
 *copy.json
