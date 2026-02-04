@@ -32,10 +32,6 @@ services:
 
     # Environment variables
     environment:
-      # Set to 'auto' to install all configured plugins on startup
-      # Set to 'interactive' for guided setup (requires TTY)
-      - SETUP_MODE=auto
-
       # Optional: Anthropic API key
       # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 
