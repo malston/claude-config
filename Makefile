@@ -30,17 +30,13 @@ install: ## Install item from external path (requires CATEGORY and PATH)
 
 # Auto-upgrade
 upgrade: ## Check for and install Claude Code updates
-	@./scripts/auto-upgrade-claude.sh
+	@./scripts/auto-upgrade-claude.sh --force
 
-plugins: ## Update installed plugins
-	@./scripts/auto-update-plugins.sh
+update-plugins: ## Update installed plugins
+	@./scripts/auto-update-plugins.sh --force
 
-update: ## Update Claude Code, plugins, and marketplaces
-	@./scripts/auto-update-all.sh
-
-# Status and diagnostics
-mcp-servers: ## Find all MCP servers
-	@./scripts/find-mcp-servers.sh
+update-all: ## Update Claude Code, plugins, and marketplaces
+	@./scripts/auto-update-all.sh --force
 
 # Setup
 setup: ## Run initial setup
@@ -58,3 +54,33 @@ disable-all-skills: ## Disable all skills
 
 enable-all-skills: ## Enable all skills
 	@claudeup local enable skills '*'
+
+# List all mcp servers
+mcp-servers: ## List all MCP servers from installed plugins
+	@claude mcp list
+
+# Additional commands for plugin and marketplace management
+
+# Get the list of installed marketplaces
+marketplaces: ## List installed marketplaces
+	@claude plugin marketplace list
+
+# Get the list of installed plugins
+plugins: ## List installed plugins
+	@claude plugin list
+
+# Get the list of installed plugins (all scopes)
+plugins-installed: ## List installed plugins
+	@claude plugin list --json | jq -r '["ID", "SCOPE", "PATH"], (.[] | select(.enabled==true) | [.id, .scope, .installPath]) | @tsv' | column -t -s $$'\t'
+
+# Get available plugins (from installed marketplaces)
+available-plugins: ## List available plugins from installed marketplaces
+	@claude plugin list --json --available | jq -r '["NAME", "MARKETPLACE", "DESCRIPTION"], (.available[] | [.name, .marketplaceName, .description]) | @tsv' | column -t -s $$'\t'
+
+# Get the list of installed plugins (scope: project)
+project-plugins: ## List installed project-scoped plugins
+	@claude plugin list --json | jq -r '["ID", "PATH"], (.[] | select(.enabled==true and .scope=="project") | [.id, .installPath]) | @tsv' | column -t -s $$'\t'
+
+# Get the list of installed plugins (scope: user)
+user-plugins: ## List installed user-scoped plugins
+	@claude plugin list --json | jq -r '["ID", "PATH"], (.[] | select(.enabled==true and .scope=="user") | [.id, .installPath]) | @tsv' | column -t -s $$'\t'
