@@ -5,7 +5,7 @@
         sync list enable disable install \
         upgrade update-plugins update-all \
         enable-all-agents disable-all-agents enable-all-skills disable-all-skills \
-        mcp-servers marketplaces plugins plugins-installed available-plugins project-plugins user-plugins
+        mcp-servers marketplaces browse-marketplace show-plugin plugins plugins-installed available-plugins project-plugins user-plugins
 
 # Valid categories for claudeup local commands
 CATEGORIES := skills, commands, agents, hooks, output-styles
@@ -75,6 +75,14 @@ mcp-servers: ## List MCP servers from plugins
 
 marketplaces: ## List installed marketplaces
 	@claude plugin marketplace list
+
+browse-marketplace: ## Browse marketplace plugins (MARKETPLACE=name)
+	@test -n "$(MARKETPLACE)" || (echo "Error: MARKETPLACE required (e.g., claude-code-workflows)" && exit 1)
+	@claudeup plugin browse $(MARKETPLACE) --format table
+
+show-plugin: ## Show plugin directory structure (PLUGIN=name@marketplace)
+	@test -n "$(PLUGIN)" || (echo "Error: PLUGIN required (e.g., superpowers@claude-code-workflows)" && exit 1)
+	@claudeup plugin show $(PLUGIN)
 
 plugins: ## List installed plugins
 	@claude plugin list
