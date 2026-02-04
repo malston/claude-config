@@ -5,7 +5,7 @@
         sync list enable disable install \
         upgrade update-plugins update-all \
         enable-all-agents disable-all-agents enable-all-skills disable-all-skills \
-        mcp-servers marketplaces browse-marketplace show-plugin plugins plugins-installed available-plugins project-plugins user-plugins
+        mcp-servers marketplaces browse-marketplace show-plugin sync-profile install-plugin plugins plugins-installed available-plugins project-plugins user-plugins
 
 # Valid categories for claudeup local commands
 CATEGORIES := skills, commands, agents, hooks, output-styles
@@ -83,6 +83,21 @@ browse-marketplace: ## Browse marketplace plugins (MARKETPLACE=name)
 show-plugin: ## Show plugin directory structure (PLUGIN=name@marketplace)
 	@test -n "$(PLUGIN)" || (echo "Error: PLUGIN required (e.g., superpowers@claude-code-workflows)" && exit 1)
 	@claudeup plugin show $(PLUGIN)
+
+sync-profile: ## Install missing plugins from config/my-profile.json
+	@python3 -c '\
+import json, subprocess, sys; \
+profile = json.load(open("config/my-profile.json")); \
+installed = {p["id"] for p in json.loads(subprocess.run(["claude", "plugin", "list", "--json"], capture_output=True, text=True).stdout or "[]")}; \
+missing = [p for p in profile.get("plugins", []) if p not in installed]; \
+[print(f"Already installed: {len(installed)} plugins")] if not missing else None; \
+[print(f"Installing {len(missing)} missing plugins...")] if missing else None; \
+[(print(f"  Installing {p}..."), subprocess.run(["claude", "plugin", "install", p], capture_output=True)) for p in missing]; \
+print("Profile synced.") if missing else print("Profile already in sync.")'
+
+install-plugin: ## Install a plugin (PLUGIN=name@marketplace)
+	@test -n "$(PLUGIN)" || (echo "Error: PLUGIN required (e.g., superpowers@claude-code-workflows)" && exit 1)
+	@claude plugin install $(PLUGIN)
 
 plugins: ## List installed plugins
 	@claude plugin list

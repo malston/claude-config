@@ -58,6 +58,58 @@ Fork this repo and edit `config/my-profile.json` to define your own marketplaces
 }
 ```
 
+## Adding Plugins
+
+Three approaches depending on your needs:
+
+### Quick Install (single plugin)
+
+Install a plugin immediately without modifying your profile:
+
+```bash
+make install-plugin PLUGIN=conductor@claude-code-workflows
+# or directly:
+claude plugin install conductor@claude-code-workflows
+```
+
+Then update `config/my-profile.json` to track what's installed.
+
+### Sync Profile (incremental)
+
+After editing `config/my-profile.json`, install only the missing plugins:
+
+```bash
+make sync-profile
+```
+
+This is fast because it skips already-installed plugins.
+
+### Full Setup (initial/complete)
+
+Reinstall everything from scratch:
+
+```bash
+make setup
+# or: ./setup.sh
+```
+
+Use this for initial setup, new machines, or Docker containers.
+
+### Browsing Available Plugins
+
+Explore what's available before installing:
+
+```bash
+# List installed marketplaces
+make marketplaces
+
+# Browse plugins in a marketplace
+make browse-marketplace MARKETPLACE=claude-code-workflows
+
+# Show a plugin's structure before installing
+make show-plugin PLUGIN=conductor@claude-code-workflows
+```
+
 ## Docker Setup
 
 Run Claude Code in a containerized environment with pre-configured settings:
