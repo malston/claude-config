@@ -229,13 +229,24 @@ brew install 1password-cli
 op signin
 ```
 
-### Fallback: config/.env
+### Environment Variables: config/.env
 
-If not using 1Password, set secrets via environment or `config/.env`:
+Copy `config/env.example` to `config/.env` and fill in your values:
 
 ```bash
-CONTEXT7_API_KEY=your-key-here
+cp config/env.example config/.env
 ```
+
+Supported variables:
+
+| Variable           | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `GIT_USER_NAME`    | Git commit author name                          |
+| `GIT_USER_EMAIL`   | Git commit author email                         |
+| `GITHUB_TOKEN`     | GitHub token for private repos and pushing code |
+| `CONTEXT7_API_KEY` | Context7 API key for documentation MCP server   |
+
+The `.env` file is gitignored so secrets won't be committed.
 
 ## What's Not Tracked
 
