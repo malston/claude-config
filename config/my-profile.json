@@ -1,0 +1,51 @@
+{
+  "name": "local",
+  "description": "Default plugins for my local development environment",
+  "marketplaces": [
+    {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    {
+      "source": "github",
+      "repo": "anthropics/skills"
+    },
+    {
+      "source": "github",
+      "repo": "jarrodwatts/claude-hud"
+    },
+    {
+      "source": "github",
+      "repo": "malston/openapi-docs-generator"
+    },
+    {
+      "source": "github",
+      "repo": "obra/superpowers-marketplace"
+    },
+    {
+      "source": "github",
+      "repo": "thedotmack/claude-mem"
+    },
+    {
+      "source": "github",
+      "repo": "wshobson/agents"
+    }
+  ],
+  "plugins": [
+    "claude-code-setup@claude-plugins-official",
+    "claude-hud@claude-hud",
+    "claude-md-management@claude-plugins-official",
+    "claude-mem@thedotmack",
+    "code-review@claude-plugins-official",
+    "commit-commands@claude-plugins-official",
+    "gopls-lsp@claude-plugins-official",
+    "hookify@claude-plugins-official",
+    "openapi@openapi-dev",
+    "pr-review-toolkit@claude-plugins-official",
+    "security-guidance@claude-plugins-official",
+    "superpowers@superpowers-marketplace",
+    "vercel@claude-plugins-official"
+  ],
+  "detect": {},
+  "sandbox": {}
+}

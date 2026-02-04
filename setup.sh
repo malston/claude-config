@@ -1,95 +1,18 @@
-#!/bin/bash
-# ABOUTME: Bootstraps Claude Code by installing claudeup, MCP servers, marketplaces, and plugins.
-# ABOUTME: Supports interactive mode (essentials only) and auto mode (all configured items).
+#!/usr/bin/env bash
+# ABOUTME: Bootstraps Claude Code by installing the CLI, claudeup, MCP servers, marketplaces, and plugins.
+# ABOUTME: Reads profile configuration from config/my-profile.json.
 
 set -e
-
-# Detect setup mode (default to auto for simplicity)
-SETUP_MODE="${SETUP_MODE:-auto}"
-
-if [ "$SETUP_MODE" = "auto" ]; then
-    echo "→ Auto mode: Installing from config..."
-else
-    echo "→ Interactive mode: Setting up essentials..."
-fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$SCRIPT_DIR/config"
 ENV_FILE="$CONFIG_DIR/.env"
+PROFILE_FILE="$CONFIG_DIR/my-profile.json"
 
-# Export SCRIPT_DIR so Python subprocesses can access it
+# Export for Python subprocesses
 export SCRIPT_DIR
-
-# Loads base marketplace configuration and optionally merges local overrides.
-# Returns merged JSON configuration on stdout.
-load_marketplace_config() {
-    local base_file="$SCRIPT_DIR/plugins/setup-marketplaces.json"
-    local local_file="$SCRIPT_DIR/plugins/setup-marketplaces.local.json"
-
-    # Use Python to merge configs
-    python3 << 'PYTHON_SCRIPT'
-import json
-import sys
-import os
-
-script_dir = os.environ.get('SCRIPT_DIR', '.')
-base_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.json')
-local_file = os.path.join(script_dir, 'plugins', 'setup-marketplaces.local.json')
-
-# Load base config
-try:
-    with open(base_file) as f:
-        config = json.load(f)
-except FileNotFoundError:
-    print(f"Error: Base config file not found: {base_file}", file=sys.stderr)
-    sys.exit(1)
-except json.JSONDecodeError as e:
-    print(f"Error: Invalid JSON in base config: {base_file}", file=sys.stderr)
-    print(f"  {e}", file=sys.stderr)
-    sys.exit(1)
-
-# Merge local config if exists
-if os.path.exists(local_file):
-    try:
-        with open(local_file) as f:
-            local_config = json.load(f)
-        config['marketplaces'].update(local_config['marketplaces'])
-    except json.JSONDecodeError as e:
-        print(f"Warning: Invalid JSON in local config: {local_file}", file=sys.stderr)
-        print(f"  {e}", file=sys.stderr)
-        print(f"  Continuing with base config only", file=sys.stderr)
-
-# Output merged config as JSON
-print(json.dumps(config))
-PYTHON_SCRIPT
-}
-
-# Show platform-appropriate 1Password CLI install instructions
-show_1password_install() {
-    if command -v apt-get &> /dev/null; then
-        echo "  Install 1Password CLI:"
-        echo "    curl -sS https://downloads.1password.com/linux/keys/1password.asc | \\"
-        echo "      sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg"
-        echo "    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main' | \\"
-        echo "      sudo tee /etc/apt/sources.list.d/1password.list"
-        echo "    sudo apt-get update && sudo apt-get install 1password-cli"
-    elif command -v brew &> /dev/null; then
-        echo "  Install 1Password CLI: brew install 1password-cli"
-    else
-        echo "  Install 1Password CLI: https://1password.com/downloads/command-line/"
-    fi
-}
-
-# Show platform-appropriate direnv install instructions
-show_direnv_install() {
-    if command -v apt-get &> /dev/null; then
-        echo "  Install direnv: sudo apt-get install direnv"
-    elif command -v brew &> /dev/null; then
-        echo "  Install direnv: brew install direnv"
-    else
-        echo "  Install direnv: https://direnv.net/docs/installation.html"
-    fi
-}
+export CONFIG_DIR
+export PROFILE_FILE
 
 echo "Setting up Claude Code configuration..."
 echo ""
@@ -112,15 +35,11 @@ fi
 
 # Install Claude Code CLI
 echo "Installing Claude Code CLI..."
-
-# Check if already installed
 if command -v claude &> /dev/null; then
     CURRENT_VERSION=$(claude --version 2>/dev/null | head -n1 || echo "unknown")
     echo "  ✓ Claude CLI already installed ($CURRENT_VERSION)"
 else
-    # Use official installer
     if curl -fsSL https://claude.ai/install.sh | bash; then
-        # Verify installation
         if command -v claude &> /dev/null; then
             INSTALLED_VERSION=$(claude --version 2>/dev/null | head -n1 || echo "installed")
             echo "  ✓ Claude CLI installed ($INSTALLED_VERSION)"
@@ -136,7 +55,7 @@ fi
 
 echo ""
 
-# Install claudeup (skip if already available)
+# Install claudeup
 if command -v claudeup &> /dev/null; then
     echo "  ✓ claudeup already installed"
 else
@@ -148,7 +67,6 @@ else
         exit 1
     fi
 
-    # Verify installation
     if command -v claudeup &> /dev/null; then
         echo "  ✓ claudeup is in PATH"
     else
@@ -181,8 +99,6 @@ fi
 # Install MCP servers from config
 echo "Installing MCP servers..."
 if [ -f "$CONFIG_DIR/mcp-servers.json" ]; then
-    # Parse JSON and install each server
-    # Using python for JSON parsing (available on most systems)
     python3 << 'PYTHON_SCRIPT'
 import json
 import subprocess
@@ -192,7 +108,6 @@ config_path = os.path.join(os.environ.get('CONFIG_DIR', 'config'), 'mcp-servers.
 with open(config_path) as f:
     config = json.load(f)
 
-# Check if 1Password CLI is available
 def op_available():
     try:
         subprocess.run(['op', '--version'], capture_output=True, check=True)
@@ -208,13 +123,11 @@ for server in config.get('servers', []):
     args = server['args']
     secrets = server.get('secrets', {})
 
-    # Fetch secrets from 1Password if available
     env_vars = dict(os.environ)
     missing_secrets = []
 
     for env_var, op_ref in secrets.items():
         if env_var in os.environ:
-            # Already set in environment
             continue
         if has_op:
             try:
@@ -234,11 +147,9 @@ for server in config.get('servers', []):
             print(f"    (install 1Password CLI: https://1password.com/downloads/command-line/)")
         continue
 
-    # Build the claude mcp add command (always user scope)
     cmd = ['claude', 'mcp', 'add', name, '-s', 'user', '--']
     cmd.append(command)
 
-    # Substitute env vars in args
     expanded_args = []
     for arg in args:
         if arg.startswith('$'):
@@ -253,7 +164,6 @@ for server in config.get('servers', []):
         subprocess.run(cmd, check=True, capture_output=True)
         print(f"  ✓ {name} installed")
     except subprocess.CalledProcessError as e:
-        # Server might already exist
         if b'already exists' in e.stderr:
             print(f"  ✓ {name} already installed")
         else:
@@ -265,223 +175,77 @@ fi
 
 echo ""
 
-# Phase 1: Install essential marketplaces
-install_essential_marketplaces() {
-    echo ""
-    echo "Installing essential marketplaces..."
-
-    local config=$(load_marketplace_config)
-
-    # Install essential marketplaces using Python
-    echo "$config" | python3 << 'PYTHON_SCRIPT'
+# Install marketplaces and plugins from profile
+echo "Installing marketplaces and plugins from profile..."
+if [ -f "$PROFILE_FILE" ]; then
+    python3 << 'PYTHON_SCRIPT'
 import json
 import subprocess
-import sys
-
-config = json.load(sys.stdin)
-
-for name, marketplace in config["marketplaces"].items():
-    # Only install essentials in Phase 1
-    if not marketplace.get("essential", False):
-        continue
-
-    source_type = marketplace.get("source")
-
-    if source_type == "github":
-        repo = marketplace.get("repo")
-        desc = marketplace.get("description", "")
-        print(f"  Installing {name} ({desc})...")
-        try:
-            subprocess.run(
-                ["claude", "plugin", "marketplace", "add", repo],
-                check=True, capture_output=True
-            )
-            print(f"  ✓ {name}")
-        except subprocess.CalledProcessError as e:
-            if b"already" in e.stderr.lower() or b"already" in e.stdout.lower():
-                print(f"  ✓ {name} (already added)")
-            else:
-                print(f"  ✗ {name} failed")
-    elif source_type == "git":
-        url = marketplace.get("url")
-        desc = marketplace.get("description", "")
-        print(f"  Installing {name} ({desc})...")
-        try:
-            subprocess.run(
-                ["claude", "plugin", "marketplace", "add", url],
-                check=True, capture_output=True
-            )
-            print(f"  ✓ {name}")
-        except subprocess.CalledProcessError:
-            print(f"  ✓ {name} (already added or failed)")
-PYTHON_SCRIPT
-}
-
-if [ "$SETUP_MODE" = "interactive" ]; then
-    install_essential_marketplaces
-    echo ""
-    echo "→ Essentials installed! You have a working Claude Code setup."
-fi
-
-# Phase 2: Optional marketplace exploration
-explore_additional_marketplaces() {
-    echo ""
-    read -r -p "Want to explore more marketplaces? [Y/n]: " response
-
-    case $response in
-        [nN][oO]|[nN])
-            echo "Skipping additional marketplaces"
-            return
-            ;;
-    esac
-
-    echo ""
-    echo "Popular marketplaces:"
-    echo ""
-
-    local config=$(load_marketplace_config)
-
-    # Show non-essential marketplaces
-    echo "$config" | python3 << 'PYTHON_SCRIPT'
-import json
-import sys
-
-config = json.load(sys.stdin)
-options = []
-
-for name, marketplace in config['marketplaces'].items():
-    if marketplace.get('essential', False):
-        continue
-    desc = marketplace.get('description', 'No description')
-    options.append((name, desc, marketplace))
-
-# Display options
-for i, (name, desc, _) in enumerate(options, 1):
-    print(f"  {i}. {name} - {desc}")
-
-print("")
-print("Enter numbers separated by spaces (e.g., '1 3 4'), or 'all', or 'none':")
-PYTHON_SCRIPT
-
-    read -r selection
-
-    if [ "$selection" = "none" ] || [ -z "$selection" ]; then
-        echo "No additional marketplaces selected"
-        return
-    fi
-
-    # Install selected marketplaces
-    echo ""
-    echo "Installing selected marketplaces..."
-    echo "$config" | SELECTION="$selection" python3 << 'PYTHON_SCRIPT'
-import json
-import subprocess
-import sys
 import os
 
-config = json.load(sys.stdin)
-selection = os.environ.get('SELECTION', '')
+profile_path = os.environ.get('PROFILE_FILE', os.path.join(os.environ.get('CONFIG_DIR', 'config'), 'my-profile.json'))
+if not os.path.exists(profile_path):
+    profile_path = os.path.join(os.environ.get('CONFIG_DIR', 'config'), 'my-profile.json')
 
-# Build list of non-essential marketplaces
-options = []
-for name, marketplace in config['marketplaces'].items():
-    if not marketplace.get('essential', False):
-        options.append((name, marketplace))
+with open(profile_path) as f:
+    profile = json.load(f)
 
-# Determine which to install
-if selection == 'all':
-    to_install = options
-else:
-    try:
-        indices = [int(x.strip()) - 1 for x in selection.split()]
-        # Validate indices are within bounds
-        invalid_indices = [i for i in indices if i < 0 or i >= len(options)]
-        if invalid_indices:
-            print(f"Error: Invalid selection. Please enter numbers between 1 and {len(options)}", file=sys.stderr)
-            sys.exit(1)
-        to_install = [options[i] for i in indices]
-    except ValueError as e:
-        print(f"Error: Invalid input. Please enter numbers separated by spaces (e.g., '1 2 3')", file=sys.stderr)
-        sys.exit(1)
-
-# Install each
-for name, marketplace in to_install:
-    source_type = marketplace.get('source')
-
-    if source_type == 'github':
+# Install marketplaces
+print("  Installing marketplaces...")
+for marketplace in profile.get('marketplaces', []):
+    source = marketplace.get('source')
+    if source == 'github':
         repo = marketplace.get('repo')
-        print(f"  Installing {name}...")
+        print(f"    Adding {repo}...")
         try:
             subprocess.run(
                 ['claude', 'plugin', 'marketplace', 'add', repo],
                 check=True, capture_output=True
             )
-            print(f"  ✓ {name}")
+            print(f"    ✓ {repo}")
         except subprocess.CalledProcessError as e:
-            if b'already' in e.stderr.lower() or b'already' in e.stdout.lower():
-                print(f"  ✓ {name} (already added)")
+            stderr = e.stderr.decode() if e.stderr else ''
+            if 'already' in stderr.lower():
+                print(f"    ✓ {repo} (already added)")
             else:
-                print(f"  ✗ {name} failed")
-    elif source_type == 'git':
+                print(f"    ✗ {repo}: {stderr}")
+    elif source == 'git':
         url = marketplace.get('url')
-        print(f"  Installing {name}...")
+        print(f"    Adding {url}...")
         try:
             subprocess.run(
                 ['claude', 'plugin', 'marketplace', 'add', url],
                 check=True, capture_output=True
             )
-            print(f"  ✓ {name}")
-        except subprocess.CalledProcessError:
-            print(f"  ✓ {name} (already added or failed)")
+            print(f"    ✓ {url}")
+        except subprocess.CalledProcessError as e:
+            stderr = e.stderr.decode() if e.stderr else ''
+            if 'already' in stderr.lower():
+                print(f"    ✓ {url} (already added)")
+            else:
+                print(f"    ✗ {url}: {stderr}")
+
+# Install plugins
+print("")
+print("  Installing plugins...")
+for plugin in profile.get('plugins', []):
+    print(f"    Installing {plugin}...")
+    try:
+        subprocess.run(
+            ['claude', 'plugin', 'install', plugin],
+            check=True, capture_output=True
+        )
+        print(f"    ✓ {plugin}")
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr.decode() if e.stderr else ''
+        if 'already' in stderr.lower():
+            print(f"    ✓ {plugin} (already installed)")
+        else:
+            print(f"    ✗ {plugin}: {stderr}")
 PYTHON_SCRIPT
-
-    echo ""
-    echo "✓ Done! Use 'claude plugin list <marketplace>' to browse plugins."
-}
-
-if [ "$SETUP_MODE" = "interactive" ]; then
-    explore_additional_marketplaces
-fi
-
-# Auto mode: Install all configured marketplaces and plugins using claudeup
-auto_mode_install() {
-    echo ""
-    echo "Installing marketplaces and plugins via claudeup profile..."
-
-    # Copy docker-profile.json to claudeup profiles directory
-    local profile_dir="$HOME/.claudeup/profiles"
-    local profile_src="$SCRIPT_DIR/plugins/docker-profile.json"
-    local profile_dst="$profile_dir/docker.json"
-    local state_dir="$SCRIPT_DIR/.setup-state"
-    local state_file="$state_dir/docker-profile-applied"
-
-    if [ ! -f "$profile_src" ]; then
-        echo "  ✗ Profile not found: $profile_src"
-        return 1
-    fi
-
-    mkdir -p "$profile_dir"
-    cp "$profile_src" "$profile_dst"
-    echo "  ✓ Copied profile to $profile_dst"
-
-    # Apply the profile (only once)
-    echo ""
-    if [ -f "$state_file" ]; then
-        echo "  ✓ Profile already applied (skipping)"
-        echo "    To re-apply: rm $state_file"
-    elif claudeup profile apply docker --yes 2>&1; then
-        mkdir -p "$state_dir"
-        date > "$state_file"
-        echo ""
-        echo "  ✓ Profile applied successfully"
-    else
-        echo "  ✗ Failed to apply profile"
-        return 1
-    fi
-}
-
-if [ "$SETUP_MODE" = "auto" ]; then
-    auto_mode_install
+else
+    echo "  ✗ Profile not found: $PROFILE_FILE"
+    exit 1
 fi
 
 echo ""
@@ -508,7 +272,6 @@ if os.path.exists(config_path):
     with open(config_path) as f:
         config = json.load(f)
 
-    # Check if 1Password CLI is available
     try:
         subprocess.run(['op', '--version'], capture_output=True, check=True)
         has_op = True
@@ -532,11 +295,10 @@ if os.path.exists(config_path):
         print("Some MCP servers were skipped due to missing secrets:")
         print("")
         for name, env_var, op_ref in missing:
-            print(f"  • {name}: {env_var}")
+            print(f"  - {name}: {env_var}")
             print(f"    1Password: {op_ref}")
         print("")
         if not has_op:
-            # Platform-aware install instructions
             import shutil
             if shutil.which('apt-get'):
                 print("  Install 1Password CLI:")
@@ -559,63 +321,3 @@ echo ""
 echo "To install plugins: claude plugin install <plugin>@<marketplace>"
 echo "To list plugins:    claude plugin marketplace list"
 echo ""
-
-# Auto-update configuration (interactive mode only)
-if [ "$SETUP_MODE" = "interactive" ]; then
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "Auto-update Configuration"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-
-    # Check if direnv is installed
-    if command -v direnv &> /dev/null; then
-        echo "✓ direnv detected"
-        echo ""
-        echo "Would you like to enable automatic daily updates?"
-        echo "  • Claude Code version checks"
-        echo "  • Plugin and marketplace updates"
-        echo ""
-        read -r -p "Add auto-update scripts to .envrc? [Y/n] " response
-
-        case $response in
-            [nN][oO]|[nN])
-                echo "Skipping auto-update configuration"
-                ;;
-            *)
-                # Create or append to .envrc
-                ENVRC_FILE="$SCRIPT_DIR/.envrc"
-
-                if [ ! -f "$ENVRC_FILE" ]; then
-                    echo "# Claude Code auto-updates" > "$ENVRC_FILE"
-                fi
-
-                # Add auto-upgrade-claude.sh if not already present
-                if ! grep -q "auto-upgrade-claude.sh" "$ENVRC_FILE"; then
-                    echo "" >> "$ENVRC_FILE"
-                    echo "# Auto-upgrade Claude Code and claudeup daily" >> "$ENVRC_FILE"
-                    echo 'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"' >> "$ENVRC_FILE"
-                    echo '"$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" &' >> "$ENVRC_FILE"
-                fi
-
-                # Add auto-update-plugins.sh if not already present
-                if ! grep -q "auto-update-plugins.sh" "$ENVRC_FILE"; then
-                    echo "" >> "$ENVRC_FILE"
-                    echo "# Auto-update plugins and marketplaces daily" >> "$ENVRC_FILE"
-                    echo '"$SCRIPT_DIR/scripts/auto-update-plugins.sh"' >> "$ENVRC_FILE"
-                fi
-
-                echo "✓ Added auto-update scripts to .envrc"
-                echo ""
-                echo "Run 'direnv allow .' to enable"
-                ;;
-        esac
-    else
-        echo "⚠ direnv not installed"
-        echo ""
-        echo "To enable automatic daily updates:"
-        echo "  1. Install direnv:"
-        show_direnv_install
-        echo "  2. Add to shell: eval \"\$(direnv hook zsh)\"  # or bash"
-        echo "  3. Re-run: ./setup.sh"
-    fi
-fi

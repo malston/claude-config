@@ -18,16 +18,16 @@ Portable configuration for Claude Code CLI.
 | `rules/`         | Symlinks to enabled rules in `.library/rules/`                          |
 | `output-styles/` | Symlinks to enabled output styles in `.library/output-styles/`          |
 | `hooks/`         | Hook scripts (e.g., markdown formatter)                                 |
-| `plugins/`       | Plugin configuration and marketplace list                               |
-| `config/`        | MCP server definitions and environment templates                        |
+| `plugins/`       | Plugin cache and CLI-managed marketplace data                           |
+| `config/`        | MCP servers, profiles, and environment templates                        |
 | `scripts/`       | Utility scripts for upgrades and diagnostics                            |
 | `setup.sh`       | Post-clone setup script                                                 |
 | `Dockerfile`     | Docker configuration for containerized environments                     |
 | `docs/DOCKER.md` | Docker setup and usage guide                                            |
 
-## Quick Start (Newcomers)
+## Quick Start
 
-New to Claude Code? Get started in 2 minutes:
+Get started in 2 minutes:
 
 ```bash
 git clone https://github.com/malston/claude-config.git ~/.claude
@@ -35,27 +35,29 @@ cd ~/.claude
 ./setup.sh
 ```
 
-The interactive setup will:
+The setup script will:
 
-1. Install essential marketplaces (Anthropic official + Superpowers)
-2. Offer optional additional marketplaces
-3. Configure MCP servers
+1. Install Claude CLI and claudeup
+2. Install marketplaces and plugins from `config/my-profile.json`
+3. Configure MCP servers from `config/mcp-servers.json`
 
-## Power User Setup
+## Custom Profile
 
-Already have your own fork with private config? Install everything:
+Fork this repo and edit `config/my-profile.json` to define your own marketplaces and plugins:
 
-```bash
-git clone YOUR_FORK ~/.claude
-cd ~/.claude
-SETUP_MODE=auto ./setup.sh
+```json
+{
+  "name": "local",
+  "description": "My development environment",
+  "marketplaces": [
+    { "source": "github", "repo": "anthropics/claude-plugins-official" }
+  ],
+  "plugins": [
+    "superpowers@superpowers-marketplace",
+    "commit-commands@claude-plugins-official"
+  ]
+}
 ```
-
-This installs your complete configuration including:
-
-- All public marketplaces from `plugins/setup-marketplaces.json`
-- Your private marketplaces from `plugins/setup-marketplaces.local.json`
-- All plugins from `plugins/setup-plugins.json`
 
 ## Docker Setup
 
@@ -163,23 +165,19 @@ claudeup doctor
 
 ### Adding Private Marketplaces
 
-Create `plugins/setup-marketplaces.local.json` (gitignored):
+Edit `config/my-profile.json` to add your private marketplaces and plugins:
 
 ```json
 {
-  "marketplaces": {
-    "your-private-marketplace": {
-      "source": "github",
-      "repo": "you/your-private-repo",
-      "description": "Your private tools"
-    }
-  }
+  "marketplaces": [
+    { "source": "github", "repo": "anthropics/claude-plugins-official" },
+    { "source": "github", "repo": "your-org/your-private-marketplace" }
+  ],
+  "plugins": ["your-plugin@your-private-marketplace"]
 }
 ```
 
-See `plugins/setup-marketplaces.local.json.example` for the full format.
-
-This file stays private even in your fork.
+If you fork this repo, your profile file will be in version control. For truly private config, add entries to `.gitignore` or use a separate private fork.
 
 ## Auto-Upgrade
 

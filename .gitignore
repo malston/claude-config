@@ -1,5 +1,4 @@
 # Session-specific data (not portable)
-.setup-state/
 debug/
 projects/
 file-history/
@@ -44,9 +43,6 @@ stats-cache.json
 plugins/cache/
 plugins/marketplaces/
 plugins/installed_plugins.json
-
-# Setup configuration (local/private additions)
-plugins/*.local.json
 
 # CLI-managed state (don't commit)
 plugins/known_marketplaces.json

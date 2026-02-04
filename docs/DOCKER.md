@@ -28,6 +28,7 @@ docker-compose run --rm claude
 ```
 
 The container automatically:
+
 1. Detects first run and executes setup.sh
 2. Installs marketplaces and plugins via claudeup
 3. Starts Claude with `--dangerously-skip-permissions`
@@ -95,11 +96,13 @@ docker-compose run --rm claude /bin/bash
 ```
 
 On first run:
+
 1. Clones repo to `~/dotfiles` using the specified branch
 2. Runs `~/dotfiles/install.sh` if it exists
 3. Persists in `claude-dotfiles` volume for subsequent runs
 
 To reset dotfiles:
+
 ```bash
 docker volume rm claude_claude-dotfiles
 ```
@@ -151,26 +154,29 @@ docker build -t claude-code:latest .
 
 ### Private Marketplaces
 
-If you have private marketplaces in `plugins/setup-marketplaces.local.json`:
+Edit `config/docker-profile.json` to add private marketplaces and plugins:
 
-1. **Build-time inclusion** (copied into image):
+```json
+{
+  "marketplaces": [
+    { "source": "github", "repo": "your-org/your-private-marketplace" }
+  ],
+  "plugins": ["your-plugin@your-private-marketplace"]
+}
+```
 
-   ```bash
-   # Local file is automatically included during build
-   docker build -t claude-code:latest .
-   ```
+The profile is copied into the image at build time. For runtime overrides, mount a custom profile:
 
-2. **Runtime mount** (not persisted in image):
-
-   ```bash
-   docker run -v $(pwd)/plugins/setup-marketplaces.local.json:/home/claude/.claude/plugins/setup-marketplaces.local.json:ro claude-code:latest
-   ```
+```bash
+docker run -v $(pwd)/my-custom-profile.json:/home/claude/.claude/config/docker-profile.json:ro claude-code:latest
+```
 
 ## Persistence
 
 ### Claude Config (Marketplaces, Plugins, Settings)
 
 The `claude-config` volume persists the entire `~/.claude` directory, including:
+
 - Marketplace registrations
 - Installed plugin cache
 - User settings (settings.json)
@@ -471,13 +477,16 @@ docker-compose run --rm claude /bin/bash
 ### Common Issues
 
 **Setup runs every time:**
+
 - Volume not persisting - check `docker volume ls | grep claude`
 - Wrong volume name - compose uses `<project>_<volume>` format
 
 **Setup doesn't run at all:**
+
 - Stale marker file in volume - run `docker-compose down -v` to reset
 
 **Changes not taking effect:**
+
 - Image not rebuilt - run `docker-compose build --no-cache`
 - Using cached layers - ensure you're building the right context
 
@@ -486,15 +495,17 @@ docker-compose run --rm claude /bin/bash
 ### When to Rebuild
 
 **Use `docker-compose build` (with cache)** for:
+
 - Changes to `docker-compose.yml` (volumes, environment variables)
 - Changes to override files (`docker-compose.auth.yml`, etc.)
 
 **Use `docker-compose build --no-cache`** for:
+
 - Changes to `Dockerfile`
 - Changes to files copied INTO the image:
   - `docker-entrypoint.sh`
   - `setup.sh`
-  - `plugins/docker-profile.json`
+  - `config/docker-profile.json`
   - Any file in the `.claude/` directory
 - Updating base image or dependencies
 

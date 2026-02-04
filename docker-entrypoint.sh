@@ -45,12 +45,9 @@ if [ ! -f "$MARKER_FILE" ]; then
     echo "First run detected - running setup..."
     echo ""
 
-    # Run setup.sh for MCP servers, git config, env loading
+    # Run setup.sh with docker profile
     cd ~/.claude
-    SETUP_MODE=auto ./setup.sh
-
-    # Install plugins via claudeup profile
-    claudeup setup --profile docker -y
+    PROFILE_FILE="$HOME/.claude/config/docker-profile.json" ./setup.sh
 
     # Create marker file
     touch "$MARKER_FILE"
