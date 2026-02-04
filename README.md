@@ -15,7 +15,6 @@ Portable configuration for Claude Code CLI.
 | `commands/`      | Symlinks to enabled commands in `.library/commands/`                    |
 | `skills/`        | Symlinks to enabled skills in `.library/skills/`                        |
 | `agents/`        | Symlinks to enabled agents in `.library/agents/`                        |
-| `rules/`         | Symlinks to enabled rules in `.library/rules/`                          |
 | `output-styles/` | Symlinks to enabled output styles in `.library/output-styles/`          |
 | `hooks/`         | Hook scripts (e.g., markdown formatter)                                 |
 | `plugins/`       | Plugin cache and CLI-managed marketplace data                           |
@@ -138,7 +137,7 @@ claudeup local view skills bash
 claudeup local view agents gsd-planner
 ```
 
-Categories: `skills`, `commands`, `agents`, `hooks`, `rules`, `output-styles`
+Categories: `skills`, `commands`, `agents`, `hooks`, `output-styles`
 
 **Re-enable when needed:**
 
