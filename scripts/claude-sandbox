@@ -126,12 +126,163 @@ validate_start_args() {
     fi
 }
 
+# --- Feature resolution ---
+
+# Builds the JSON features block from --feature flags.
+# Each flag is "name" or "name:version". Looks up the feature OCI reference
+# in features.json and falls back to the default_version when no version is given.
+build_features_json() {
+    local features_file="$DEVCONTAINER_BASE/features.json"
+    local result=""
+    local sep=""
+
+    for spec in "${START_FEATURES[@]}"; do
+        local name="${spec%%:*}"
+        local version="${spec#*:}"
+
+        # When no colon was present, name == spec == version
+        if [[ "$version" == "$name" ]]; then
+            version=""
+        fi
+
+        # Look up the feature reference in features.json
+        local oci
+        oci=$(jq -r --arg n "$name" '.[$n].feature // empty' "$features_file")
+        if [[ -z "$oci" ]]; then
+            die "unknown feature: $name (not found in $features_file)"
+        fi
+
+        # Use default_version when caller omitted the version
+        if [[ -z "$version" ]]; then
+            version=$(jq -r --arg n "$name" '.[$n].default_version // "latest"' "$features_file")
+        fi
+
+        result="${result}${sep}    \"${oci}\": {\"version\": \"${version}\"}"
+        sep=$',\n'
+    done
+
+    printf '%s' "$result"
+}
+
+# --- Start implementation ---
+
+start_sandbox() {
+    # Step 1 -- derive IDs and paths
+    local project_name
+    project_name=$(basename "$START_PROJECT")
+    local sandbox_id="${project_name}-${START_PROFILE}"
+    local project_parent
+    project_parent=$(dirname "$START_PROJECT")
+    local worktree_path="${project_parent}/${sandbox_id}"
+
+    # Step 2 -- create worktree
+    if [ -d "$worktree_path" ]; then
+        echo "Worktree already exists: $worktree_path"
+    else
+        echo "Creating worktree at $worktree_path..."
+        if git -C "$START_PROJECT" show-ref --verify --quiet "refs/heads/$START_BRANCH" 2>/dev/null; then
+            git -C "$START_PROJECT" worktree add "$worktree_path" "$START_BRANCH"
+        else
+            git -C "$START_PROJECT" worktree add "$worktree_path" -b "$START_BRANCH"
+        fi
+    fi
+
+    # Step 3 -- generate devcontainer.json
+    mkdir -p "$worktree_path/.devcontainer"
+
+    # Exclude .devcontainer/ from git tracking in this worktree
+    local git_dir
+    git_dir=$(git -C "$worktree_path" rev-parse --git-dir)
+    local exclude_file="${git_dir}/info/exclude"
+    mkdir -p "$(dirname "$exclude_file")"
+    if ! grep -qxF '.devcontainer/' "$exclude_file" 2>/dev/null; then
+        echo '.devcontainer/' >> "$exclude_file"
+    fi
+
+    # Collect template substitution values
+    local git_user_name git_user_email github_token context7_api_key
+    git_user_name=$(git config user.name 2>/dev/null || true)
+    git_user_email=$(git config user.email 2>/dev/null || true)
+    github_token="${GITHUB_TOKEN:-}"
+    context7_api_key="${CONTEXT7_API_KEY:-}"
+
+    # Build features block
+    local features_block=""
+    if [[ ${#START_FEATURES[@]} -gt 0 ]]; then
+        features_block=$(build_features_json)
+    fi
+
+    # Render template
+    sed \
+        -e "s|{{PROJECT_NAME}}|${project_name}|g" \
+        -e "s|{{PROFILE}}|${START_PROFILE}|g" \
+        -e "s|{{SANDBOX_ID}}|${sandbox_id}|g" \
+        -e "s|{{HOME}}|${HOME}|g" \
+        -e "s|{{GIT_USER_NAME}}|${git_user_name}|g" \
+        -e "s|{{GIT_USER_EMAIL}}|${git_user_email}|g" \
+        -e "s|{{GITHUB_TOKEN}}|${github_token}|g" \
+        -e "s|{{CONTEXT7_API_KEY}}|${context7_api_key}|g" \
+        "$DEVCONTAINER_BASE/devcontainer.template.json" \
+        > "$worktree_path/.devcontainer/devcontainer.json.tmp"
+
+    # Features substitution is handled separately because the replacement
+    # can be multi-line and may contain characters that trip up sed delimiters.
+    local tmpfile="$worktree_path/.devcontainer/devcontainer.json.tmp"
+    local outfile="$worktree_path/.devcontainer/devcontainer.json"
+
+    if [[ -n "$features_block" ]]; then
+        # Replace the {{FEATURES}} placeholder with the built JSON block
+        awk -v features="$features_block" '{gsub(/\{\{FEATURES\}\}/, features); print}' \
+            "$tmpfile" > "$outfile"
+    else
+        # No features -- remove the placeholder line entirely so the
+        # features object is empty: "features": {}
+        awk '!/\{\{FEATURES\}\}/' "$tmpfile" > "$outfile"
+    fi
+    rm -f "$tmpfile"
+
+    # Step 4 -- copy init scripts
+    cp "$DEVCONTAINER_BASE/init-claude-config.sh" "$worktree_path/.devcontainer/"
+    cp "$DEVCONTAINER_BASE/init-claudeup.sh" "$worktree_path/.devcontainer/"
+
+    # Step 5 -- launch container
+    echo "Starting devcontainer..."
+    devcontainer up --workspace-folder "$worktree_path"
+
+    # Step 6 -- save metadata
+    mkdir -p "$SANDBOX_STATE_DIR"
+    cat > "$SANDBOX_STATE_DIR/${sandbox_id}.json" <<METADATA
+{
+  "sandbox_id": "$sandbox_id",
+  "project": "$START_PROJECT",
+  "profile": "$START_PROFILE",
+  "worktree": "$worktree_path",
+  "branch": "$START_BRANCH",
+  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+METADATA
+
+    # Step 7 -- report
+    echo ""
+    echo "Sandbox ready!"
+    echo "  ID:       $sandbox_id"
+    echo "  Worktree: $worktree_path"
+    echo "  Branch:   $START_BRANCH"
+    echo "  Profile:  $START_PROFILE"
+    echo ""
+    echo "Next steps:"
+    echo "  claude-sandbox exec   $sandbox_id -- <command>"
+    echo "  claude-sandbox claude $sandbox_id"
+    echo "  claude-sandbox attach $sandbox_id"
+    echo "  claude-sandbox stop   $sandbox_id"
+}
+
 # --- Subcommand stubs ---
 
 cmd_start() {
     parse_start_args "$@"
     validate_start_args
-    echo "Not yet implemented: start"
+    start_sandbox
 }
 
 cmd_exec() {
