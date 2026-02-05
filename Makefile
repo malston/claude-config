@@ -25,8 +25,14 @@ setup: ## Run initial setup
 sync: ## Sync symlinks based on enabled.json
 	@claudeup local sync
 
-list: ## List items and status (CATEGORY=agents to filter)
+list: ## List all items (list-skills, list-skills-enabled, etc.)
 	@claudeup local list $(CATEGORY)
+
+list-%-enabled:
+	@claudeup local list $* --enabled
+
+list-%:
+	@claudeup local list $*
 
 enable: ## Enable item (CATEGORY=agents ITEM=name)
 	@test -n "$(CATEGORY)" || (echo "Error: CATEGORY required ($(CATEGORIES))" && exit 1)
