@@ -25,7 +25,7 @@
     "GITHUB_TOKEN": "{{GITHUB_TOKEN}}",
     "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}"
   },
-  "workspaceFolder": "/workspaces/{{PROJECT_NAME}}",
+  "workspaceFolder": "/workspaces/{{SANDBOX_ID}}",
   "postCreateCommand": "claude upgrade && /usr/local/bin/init-claude-config.sh && /usr/local/bin/init-claudeup.sh",
   "waitFor": "postCreateCommand"
 }
