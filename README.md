@@ -155,6 +155,10 @@ claude-sandbox list
 # Run Claude Code inside the sandbox
 claude-sandbox claude
 
+# Resume a previous Claude session
+claude-sandbox claude --sandbox myapp-my-profile \
+  --resume <session-id>
+
 # Open a shell inside the sandbox
 claude-sandbox exec
 
