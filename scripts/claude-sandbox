@@ -44,8 +44,8 @@ Examples:
   claude-sandbox start --project . --profile docker --branch sandbox/docker-work
   claude-sandbox start --project ~/code/myapp --profile full --feature node:20 --feature python
   claude-sandbox list
-  claude-sandbox stop myapp-default
-  claude-sandbox cleanup
+  claude-sandbox stop --sandbox myapp-default
+  claude-sandbox cleanup --sandbox myapp-default
 EOF
 }
 
@@ -133,6 +133,9 @@ validate_start_args() {
     if [[ ! -f "$HOME/.claude.json" ]]; then
         die "~/.claude.json not found (run claude once to create it)"
     fi
+    if [[ ! -d "$HOME/.claudeup/profiles" ]]; then
+        die "~/.claudeup/profiles directory not found (create it: mkdir -p ~/.claudeup/profiles)"
+    fi
 }
 
 # --- Feature resolution ---
@@ -183,6 +186,11 @@ start_sandbox() {
     local project_parent
     project_parent=$(dirname "$START_PROJECT")
     local worktree_path="${project_parent}/${sandbox_id}"
+
+    # Check for existing sandbox in inconsistent state
+    if [ -f "$SANDBOX_STATE_DIR/${sandbox_id}.json" ]; then
+        die "sandbox already exists: $sandbox_id (use 'claude-sandbox stop --sandbox $sandbox_id' or 'claude-sandbox cleanup --sandbox $sandbox_id' first)"
+    fi
 
     # Step 2 -- create worktree
     if [ -d "$worktree_path" ]; then
@@ -285,10 +293,10 @@ METADATA
     echo "  Profile:  $START_PROFILE"
     echo ""
     echo "Next steps:"
-    echo "  claude-sandbox exec   $sandbox_id -- <command>"
-    echo "  claude-sandbox claude $sandbox_id"
-    echo "  claude-sandbox attach $sandbox_id"
-    echo "  claude-sandbox stop   $sandbox_id"
+    echo "  claude-sandbox exec   --sandbox $sandbox_id -- <command>"
+    echo "  claude-sandbox claude --sandbox $sandbox_id"
+    echo "  claude-sandbox attach --sandbox $sandbox_id"
+    echo "  claude-sandbox stop   --sandbox $sandbox_id"
 }
 
 # --- Sandbox resolution ---
@@ -400,6 +408,10 @@ cmd_claude() {
 }
 
 cmd_attach() {
+    if ! command -v code >/dev/null 2>&1; then
+        die "VS Code CLI 'code' not found on PATH (see: https://code.visualstudio.com/docs/setup/mac#_launching-from-the-command-line)"
+    fi
+
     local sandbox_id
     sandbox_id=$(resolve_sandbox "$@")
     local worktree
@@ -496,8 +508,11 @@ cmd_cleanup() {
     fi
 
     echo "Removing Docker volumes..."
-    docker volume ls --format '{{.Name}}' | grep "claude-sandbox-.*-${sandbox_id}$" | \
-        xargs -r docker volume rm 2>/dev/null || true
+    local volumes
+    volumes=$(docker volume ls --format '{{.Name}}' | grep "claude-sandbox-.*-${sandbox_id}$" || true)
+    if [[ -n "$volumes" ]]; then
+        echo "$volumes" | xargs docker volume rm 2>/dev/null || true
+    fi
 
     echo "Removing worktree..."
     if [ -d "$worktree" ]; then
