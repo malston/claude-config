@@ -1,7 +1,7 @@
 {
   "go": {
     "feature": "ghcr.io/devcontainers/features/go:1",
-    "default_version": "1.23"
+    "default_version": "1.24"
   },
   "rust": {
     "feature": "ghcr.io/devcontainers/features/rust:1",
