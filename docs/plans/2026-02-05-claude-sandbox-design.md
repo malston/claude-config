@@ -112,12 +112,14 @@ Template (`devcontainer-base/devcontainer.template.json`):
     "source=claude-sandbox-bashhistory-{{SANDBOX_ID}},target=/commandhistory,type=volume",
     "source=claude-sandbox-config-{{SANDBOX_ID}},target=/home/node/.claude,type=volume",
     "source=claude-sandbox-claudeup-{{SANDBOX_ID}},target=/home/node/.claudeup,type=volume",
+    "source={{HOME}}/.claudeup/profiles,target=/home/node/.claudeup/profiles,type=bind,readonly",
     "source=claude-sandbox-npm-{{SANDBOX_ID}},target=/home/node/.npm-global,type=volume",
     "source=claude-sandbox-local-{{SANDBOX_ID}},target=/home/node/.local,type=volume",
     "source=claude-sandbox-bun-{{SANDBOX_ID}},target=/home/node/.bun,type=volume",
     "source={{HOME}}/.claude-mem,target=/home/node/.claude-mem,type=bind",
     "source={{HOME}}/.ssh,target=/home/node/.ssh,type=bind,readonly",
-    "source={{HOME}}/.claude.json,target=/home/node/.claude.json,type=bind"
+    "source={{HOME}}/.claude.json,target=/home/node/.claude.json,type=bind",
+    "source={{PROJECT_PATH}}/.git,target={{PROJECT_PATH}}/.git,type=bind",
   ],
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
@@ -126,11 +128,11 @@ Template (`devcontainer-base/devcontainer.template.json`):
     "GIT_USER_NAME": "{{GIT_USER_NAME}}",
     "GIT_USER_EMAIL": "{{GIT_USER_EMAIL}}",
     "GITHUB_TOKEN": "{{GITHUB_TOKEN}}",
-    "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}"
+    "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}",
   },
-  "workspaceFolder": "/workspaces/{{PROJECT_NAME}}",
+  "workspaceFolder": "/workspaces/{{SANDBOX_ID}}",
   "postCreateCommand": "claude upgrade && /usr/local/bin/init-claude-config.sh && /usr/local/bin/init-claudeup.sh",
-  "waitFor": "postCreateCommand"
+  "waitFor": "postCreateCommand",
 }
 ```
 
@@ -140,6 +142,8 @@ Key properties:
 - **The host bind-mounts `~/.claude.json`** for authentication state.
 - **The host bind-mounts `~/.claude-mem`** so memory persists across sandbox sessions.
 - **The host bind-mounts `~/.ssh` read-only** for git access.
+- **The host bind-mounts `~/.claudeup/profiles` read-only** inside the claudeup volume so `claudeup setup` can find profiles.
+- **The host bind-mounts the main project's `.git` directory** at the same host path so git worktree references resolve inside the container.
 - **The launcher injects devcontainer features** based on `--feature` flags (e.g., `--feature go:1.23`).
 
 ## Init Scripts
@@ -269,9 +273,18 @@ The worktree directory name follows the pattern `<project-dir>-<profile>/`, plac
 
 ```json
 {
-  "go": { "feature": "ghcr.io/devcontainers/features/go:1", "default_version": "1.23" },
-  "rust": { "feature": "ghcr.io/devcontainers/features/rust:1", "default_version": "latest" },
-  "python": { "feature": "ghcr.io/devcontainers/features/python:1", "default_version": "3.12" }
+  "go": {
+    "feature": "ghcr.io/devcontainers/features/go:1",
+    "default_version": "1.23"
+  },
+  "rust": {
+    "feature": "ghcr.io/devcontainers/features/rust:1",
+    "default_version": "latest"
+  },
+  "python": {
+    "feature": "ghcr.io/devcontainers/features/python:1",
+    "default_version": "3.12"
+  }
 }
 ```
 
