@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+# ABOUTME: Entry point for managing Claude Code devcontainer sandboxes.
+# ABOUTME: Dispatches to subcommands: start, exec, claude, attach, list, stop, cleanup.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SANDBOX_STATE_DIR="$HOME/.claude-sandboxes"
+DEVCONTAINER_BASE="$REPO_DIR/devcontainer-base"
+PROFILES_DIR="$HOME/.claudeup/profiles"
+
+# --- Helpers ---
+
+die() {
+    echo "error: $*" >&2
+    exit 1
+}
+
+usage() {
+    cat <<EOF
+Usage: claude-sandbox <command> [options]
+
+Commands:
+  start      Create and start a sandbox devcontainer
+  exec       Run a command inside a running sandbox
+  claude     Launch Claude Code inside a running sandbox
+  attach     Attach a terminal to a running sandbox
+  list       List running sandboxes
+  stop       Stop a running sandbox
+  cleanup    Remove stopped sandboxes and stale state
+
+Options:
+  -h, --help    Show this help message
+
+Start options:
+  --project <path>          Project directory (required, must be a git repo)
+  --profile <name>          Profile name (required, must exist in ~/.claudeup/profiles/)
+  --branch <name>           Git branch name (default: sandbox/<profile>)
+  --feature <name[:ver]>    Devcontainer feature to include (repeatable)
+
+Examples:
+  claude-sandbox start --project ~/code/myapp --profile default
+  claude-sandbox start --project . --profile docker --branch sandbox/docker-work
+  claude-sandbox start --project ~/code/myapp --profile full --feature node:20 --feature python
+  claude-sandbox list
+  claude-sandbox stop myapp-default
+  claude-sandbox cleanup
+EOF
+}
+
+# --- Argument parsing for 'start' subcommand ---
+
+parse_start_args() {
+    START_PROJECT=""
+    START_PROFILE=""
+    START_BRANCH=""
+    START_FEATURES=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --project)
+                [[ $# -ge 2 ]] || die "--project requires a value"
+                START_PROJECT="$2"
+                shift 2
+                ;;
+            --profile)
+                [[ $# -ge 2 ]] || die "--profile requires a value"
+                START_PROFILE="$2"
+                shift 2
+                ;;
+            --branch)
+                [[ $# -ge 2 ]] || die "--branch requires a value"
+                START_BRANCH="$2"
+                shift 2
+                ;;
+            --feature)
+                [[ $# -ge 2 ]] || die "--feature requires a value"
+                START_FEATURES+=("$2")
+                shift 2
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                die "unknown option: $1"
+                ;;
+        esac
+    done
+
+    [[ -n "$START_PROJECT" ]] || die "--project is required"
+    [[ -n "$START_PROFILE" ]] || die "--profile is required"
+
+    # Default branch name
+    if [[ -z "$START_BRANCH" ]]; then
+        START_BRANCH="sandbox/$START_PROFILE"
+    fi
+}
+
+validate_start_args() {
+    # Resolve project path to absolute
+    if [[ ! -d "$START_PROJECT" ]]; then
+        die "project path does not exist: $START_PROJECT"
+    fi
+    START_PROJECT="$(cd "$START_PROJECT" && pwd)"
+
+    # Verify it's a git repo
+    if ! git -C "$START_PROJECT" rev-parse --git-dir >/dev/null 2>&1; then
+        die "project path is not a git repository: $START_PROJECT"
+    fi
+
+    # Verify profile exists
+    if [[ ! -f "$PROFILES_DIR/$START_PROFILE.json" ]]; then
+        die "profile not found: $PROFILES_DIR/$START_PROFILE.json"
+    fi
+
+    # Verify devcontainer CLI is available
+    if ! command -v devcontainer >/dev/null 2>&1; then
+        die "devcontainer CLI not found on PATH (install: npm install -g @devcontainers/cli)"
+    fi
+
+    # Verify Docker is running
+    if ! docker info >/dev/null 2>&1; then
+        die "docker is not running (start Docker Desktop or the docker daemon)"
+    fi
+}
+
+# --- Subcommand stubs ---
+
+cmd_start() {
+    parse_start_args "$@"
+    validate_start_args
+    echo "Not yet implemented: start"
+}
+
+cmd_exec() {
+    echo "Not yet implemented: exec"
+}
+
+cmd_claude() {
+    echo "Not yet implemented: claude"
+}
+
+cmd_attach() {
+    echo "Not yet implemented: attach"
+}
+
+cmd_list() {
+    echo "Not yet implemented: list"
+}
+
+cmd_stop() {
+    echo "Not yet implemented: stop"
+}
+
+cmd_cleanup() {
+    echo "Not yet implemented: cleanup"
+}
+
+# --- Main dispatch ---
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        usage
+        exit 0
+    fi
+
+    local cmd="$1"
+    shift
+
+    case "$cmd" in
+        start)    cmd_start "$@" ;;
+        exec)     cmd_exec "$@" ;;
+        claude)   cmd_claude "$@" ;;
+        attach)   cmd_attach "$@" ;;
+        list)     cmd_list "$@" ;;
+        stop)     cmd_stop "$@" ;;
+        cleanup)  cmd_cleanup "$@" ;;
+        -h|--help|help)
+            usage
+            exit 0
+            ;;
+        *)
+            die "unknown command: $cmd (run 'claude-sandbox --help' for usage)"
+            ;;
+    esac
+}
+
+main "$@"
