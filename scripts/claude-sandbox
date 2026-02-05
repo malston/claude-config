@@ -218,10 +218,13 @@ start_sandbox() {
 
     # Collect template substitution values
     local git_user_name git_user_email github_token context7_api_key
+    local claude_config_repo claude_config_branch
     git_user_name=$(git config user.name 2>/dev/null || true)
     git_user_email=$(git config user.email 2>/dev/null || true)
     github_token="${GITHUB_TOKEN:-}"
     context7_api_key="${CONTEXT7_API_KEY:-}"
+    claude_config_repo="${CLAUDE_CONFIG_REPO:-}"
+    claude_config_branch="${CLAUDE_CONFIG_BRANCH:-main}"
 
     # Build features block
     local features_block=""
@@ -242,6 +245,8 @@ start_sandbox() {
         -v git_user_email="$git_user_email" \
         -v github_token="$github_token" \
         -v context7_api_key="$context7_api_key" \
+        -v claude_config_repo="$claude_config_repo" \
+        -v claude_config_branch="$claude_config_branch" \
         -v project_path="$START_PROJECT" \
         -v features="$features_block" \
         '{
@@ -253,6 +258,8 @@ start_sandbox() {
             gsub(/\{\{GIT_USER_EMAIL\}\}/, git_user_email)
             gsub(/\{\{GITHUB_TOKEN\}\}/, github_token)
             gsub(/\{\{CONTEXT7_API_KEY\}\}/, context7_api_key)
+            gsub(/\{\{CLAUDE_CONFIG_REPO\}\}/, claude_config_repo)
+            gsub(/\{\{CLAUDE_CONFIG_BRANCH\}\}/, claude_config_branch)
             gsub(/\{\{PROJECT_PATH\}\}/, project_path)
             if (features != "") {
                 gsub(/\{\{FEATURES\}\}/, features)
@@ -265,6 +272,7 @@ start_sandbox() {
 
     # Step 4 -- copy init scripts
     cp "$DEVCONTAINER_BASE/init-claude-config.sh" "$worktree_path/.devcontainer/"
+    cp "$DEVCONTAINER_BASE/init-config-repo.sh" "$worktree_path/.devcontainer/"
     cp "$DEVCONTAINER_BASE/init-claudeup.sh" "$worktree_path/.devcontainer/"
 
     # Step 5 -- launch container
