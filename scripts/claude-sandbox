@@ -124,6 +124,15 @@ validate_start_args() {
     if ! docker info >/dev/null 2>&1; then
         die "docker is not running (start Docker Desktop or the docker daemon)"
     fi
+
+    # Verify bind mount sources exist (Docker creates missing paths as
+    # root-owned directories, which breaks file-targeted mounts)
+    if [[ ! -d "$HOME/.claude-mem" ]]; then
+        die "~/.claude-mem directory not found (create it: mkdir ~/.claude-mem)"
+    fi
+    if [[ ! -f "$HOME/.claude.json" ]]; then
+        die "~/.claude.json not found (run claude once to create it)"
+    fi
 }
 
 # --- Feature resolution ---
@@ -212,35 +221,39 @@ start_sandbox() {
         features_block=$(build_features_json)
     fi
 
-    # Render template
-    sed \
-        -e "s|{{PROJECT_NAME}}|${project_name}|g" \
-        -e "s|{{PROFILE}}|${START_PROFILE}|g" \
-        -e "s|{{SANDBOX_ID}}|${sandbox_id}|g" \
-        -e "s|{{HOME}}|${HOME}|g" \
-        -e "s|{{GIT_USER_NAME}}|${git_user_name}|g" \
-        -e "s|{{GIT_USER_EMAIL}}|${git_user_email}|g" \
-        -e "s|{{GITHUB_TOKEN}}|${github_token}|g" \
-        -e "s|{{CONTEXT7_API_KEY}}|${context7_api_key}|g" \
-        -e "s|{{PROJECT_PATH}}|${START_PROJECT}|g" \
-        "$DEVCONTAINER_BASE/devcontainer.template.json" \
-        > "$worktree_path/.devcontainer/devcontainer.json.tmp"
-
-    # Features substitution is handled separately because the replacement
-    # can be multi-line and may contain characters that trip up sed delimiters.
-    local tmpfile="$worktree_path/.devcontainer/devcontainer.json.tmp"
+    # Render template using awk for safe substitution (sed is vulnerable to
+    # delimiter injection when values contain special characters like |, &, /).
     local outfile="$worktree_path/.devcontainer/devcontainer.json"
 
-    if [[ -n "$features_block" ]]; then
-        # Replace the {{FEATURES}} placeholder with the built JSON block
-        awk -v features="$features_block" '{gsub(/\{\{FEATURES\}\}/, features); print}' \
-            "$tmpfile" > "$outfile"
-    else
-        # No features -- remove the placeholder line entirely so the
-        # features object is empty: "features": {}
-        awk '!/\{\{FEATURES\}\}/' "$tmpfile" > "$outfile"
-    fi
-    rm -f "$tmpfile"
+    awk \
+        -v project_name="$project_name" \
+        -v profile="$START_PROFILE" \
+        -v sandbox_id="$sandbox_id" \
+        -v home="$HOME" \
+        -v git_user_name="$git_user_name" \
+        -v git_user_email="$git_user_email" \
+        -v github_token="$github_token" \
+        -v context7_api_key="$context7_api_key" \
+        -v project_path="$START_PROJECT" \
+        -v features="$features_block" \
+        '{
+            gsub(/\{\{PROJECT_NAME\}\}/, project_name)
+            gsub(/\{\{PROFILE\}\}/, profile)
+            gsub(/\{\{SANDBOX_ID\}\}/, sandbox_id)
+            gsub(/\{\{HOME\}\}/, home)
+            gsub(/\{\{GIT_USER_NAME\}\}/, git_user_name)
+            gsub(/\{\{GIT_USER_EMAIL\}\}/, git_user_email)
+            gsub(/\{\{GITHUB_TOKEN\}\}/, github_token)
+            gsub(/\{\{CONTEXT7_API_KEY\}\}/, context7_api_key)
+            gsub(/\{\{PROJECT_PATH\}\}/, project_path)
+            if (features != "") {
+                gsub(/\{\{FEATURES\}\}/, features)
+            } else {
+                # Remove placeholder line so features object is empty: {}
+                if (/\{\{FEATURES\}\}/) next
+            }
+            print
+        }' "$DEVCONTAINER_BASE/devcontainer.template.json" > "$outfile"
 
     # Step 4 -- copy init scripts
     cp "$DEVCONTAINER_BASE/init-claude-config.sh" "$worktree_path/.devcontainer/"
@@ -347,7 +360,25 @@ cmd_exec() {
     sandbox_id=$(resolve_sandbox "$@")
     local worktree
     worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
-    devcontainer exec --workspace-folder "$worktree" bash
+
+    # Collect args after "--" to pass as the exec command
+    local exec_args=()
+    local found_separator=false
+    while [[ $# -gt 0 ]]; do
+        if [[ "$1" == "--" ]]; then
+            found_separator=true
+            shift
+            exec_args=("$@")
+            break
+        fi
+        shift
+    done
+
+    if [[ ${#exec_args[@]} -gt 0 ]]; then
+        devcontainer exec --workspace-folder "$worktree" "${exec_args[@]}"
+    else
+        devcontainer exec --workspace-folder "$worktree" bash
+    fi
 }
 
 cmd_claude() {
@@ -373,8 +404,6 @@ cmd_attach() {
     sandbox_id=$(resolve_sandbox "$@")
     local worktree
     worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
-    local project_name
-    project_name=$(jq -r .sandbox_id "$SANDBOX_STATE_DIR/$sandbox_id.json" | cut -d- -f1)
 
     # Get container ID
     local container_id

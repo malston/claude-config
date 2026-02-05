@@ -284,6 +284,10 @@ The worktree directory name follows the pattern `<project-dir>-<profile>/`, plac
   "python": {
     "feature": "ghcr.io/devcontainers/features/python:1",
     "default_version": "3.12"
+  },
+  "java": {
+    "feature": "ghcr.io/devcontainers/features/java:1",
+    "default_version": "21"
   }
 }
 ```
