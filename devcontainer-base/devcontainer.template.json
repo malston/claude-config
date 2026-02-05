@@ -9,6 +9,7 @@
     "source=claude-sandbox-bashhistory-{{SANDBOX_ID}},target=/commandhistory,type=volume",
     "source=claude-sandbox-config-{{SANDBOX_ID}},target=/home/node/.claude,type=volume",
     "source=claude-sandbox-claudeup-{{SANDBOX_ID}},target=/home/node/.claudeup,type=volume",
+    "source={{HOME}}/.claudeup/profiles,target=/home/node/.claudeup/profiles,type=bind,readonly",
     "source=claude-sandbox-npm-{{SANDBOX_ID}},target=/home/node/.npm-global,type=volume",
     "source=claude-sandbox-local-{{SANDBOX_ID}},target=/home/node/.local,type=volume",
     "source=claude-sandbox-bun-{{SANDBOX_ID}},target=/home/node/.bun,type=volume",
