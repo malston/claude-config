@@ -392,15 +392,83 @@ cmd_attach() {
 }
 
 cmd_list() {
-    echo "Not yet implemented: list"
+    if [ ! -d "$SANDBOX_STATE_DIR" ] || [ -z "$(ls -A "$SANDBOX_STATE_DIR" 2>/dev/null)" ]; then
+        echo "No sandboxes found."
+        return 0
+    fi
+
+    printf "%-45s %-25s %-20s %s\n" "SANDBOX" "PROJECT" "PROFILE" "STATUS"
+    printf "%-45s %-25s %-20s %s\n" "-------" "-------" "-------" "------"
+
+    for meta in "$SANDBOX_STATE_DIR"/*.json; do
+        [ -f "$meta" ] || continue
+        local sandbox_id project profile worktree status
+        sandbox_id=$(jq -r .sandbox_id "$meta")
+        project=$(jq -r '.project | split("/") | last' "$meta")
+        profile=$(jq -r .profile "$meta")
+        worktree=$(jq -r .worktree "$meta")
+
+        # Check container status
+        if devcontainer exec --workspace-folder "$worktree" true &>/dev/null; then
+            status="running"
+        elif [ -d "$worktree" ]; then
+            status="stopped"
+        else
+            status="orphaned"
+        fi
+
+        printf "%-45s %-25s %-20s %s\n" "$sandbox_id" "$project" "$profile" "$status"
+    done
 }
 
 cmd_stop() {
-    echo "Not yet implemented: stop"
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+
+    local meta="$SANDBOX_STATE_DIR/${sandbox_id}.json"
+    local worktree
+    worktree=$(jq -r .worktree "$meta")
+
+    echo "Stopping sandbox: $sandbox_id..."
+    devcontainer stop --workspace-folder "$worktree" 2>/dev/null || true
+    echo "Stopped sandbox: $sandbox_id"
 }
 
 cmd_cleanup() {
-    echo "Not yet implemented: cleanup"
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+
+    local meta="$SANDBOX_STATE_DIR/${sandbox_id}.json"
+    local worktree project
+    worktree=$(jq -r .worktree "$meta")
+    project=$(jq -r .project "$meta")
+
+    echo "This will:"
+    echo "  - Stop the container"
+    echo "  - Remove Docker volumes (claude-sandbox-*-$sandbox_id)"
+    echo "  - Remove worktree: $worktree"
+    echo "  - Remove sandbox metadata"
+    echo ""
+    read -rp "Continue? [y/N] " confirm
+    [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Aborted."; return 1; }
+
+    echo "Stopping container..."
+    devcontainer stop --workspace-folder "$worktree" 2>/dev/null || true
+
+    echo "Removing Docker volumes..."
+    docker volume ls --format '{{.Name}}' | grep "claude-sandbox-.*-${sandbox_id}$" | \
+        xargs -r docker volume rm 2>/dev/null || true
+
+    echo "Removing worktree..."
+    if [ -d "$worktree" ]; then
+        git -C "$project" worktree remove "$worktree" --force 2>/dev/null || \
+            rm -rf "$worktree"
+    fi
+
+    echo "Removing metadata..."
+    rm -f "$meta"
+
+    echo "Cleaned up sandbox: $sandbox_id"
 }
 
 # --- Main dispatch ---
