@@ -51,6 +51,7 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 USER root
 
 COPY --chmod=755 init-claude-config.sh /usr/local/bin/
+COPY --chmod=755 init-config-repo.sh /usr/local/bin/
 COPY --chmod=755 init-claudeup.sh /usr/local/bin/
 
 USER node

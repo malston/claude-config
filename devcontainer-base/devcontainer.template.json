@@ -25,9 +25,11 @@
     "GIT_USER_NAME": "{{GIT_USER_NAME}}",
     "GIT_USER_EMAIL": "{{GIT_USER_EMAIL}}",
     "GITHUB_TOKEN": "{{GITHUB_TOKEN}}",
-    "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}"
+    "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}",
+    "CLAUDE_CONFIG_REPO": "{{CLAUDE_CONFIG_REPO}}",
+    "CLAUDE_CONFIG_BRANCH": "{{CLAUDE_CONFIG_BRANCH}}"
   },
   "workspaceFolder": "/workspaces/{{SANDBOX_ID}}",
-  "postCreateCommand": "claude upgrade && /usr/local/bin/init-claude-config.sh && /usr/local/bin/init-claudeup.sh",
+  "postCreateCommand": "claude upgrade && /usr/local/bin/init-claude-config.sh && /usr/local/bin/init-config-repo.sh && /usr/local/bin/init-claudeup.sh",
   "waitFor": "postCreateCommand"
 }
