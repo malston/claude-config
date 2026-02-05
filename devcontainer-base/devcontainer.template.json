@@ -1,0 +1,31 @@
+{
+  "name": "Claude Sandbox - {{PROJECT_NAME}} ({{PROFILE}})",
+  "image": "claude-sandbox:latest",
+  "features": {
+    {{FEATURES}}
+  },
+  "remoteUser": "node",
+  "mounts": [
+    "source=claude-sandbox-bashhistory-{{SANDBOX_ID}},target=/commandhistory,type=volume",
+    "source=claude-sandbox-config-{{SANDBOX_ID}},target=/home/node/.claude,type=volume",
+    "source=claude-sandbox-claudeup-{{SANDBOX_ID}},target=/home/node/.claudeup,type=volume",
+    "source=claude-sandbox-npm-{{SANDBOX_ID}},target=/home/node/.npm-global,type=volume",
+    "source=claude-sandbox-local-{{SANDBOX_ID}},target=/home/node/.local,type=volume",
+    "source=claude-sandbox-bun-{{SANDBOX_ID}},target=/home/node/.bun,type=volume",
+    "source={{HOME}}/.claude-mem,target=/home/node/.claude-mem,type=bind",
+    "source={{HOME}}/.ssh,target=/home/node/.ssh,type=bind,readonly",
+    "source={{HOME}}/.claude.json,target=/home/node/.claude.json,type=bind"
+  ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "CLAUDE_PROFILE": "{{PROFILE}}",
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "GIT_USER_NAME": "{{GIT_USER_NAME}}",
+    "GIT_USER_EMAIL": "{{GIT_USER_EMAIL}}",
+    "GITHUB_TOKEN": "{{GITHUB_TOKEN}}",
+    "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}"
+  },
+  "workspaceFolder": "/workspaces/{{PROJECT_NAME}}",
+  "postCreateCommand": "claude upgrade && /usr/local/bin/init-claude-config.sh && /usr/local/bin/init-claudeup.sh",
+  "waitFor": "postCreateCommand"
+}
