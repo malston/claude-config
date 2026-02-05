@@ -174,6 +174,8 @@ claude-sandbox cleanup
 
 Each sandbox creates a git worktree alongside your project directory, so work done inside the sandbox produces a branch that can be merged or PR'd through the normal workflow.
 
+The sandbox ID is `<project>-<profile>` (e.g., `myapp-my-profile`). Since profiles describe the _configuration_ being tested, not the project, keep profile names short and descriptive: `my-profile`, `minimal`, `frontend-heavy`. This keeps sandbox IDs readable when used with `--sandbox`.
+
 Profiles live in `~/.claudeup/profiles/`. Create one with `claudeup profile save <name>` or write the JSON directly. Available features: `go`, `rust`, `python`, `java` (see `devcontainer-base/features.json`).
 
 For the full design and architecture, see [docs/plans/2026-02-05-claude-sandbox-design.md](docs/plans/2026-02-05-claude-sandbox-design.md).
