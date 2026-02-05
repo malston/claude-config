@@ -277,7 +277,63 @@ METADATA
     echo "  claude-sandbox stop   $sandbox_id"
 }
 
-# --- Subcommand stubs ---
+# --- Sandbox resolution ---
+
+resolve_sandbox() {
+    local sandbox_id=""
+
+    # Check for --sandbox flag
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --sandbox)
+                sandbox_id="$2"
+                shift 2
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
+    # If no --sandbox flag, try to infer from cwd
+    if [ -z "$sandbox_id" ]; then
+        local cwd
+        cwd=$(pwd)
+        for meta in "$SANDBOX_STATE_DIR"/*.json; do
+            [ -f "$meta" ] || continue
+            local wt
+            wt=$(jq -r .worktree "$meta")
+            if [[ "$cwd" == "$wt"* ]]; then
+                sandbox_id=$(jq -r .sandbox_id "$meta")
+                break
+            fi
+        done
+    fi
+
+    if [ -z "$sandbox_id" ]; then
+        echo "Error: Could not determine sandbox." >&2
+        echo "Use --sandbox <name> or run from inside a sandbox worktree." >&2
+        echo "" >&2
+        if ls "$SANDBOX_STATE_DIR"/*.json &>/dev/null; then
+            echo "Available sandboxes:" >&2
+            for meta in "$SANDBOX_STATE_DIR"/*.json; do
+                jq -r .sandbox_id "$meta" >&2
+            done
+        else
+            echo "No sandboxes found." >&2
+        fi
+        exit 1
+    fi
+
+    # Verify sandbox exists
+    if [ ! -f "$SANDBOX_STATE_DIR/${sandbox_id}.json" ]; then
+        die "sandbox not found: $sandbox_id"
+    fi
+
+    echo "$sandbox_id"
+}
+
+# --- Subcommands ---
 
 cmd_start() {
     parse_start_args "$@"
@@ -286,15 +342,53 @@ cmd_start() {
 }
 
 cmd_exec() {
-    echo "Not yet implemented: exec"
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+    local worktree
+    worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
+    devcontainer exec --workspace-folder "$worktree" bash
 }
 
 cmd_claude() {
-    echo "Not yet implemented: claude"
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+    local worktree
+    worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
+
+    # Collect non-sandbox args to pass to claude
+    local claude_args=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --sandbox) shift 2 ;;
+            *) claude_args+=("$1"); shift ;;
+        esac
+    done
+
+    devcontainer exec --workspace-folder "$worktree" claude "${claude_args[@]}"
 }
 
 cmd_attach() {
-    echo "Not yet implemented: attach"
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+    local worktree
+    worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
+    local project_name
+    project_name=$(jq -r .sandbox_id "$SANDBOX_STATE_DIR/$sandbox_id.json" | cut -d- -f1)
+
+    # Get container ID
+    local container_id
+    container_id=$(devcontainer exec --workspace-folder "$worktree" hostname 2>/dev/null) || \
+        die "could not get container ID -- is the sandbox running?"
+
+    # Encode container ID as hex for VS Code URI
+    local hex_id
+    hex_id=$(printf '%s' "$container_id" | xxd -p | tr -d '\n')
+
+    local workspace_name
+    workspace_name=$(basename "$worktree")
+
+    code --folder-uri "vscode-remote://attached-container+${hex_id}/workspaces/${workspace_name}"
+    echo "VS Code attached to sandbox: $sandbox_id"
 }
 
 cmd_list() {
