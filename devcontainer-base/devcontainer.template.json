@@ -15,7 +15,8 @@
     "source=claude-sandbox-bun-{{SANDBOX_ID}},target=/home/node/.bun,type=volume",
     "source={{HOME}}/.claude-mem,target=/home/node/.claude-mem,type=bind",
     "source={{HOME}}/.ssh,target=/home/node/.ssh,type=bind,readonly",
-    "source={{HOME}}/.claude.json,target=/home/node/.claude.json,type=bind"
+    "source={{HOME}}/.claude.json,target=/home/node/.claude.json,type=bind",
+    "source={{PROJECT_PATH}}/.git,target={{PROJECT_PATH}}/.git,type=bind"
   ],
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",

@@ -222,6 +222,7 @@ start_sandbox() {
         -e "s|{{GIT_USER_EMAIL}}|${git_user_email}|g" \
         -e "s|{{GITHUB_TOKEN}}|${github_token}|g" \
         -e "s|{{CONTEXT7_API_KEY}}|${context7_api_key}|g" \
+        -e "s|{{PROJECT_PATH}}|${START_PROJECT}|g" \
         "$DEVCONTAINER_BASE/devcontainer.template.json" \
         > "$worktree_path/.devcontainer/devcontainer.json.tmp"
 
@@ -409,7 +410,7 @@ cmd_list() {
         worktree=$(jq -r .worktree "$meta")
 
         # Check container status
-        if devcontainer exec --workspace-folder "$worktree" true &>/dev/null; then
+        if docker ps -q --filter "label=devcontainer.local_folder=$worktree" 2>/dev/null | grep -q .; then
             status="running"
         elif [ -d "$worktree" ]; then
             status="stopped"
@@ -430,8 +431,14 @@ cmd_stop() {
     worktree=$(jq -r .worktree "$meta")
 
     echo "Stopping sandbox: $sandbox_id..."
-    devcontainer stop --workspace-folder "$worktree" 2>/dev/null || true
-    echo "Stopped sandbox: $sandbox_id"
+    local container_id
+    container_id=$(docker ps -q --filter "label=devcontainer.local_folder=$worktree" 2>/dev/null)
+    if [[ -n "$container_id" ]]; then
+        docker stop "$container_id" >/dev/null
+        echo "Stopped sandbox: $sandbox_id"
+    else
+        echo "No running container found for sandbox: $sandbox_id"
+    fi
 }
 
 cmd_cleanup() {
@@ -452,8 +459,12 @@ cmd_cleanup() {
     read -rp "Continue? [y/N] " confirm
     [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Aborted."; return 1; }
 
-    echo "Stopping container..."
-    devcontainer stop --workspace-folder "$worktree" 2>/dev/null || true
+    echo "Removing container..."
+    local container_id
+    container_id=$(docker ps -aq --filter "label=devcontainer.local_folder=$worktree" 2>/dev/null)
+    if [[ -n "$container_id" ]]; then
+        docker rm -f "$container_id" >/dev/null
+    fi
 
     echo "Removing Docker volumes..."
     docker volume ls --format '{{.Name}}' | grep "claude-sandbox-.*-${sandbox_id}$" | \
