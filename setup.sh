@@ -84,14 +84,14 @@ fi
 
 echo ""
 
-# Install switch-claude-config script
-echo "Installing switch-claude-config..."
+# Install claude-sandbox script
+echo "Installing claude-sandbox..."
 mkdir -p "$HOME/.local/bin"
-if cp "$SCRIPT_DIR/scripts/switch-claude-config" "$HOME/.local/bin/switch-claude-config" 2>/dev/null; then
-    chmod +x "$HOME/.local/bin/switch-claude-config"
-    echo "  ✓ switch-claude-config installed to ~/.local/bin"
+if cp "$SCRIPT_DIR/scripts/claude-sandbox" "$HOME/.local/bin/claude-sandbox" 2>/dev/null; then
+    chmod +x "$HOME/.local/bin/claude-sandbox"
+    echo "  ✓ claude-sandbox installed to ~/.local/bin"
 else
-    echo "  ⚠ switch-claude-config not found in scripts/"
+    echo "  ⚠ claude-sandbox not found in scripts/"
 fi
 
 echo ""

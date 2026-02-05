@@ -6,23 +6,24 @@ Portable configuration for Claude Code CLI.
 
 ## Contents
 
-| Directory/File   | Purpose                                                                 |
-| ---------------- | ----------------------------------------------------------------------- |
-| `CLAUDE.md`      | Primary user instructions and coding standards                          |
-| `settings.json`  | Permissions, hooks, status line, plugin settings                        |
-| `enabled.json`   | Enable/disable state for skills, commands, agents, rules, output-styles |
-| `.library/`      | Canonical storage for all manageable items                              |
-| `commands/`      | Symlinks to enabled commands in `.library/commands/`                    |
-| `skills/`        | Symlinks to enabled skills in `.library/skills/`                        |
-| `agents/`        | Symlinks to enabled agents in `.library/agents/`                        |
-| `output-styles/` | Symlinks to enabled output styles in `.library/output-styles/`          |
-| `hooks/`         | Hook scripts (e.g., markdown formatter)                                 |
-| `plugins/`       | Plugin cache and CLI-managed marketplace data                           |
-| `config/`        | MCP servers, profiles, and environment templates                        |
-| `scripts/`       | Utility scripts for upgrades and diagnostics                            |
-| `setup.sh`       | Post-clone setup script                                                 |
-| `Dockerfile`     | Docker configuration for containerized environments                     |
-| `docs/DOCKER.md` | Docker setup and usage guide                                            |
+| Directory/File       | Purpose                                                                 |
+| -------------------- | ----------------------------------------------------------------------- |
+| `CLAUDE.md`          | Primary user instructions and coding standards                          |
+| `settings.json`      | Permissions, hooks, status line, plugin settings                        |
+| `enabled.json`       | Enable/disable state for skills, commands, agents, rules, output-styles |
+| `.library/`          | Canonical storage for all manageable items                              |
+| `commands/`          | Symlinks to enabled commands in `.library/commands/`                    |
+| `skills/`            | Symlinks to enabled skills in `.library/skills/`                        |
+| `agents/`            | Symlinks to enabled agents in `.library/agents/`                        |
+| `output-styles/`     | Symlinks to enabled output styles in `.library/output-styles/`          |
+| `hooks/`             | Hook scripts (e.g., markdown formatter)                                 |
+| `plugins/`           | Plugin cache and CLI-managed marketplace data                           |
+| `config/`            | MCP servers, profiles, and environment templates                        |
+| `scripts/`           | Utility scripts for upgrades, diagnostics, and sandbox management       |
+| `devcontainer-base/` | Base Docker image and templates for sandbox devcontainers               |
+| `setup.sh`           | Post-clone setup script                                                 |
+| `Dockerfile`         | Docker configuration for containerized environments                     |
+| `docs/DOCKER.md`     | Docker setup and usage guide                                            |
 
 ## Quick Start
 
@@ -123,6 +124,61 @@ docker-compose run --rm claude
 ```
 
 Setup runs automatically on first container start, installing all configured marketplaces and plugins. For complete Docker documentation, build options, and usage examples, see [docs/DOCKER.md](docs/DOCKER.md).
+
+## Sandbox Testing
+
+Test different Claude Code configurations in isolated devcontainers without affecting your host `~/.claude` directory. Each sandbox gets its own container, git worktree, and plugin set defined by a claudeup profile.
+
+### Prerequisites
+
+- Docker Desktop
+- `devcontainer` CLI: `bun install -g @devcontainers/cli`
+
+### First-Time Setup
+
+```bash
+make build-sandbox-image
+```
+
+### Usage
+
+```bash
+# Start a sandbox with a specific profile and language toolchain
+claude-sandbox start \
+  --project ~/code/myapp \
+  --profile my-profile \
+  --feature go:1.23
+
+# List running sandboxes
+claude-sandbox list
+
+# Run Claude Code inside the sandbox
+claude-sandbox claude
+
+# Resume a previous Claude session
+claude-sandbox claude --sandbox myapp-my-profile \
+  --resume <session-id>
+
+# Open a shell inside the sandbox
+claude-sandbox exec
+
+# Attach VS Code to the sandbox
+claude-sandbox attach
+
+# Stop (preserves state for fast restart)
+claude-sandbox stop
+
+# Full teardown (removes container, volumes, worktree)
+claude-sandbox cleanup
+```
+
+Each sandbox creates a git worktree alongside your project directory, so work done inside the sandbox produces a branch that can be merged or PR'd through the normal workflow.
+
+The sandbox ID is `<project>-<profile>` (e.g., `myapp-my-profile`). Since profiles describe the _configuration_ being tested, not the project, keep profile names short and descriptive: `my-profile`, `minimal`, `frontend-heavy`. This keeps sandbox IDs readable when used with `--sandbox`.
+
+Profiles live in `~/.claudeup/profiles/`. Create one with `claudeup profile save <name>` or write the JSON directly. Available features: `go`, `rust`, `python`, `java` (see `devcontainer-base/features.json`).
+
+For the full design and architecture, see [docs/plans/2026-02-05-claude-sandbox-design.md](docs/plans/2026-02-05-claude-sandbox-design.md).
 
 ## Managing Context Usage
 

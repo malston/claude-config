@@ -1,0 +1,558 @@
+#!/usr/bin/env bash
+# ABOUTME: Entry point for managing Claude Code devcontainer sandboxes.
+# ABOUTME: Dispatches to subcommands: start, exec, claude, attach, list, stop, cleanup.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SANDBOX_STATE_DIR="$HOME/.claude-sandboxes"
+DEVCONTAINER_BASE="$REPO_DIR/devcontainer-base"
+PROFILES_DIR="$HOME/.claudeup/profiles"
+
+# --- Helpers ---
+
+die() {
+    echo "error: $*" >&2
+    exit 1
+}
+
+usage() {
+    cat <<EOF
+Usage: claude-sandbox <command> [options]
+
+Commands:
+  start      Create and start a sandbox devcontainer
+  exec       Run a command inside a running sandbox
+  claude     Launch Claude Code inside a running sandbox
+  attach     Attach a terminal to a running sandbox
+  list       List running sandboxes
+  stop       Stop a running sandbox
+  cleanup    Remove stopped sandboxes and stale state
+
+Options:
+  -h, --help    Show this help message
+
+Start options:
+  --project <path>          Project directory (required, must be a git repo)
+  --profile <name>          Profile name (required, must exist in ~/.claudeup/profiles/)
+  --branch <name>           Git branch name (default: sandbox/<profile>)
+  --feature <name[:ver]>    Devcontainer feature to include (repeatable)
+
+Examples:
+  claude-sandbox start --project ~/code/myapp --profile default
+  claude-sandbox start --project . --profile docker --branch sandbox/docker-work
+  claude-sandbox start --project ~/code/myapp --profile full --feature node:20 --feature python
+  claude-sandbox list
+  claude-sandbox stop --sandbox myapp-default
+  claude-sandbox cleanup --sandbox myapp-default
+EOF
+}
+
+# --- Argument parsing for 'start' subcommand ---
+
+parse_start_args() {
+    START_PROJECT=""
+    START_PROFILE=""
+    START_BRANCH=""
+    START_FEATURES=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --project)
+                [[ $# -ge 2 ]] || die "--project requires a value"
+                START_PROJECT="$2"
+                shift 2
+                ;;
+            --profile)
+                [[ $# -ge 2 ]] || die "--profile requires a value"
+                START_PROFILE="$2"
+                shift 2
+                ;;
+            --branch)
+                [[ $# -ge 2 ]] || die "--branch requires a value"
+                START_BRANCH="$2"
+                shift 2
+                ;;
+            --feature)
+                [[ $# -ge 2 ]] || die "--feature requires a value"
+                START_FEATURES+=("$2")
+                shift 2
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                die "unknown option: $1"
+                ;;
+        esac
+    done
+
+    [[ -n "$START_PROJECT" ]] || die "--project is required"
+    [[ -n "$START_PROFILE" ]] || die "--profile is required"
+
+    # Default branch name
+    if [[ -z "$START_BRANCH" ]]; then
+        START_BRANCH="sandbox/$START_PROFILE"
+    fi
+}
+
+validate_start_args() {
+    # Resolve project path to absolute
+    if [[ ! -d "$START_PROJECT" ]]; then
+        die "project path does not exist: $START_PROJECT"
+    fi
+    START_PROJECT="$(cd "$START_PROJECT" && pwd)"
+
+    # Verify it's a git repo
+    if ! git -C "$START_PROJECT" rev-parse --git-dir >/dev/null 2>&1; then
+        die "project path is not a git repository: $START_PROJECT"
+    fi
+
+    # Verify profile exists
+    if [[ ! -f "$PROFILES_DIR/$START_PROFILE.json" ]]; then
+        die "profile not found: $PROFILES_DIR/$START_PROFILE.json"
+    fi
+
+    # Verify devcontainer CLI is available
+    if ! command -v devcontainer >/dev/null 2>&1; then
+        die "devcontainer CLI not found on PATH (install: npm install -g @devcontainers/cli)"
+    fi
+
+    # Verify Docker is running
+    if ! docker info >/dev/null 2>&1; then
+        die "docker is not running (start Docker Desktop or the docker daemon)"
+    fi
+
+    # Verify bind mount sources exist (Docker creates missing paths as
+    # root-owned directories, which breaks file-targeted mounts)
+    if [[ ! -d "$HOME/.claude-mem" ]]; then
+        die "~/.claude-mem directory not found (create it: mkdir ~/.claude-mem)"
+    fi
+    if [[ ! -f "$HOME/.claude.json" ]]; then
+        die "~/.claude.json not found (run claude once to create it)"
+    fi
+    if [[ ! -d "$HOME/.claudeup/profiles" ]]; then
+        die "~/.claudeup/profiles directory not found (create it: mkdir -p ~/.claudeup/profiles)"
+    fi
+}
+
+# --- Feature resolution ---
+
+# Builds the JSON features block from --feature flags.
+# Each flag is "name" or "name:version". Looks up the feature OCI reference
+# in features.json and falls back to the default_version when no version is given.
+build_features_json() {
+    local features_file="$DEVCONTAINER_BASE/features.json"
+    local result=""
+    local sep=""
+
+    for spec in "${START_FEATURES[@]}"; do
+        local name="${spec%%:*}"
+        local version="${spec#*:}"
+
+        # When no colon was present, name == spec == version
+        if [[ "$version" == "$name" ]]; then
+            version=""
+        fi
+
+        # Look up the feature reference in features.json
+        local oci
+        oci=$(jq -r --arg n "$name" '.[$n].feature // empty' "$features_file")
+        if [[ -z "$oci" ]]; then
+            die "unknown feature: $name (not found in $features_file)"
+        fi
+
+        # Use default_version when caller omitted the version
+        if [[ -z "$version" ]]; then
+            version=$(jq -r --arg n "$name" '.[$n].default_version // "latest"' "$features_file")
+        fi
+
+        result="${result}${sep}    \"${oci}\": {\"version\": \"${version}\"}"
+        sep=$',\n'
+    done
+
+    printf '%s' "$result"
+}
+
+# --- Start implementation ---
+
+start_sandbox() {
+    # Step 1 -- derive IDs and paths
+    local project_name
+    project_name=$(basename "$START_PROJECT")
+    local sandbox_id="${project_name}-${START_PROFILE}"
+    local project_parent
+    project_parent=$(dirname "$START_PROJECT")
+    local worktree_path="${project_parent}/${sandbox_id}"
+
+    # Check for existing sandbox in inconsistent state
+    if [ -f "$SANDBOX_STATE_DIR/${sandbox_id}.json" ]; then
+        die "sandbox already exists: $sandbox_id (use 'claude-sandbox stop --sandbox $sandbox_id' or 'claude-sandbox cleanup --sandbox $sandbox_id' first)"
+    fi
+
+    # Step 2 -- create worktree
+    if [ -d "$worktree_path" ]; then
+        echo "Worktree already exists: $worktree_path"
+    else
+        echo "Creating worktree at $worktree_path..."
+        if git -C "$START_PROJECT" show-ref --verify --quiet "refs/heads/$START_BRANCH" 2>/dev/null; then
+            git -C "$START_PROJECT" worktree add "$worktree_path" "$START_BRANCH"
+        else
+            git -C "$START_PROJECT" worktree add "$worktree_path" -b "$START_BRANCH"
+        fi
+    fi
+
+    # Step 3 -- generate devcontainer.json
+    mkdir -p "$worktree_path/.devcontainer"
+
+    # Exclude .devcontainer/ from git tracking in this worktree
+    local git_dir
+    git_dir=$(git -C "$worktree_path" rev-parse --git-dir)
+    local exclude_file="${git_dir}/info/exclude"
+    mkdir -p "$(dirname "$exclude_file")"
+    if ! grep -qxF '.devcontainer/' "$exclude_file" 2>/dev/null; then
+        echo '.devcontainer/' >> "$exclude_file"
+    fi
+
+    # Collect template substitution values
+    local git_user_name git_user_email github_token context7_api_key
+    git_user_name=$(git config user.name 2>/dev/null || true)
+    git_user_email=$(git config user.email 2>/dev/null || true)
+    github_token="${GITHUB_TOKEN:-}"
+    context7_api_key="${CONTEXT7_API_KEY:-}"
+
+    # Build features block
+    local features_block=""
+    if [[ ${#START_FEATURES[@]} -gt 0 ]]; then
+        features_block=$(build_features_json)
+    fi
+
+    # Render template using awk for safe substitution (sed is vulnerable to
+    # delimiter injection when values contain special characters like |, &, /).
+    local outfile="$worktree_path/.devcontainer/devcontainer.json"
+
+    awk \
+        -v project_name="$project_name" \
+        -v profile="$START_PROFILE" \
+        -v sandbox_id="$sandbox_id" \
+        -v home="$HOME" \
+        -v git_user_name="$git_user_name" \
+        -v git_user_email="$git_user_email" \
+        -v github_token="$github_token" \
+        -v context7_api_key="$context7_api_key" \
+        -v project_path="$START_PROJECT" \
+        -v features="$features_block" \
+        '{
+            gsub(/\{\{PROJECT_NAME\}\}/, project_name)
+            gsub(/\{\{PROFILE\}\}/, profile)
+            gsub(/\{\{SANDBOX_ID\}\}/, sandbox_id)
+            gsub(/\{\{HOME\}\}/, home)
+            gsub(/\{\{GIT_USER_NAME\}\}/, git_user_name)
+            gsub(/\{\{GIT_USER_EMAIL\}\}/, git_user_email)
+            gsub(/\{\{GITHUB_TOKEN\}\}/, github_token)
+            gsub(/\{\{CONTEXT7_API_KEY\}\}/, context7_api_key)
+            gsub(/\{\{PROJECT_PATH\}\}/, project_path)
+            if (features != "") {
+                gsub(/\{\{FEATURES\}\}/, features)
+            } else {
+                # Remove placeholder line so features object is empty: {}
+                if (/\{\{FEATURES\}\}/) next
+            }
+            print
+        }' "$DEVCONTAINER_BASE/devcontainer.template.json" > "$outfile"
+
+    # Step 4 -- copy init scripts
+    cp "$DEVCONTAINER_BASE/init-claude-config.sh" "$worktree_path/.devcontainer/"
+    cp "$DEVCONTAINER_BASE/init-claudeup.sh" "$worktree_path/.devcontainer/"
+
+    # Step 5 -- launch container
+    echo "Starting devcontainer..."
+    devcontainer up --workspace-folder "$worktree_path"
+
+    # Step 6 -- save metadata
+    mkdir -p "$SANDBOX_STATE_DIR"
+    cat > "$SANDBOX_STATE_DIR/${sandbox_id}.json" <<METADATA
+{
+  "sandbox_id": "$sandbox_id",
+  "project": "$START_PROJECT",
+  "profile": "$START_PROFILE",
+  "worktree": "$worktree_path",
+  "branch": "$START_BRANCH",
+  "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+METADATA
+
+    # Step 7 -- report
+    echo ""
+    echo "Sandbox ready!"
+    echo "  ID:       $sandbox_id"
+    echo "  Worktree: $worktree_path"
+    echo "  Branch:   $START_BRANCH"
+    echo "  Profile:  $START_PROFILE"
+    echo ""
+    echo "Next steps:"
+    echo "  claude-sandbox exec   --sandbox $sandbox_id -- <command>"
+    echo "  claude-sandbox claude --sandbox $sandbox_id"
+    echo "  claude-sandbox attach --sandbox $sandbox_id"
+    echo "  claude-sandbox stop   --sandbox $sandbox_id"
+}
+
+# --- Sandbox resolution ---
+
+resolve_sandbox() {
+    local sandbox_id=""
+
+    # Check for --sandbox flag
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --sandbox)
+                sandbox_id="$2"
+                shift 2
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
+    # If no --sandbox flag, try to infer from cwd
+    if [ -z "$sandbox_id" ]; then
+        local cwd
+        cwd=$(pwd)
+        for meta in "$SANDBOX_STATE_DIR"/*.json; do
+            [ -f "$meta" ] || continue
+            local wt
+            wt=$(jq -r .worktree "$meta")
+            if [[ "$cwd" == "$wt"* ]]; then
+                sandbox_id=$(jq -r .sandbox_id "$meta")
+                break
+            fi
+        done
+    fi
+
+    if [ -z "$sandbox_id" ]; then
+        echo "Error: Could not determine sandbox." >&2
+        echo "Use --sandbox <name> or run from inside a sandbox worktree." >&2
+        echo "" >&2
+        if ls "$SANDBOX_STATE_DIR"/*.json &>/dev/null; then
+            echo "Available sandboxes:" >&2
+            for meta in "$SANDBOX_STATE_DIR"/*.json; do
+                jq -r .sandbox_id "$meta" >&2
+            done
+        else
+            echo "No sandboxes found." >&2
+        fi
+        exit 1
+    fi
+
+    # Verify sandbox exists
+    if [ ! -f "$SANDBOX_STATE_DIR/${sandbox_id}.json" ]; then
+        die "sandbox not found: $sandbox_id"
+    fi
+
+    echo "$sandbox_id"
+}
+
+# --- Subcommands ---
+
+cmd_start() {
+    parse_start_args "$@"
+    validate_start_args
+    start_sandbox
+}
+
+cmd_exec() {
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+    local worktree
+    worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
+
+    # Collect args after "--" to pass as the exec command
+    local exec_args=()
+    local found_separator=false
+    while [[ $# -gt 0 ]]; do
+        if [[ "$1" == "--" ]]; then
+            found_separator=true
+            shift
+            exec_args=("$@")
+            break
+        fi
+        shift
+    done
+
+    if [[ ${#exec_args[@]} -gt 0 ]]; then
+        devcontainer exec --workspace-folder "$worktree" "${exec_args[@]}"
+    else
+        devcontainer exec --workspace-folder "$worktree" bash
+    fi
+}
+
+cmd_claude() {
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+    local worktree
+    worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
+
+    # Collect non-sandbox args to pass to claude
+    local claude_args=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --sandbox) shift 2 ;;
+            *) claude_args+=("$1"); shift ;;
+        esac
+    done
+
+    devcontainer exec --workspace-folder "$worktree" claude "${claude_args[@]}"
+}
+
+cmd_attach() {
+    if ! command -v code >/dev/null 2>&1; then
+        die "VS Code CLI 'code' not found on PATH (see: https://code.visualstudio.com/docs/setup/mac#_launching-from-the-command-line)"
+    fi
+
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+    local worktree
+    worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
+
+    # Get container ID
+    local container_id
+    container_id=$(devcontainer exec --workspace-folder "$worktree" hostname 2>/dev/null) || \
+        die "could not get container ID -- is the sandbox running?"
+
+    # Encode container ID as hex for VS Code URI
+    local hex_id
+    hex_id=$(printf '%s' "$container_id" | xxd -p | tr -d '\n')
+
+    local workspace_name
+    workspace_name=$(basename "$worktree")
+
+    code --folder-uri "vscode-remote://attached-container+${hex_id}/workspaces/${workspace_name}"
+    echo "VS Code attached to sandbox: $sandbox_id"
+}
+
+cmd_list() {
+    if [ ! -d "$SANDBOX_STATE_DIR" ] || [ -z "$(ls -A "$SANDBOX_STATE_DIR" 2>/dev/null)" ]; then
+        echo "No sandboxes found."
+        return 0
+    fi
+
+    printf "%-45s %-25s %-20s %s\n" "SANDBOX" "PROJECT" "PROFILE" "STATUS"
+    printf "%-45s %-25s %-20s %s\n" "-------" "-------" "-------" "------"
+
+    for meta in "$SANDBOX_STATE_DIR"/*.json; do
+        [ -f "$meta" ] || continue
+        local sandbox_id project profile worktree status
+        sandbox_id=$(jq -r .sandbox_id "$meta")
+        project=$(jq -r '.project | split("/") | last' "$meta")
+        profile=$(jq -r .profile "$meta")
+        worktree=$(jq -r .worktree "$meta")
+
+        # Check container status
+        if docker ps -q --filter "label=devcontainer.local_folder=$worktree" 2>/dev/null | grep -q .; then
+            status="running"
+        elif [ -d "$worktree" ]; then
+            status="stopped"
+        else
+            status="orphaned"
+        fi
+
+        printf "%-45s %-25s %-20s %s\n" "$sandbox_id" "$project" "$profile" "$status"
+    done
+}
+
+cmd_stop() {
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+
+    local meta="$SANDBOX_STATE_DIR/${sandbox_id}.json"
+    local worktree
+    worktree=$(jq -r .worktree "$meta")
+
+    echo "Stopping sandbox: $sandbox_id..."
+    local container_id
+    container_id=$(docker ps -q --filter "label=devcontainer.local_folder=$worktree" 2>/dev/null)
+    if [[ -n "$container_id" ]]; then
+        docker stop "$container_id" >/dev/null
+        echo "Stopped sandbox: $sandbox_id"
+    else
+        echo "No running container found for sandbox: $sandbox_id"
+    fi
+}
+
+cmd_cleanup() {
+    local sandbox_id
+    sandbox_id=$(resolve_sandbox "$@")
+
+    local meta="$SANDBOX_STATE_DIR/${sandbox_id}.json"
+    local worktree project
+    worktree=$(jq -r .worktree "$meta")
+    project=$(jq -r .project "$meta")
+
+    echo "This will:"
+    echo "  - Stop the container"
+    echo "  - Remove Docker volumes (claude-sandbox-*-$sandbox_id)"
+    echo "  - Remove worktree: $worktree"
+    echo "  - Remove sandbox metadata"
+    echo ""
+    read -rp "Continue? [y/N] " confirm
+    [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Aborted."; return 1; }
+
+    echo "Removing container..."
+    local container_id
+    container_id=$(docker ps -aq --filter "label=devcontainer.local_folder=$worktree" 2>/dev/null)
+    if [[ -n "$container_id" ]]; then
+        docker rm -f "$container_id" >/dev/null
+    fi
+
+    echo "Removing Docker volumes..."
+    local volumes
+    volumes=$(docker volume ls --format '{{.Name}}' | grep "claude-sandbox-.*-${sandbox_id}$" || true)
+    if [[ -n "$volumes" ]]; then
+        echo "$volumes" | xargs docker volume rm 2>/dev/null || true
+    fi
+
+    echo "Removing worktree..."
+    if [ -d "$worktree" ]; then
+        git -C "$project" worktree remove "$worktree" --force 2>/dev/null || \
+            rm -rf "$worktree"
+    fi
+
+    echo "Removing metadata..."
+    rm -f "$meta"
+
+    echo "Cleaned up sandbox: $sandbox_id"
+}
+
+# --- Main dispatch ---
+
+main() {
+    if [[ $# -eq 0 ]]; then
+        usage
+        exit 0
+    fi
+
+    local cmd="$1"
+    shift
+
+    case "$cmd" in
+        start)    cmd_start "$@" ;;
+        exec)     cmd_exec "$@" ;;
+        claude)   cmd_claude "$@" ;;
+        attach)   cmd_attach "$@" ;;
+        list)     cmd_list "$@" ;;
+        stop)     cmd_stop "$@" ;;
+        cleanup)  cmd_cleanup "$@" ;;
+        -h|--help|help)
+            usage
+            exit 0
+            ;;
+        *)
+            die "unknown command: $cmd (run 'claude-sandbox --help' for usage)"
+            ;;
+    esac
+}
+
+main "$@"
