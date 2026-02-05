@@ -256,7 +256,6 @@ The worktree directory name follows the pattern `<project-dir>-<profile>/`, plac
 ├── config/
 │   └── my-profile.json               # existing claudeup profile
 ├── scripts/
-│   ├── switch-claude-config          # existing (may retire)
 │   └── claude-sandbox                # launcher script
 ├── devcontainer-base/
 │   ├── Dockerfile                    # shared base image
@@ -353,4 +352,3 @@ claude-sandbox cleanup
 
 - **Project-specific overrides.** A `.claude-sandbox.json` in a project repo could specify default features, ports, and env vars so `--feature` flags become optional.
 - **VS Code customizations in the template.** Baseline extensions and settings in the generated `devcontainer.json` for a consistent editor experience.
-- **Retiring `switch-claude-config`.** Once sandboxes handle all configuration testing, the symlink script can be removed.
