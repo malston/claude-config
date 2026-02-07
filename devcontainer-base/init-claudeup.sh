@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # ABOUTME: Installs claudeup and applies the specified profile.
-# ABOUTME: Reads CLAUDE_PROFILE env var for the profile name.
+# ABOUTME: Reads CLAUDE_PROFILE and CLAUDE_BASE_PROFILE env vars.
 
 set -euo pipefail
 
 CLAUDEUP_HOME="/home/node/.claudeup"
+CLAUDE_HOME="/home/node/.claude"
 MARKER_FILE="$CLAUDEUP_HOME/.setup-complete"
 
 echo "Initializing claudeup..."
@@ -30,13 +31,83 @@ else
     echo "[SKIP] claudeup already installed"
 fi
 
+# Apply base profile first (if provided) to install its marketplaces and plugins
+if [ -n "${CLAUDE_BASE_PROFILE:-}" ]; then
+    echo "Applying base profile: $CLAUDE_BASE_PROFILE..."
+    if claudeup profile apply "$CLAUDE_BASE_PROFILE" -y; then
+        echo "[OK] Base profile '$CLAUDE_BASE_PROFILE' applied"
+    else
+        echo "[WARN] Base profile apply failed, will retry on next container start"
+        exit 1
+    fi
+    # Capture base profile's enabledPlugins before they get replaced
+    if [ -f "$CLAUDE_HOME/settings.json" ]; then
+        base_plugins=$(jq '.enabledPlugins // {}' "$CLAUDE_HOME/settings.json")
+    else
+        echo "[WARN] settings.json not found after base profile apply, skipping plugin capture"
+        base_plugins="{}"
+    fi
+fi
+
 echo "Applying profile: $CLAUDE_PROFILE..."
-if claudeup setup --profile "$CLAUDE_PROFILE" -y; then
+if claudeup profile apply "$CLAUDE_PROFILE" -y; then
     echo "[OK] Profile '$CLAUDE_PROFILE' applied"
-    touch "$MARKER_FILE"
 else
-    echo "[WARN] claudeup setup failed, will retry on next container start"
+    echo "[WARN] claudeup profile apply failed, will retry on next container start"
     exit 1
 fi
+
+# Merge base profile's enabledPlugins back so both sets of plugins are active
+if [ -n "${base_plugins:-}" ] && [ "$base_plugins" != "{}" ]; then
+    local_settings="$CLAUDE_HOME/settings.json"
+    jq --argjson base "$base_plugins" '.enabledPlugins = ($base + (.enabledPlugins // {}))' "$local_settings" > "${local_settings}.tmp"
+    mv "${local_settings}.tmp" "$local_settings"
+    echo "[OK] Base profile enabledPlugins merged"
+fi
+
+# Sync local items (agents, commands, skills, hooks, output-styles) from profiles.
+# Skip if enabled.json already exists (e.g., deployed by init-config-repo.sh).
+if [ ! -f "$CLAUDE_HOME/enabled.json" ]; then
+    # Generate enabled.json from profile localItems
+    local_items_base="{}"
+    if [ -n "${CLAUDE_BASE_PROFILE:-}" ]; then
+        base_file="$CLAUDEUP_HOME/profiles/$CLAUDE_BASE_PROFILE.json"
+        if [ -f "$base_file" ] && jq -e '.localItems' "$base_file" > /dev/null 2>&1; then
+            local_items_base=$(jq '.localItems | with_entries(.value |= (map({(.): true}) | add // {}))' "$base_file")
+        fi
+    fi
+
+    local_items_profile="{}"
+    profile_file="$CLAUDEUP_HOME/profiles/$CLAUDE_PROFILE.json"
+    if [ -f "$profile_file" ] && jq -e '.localItems' "$profile_file" > /dev/null 2>&1; then
+        local_items_profile=$(jq '.localItems | with_entries(.value |= (map({(.): true}) | add // {}))' "$profile_file")
+    fi
+
+    # Merge base + profile items (profile wins on conflicts)
+    merged_items=$(jq -n --argjson base "$local_items_base" --argjson profile "$local_items_profile" '$base * $profile')
+
+    if [ "$merged_items" != "{}" ]; then
+        echo "$merged_items" > "$CLAUDE_HOME/enabled.json"
+        echo "[OK] enabled.json generated from profile localItems"
+    else
+        echo "[SKIP] No localItems in profile(s)"
+    fi
+else
+    echo "[SKIP] enabled.json already exists"
+fi
+
+# Create category directories and sync symlinks
+if [ -f "$CLAUDE_HOME/enabled.json" ]; then
+    for dir in skills agents commands hooks output-styles; do
+        mkdir -p "$CLAUDE_HOME/$dir"
+    done
+
+    if command -v claudeup &> /dev/null; then
+        claudeup local sync -y
+        echo "[OK] Local item symlinks synced"
+    fi
+fi
+
+touch "$MARKER_FILE"
 
 echo "Claudeup initialization complete"

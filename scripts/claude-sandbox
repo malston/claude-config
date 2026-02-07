@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SANDBOX_STATE_DIR="$HOME/.claude-sandboxes"
 DEVCONTAINER_BASE="$REPO_DIR/devcontainer-base"
@@ -38,6 +38,7 @@ Start options:
   --profile <name>          Profile name (required, must exist in ~/.claudeup/profiles/)
   --branch <name>           Git branch name (default: sandbox/<profile>)
   --feature <name[:ver]>    Devcontainer feature to include (repeatable)
+  --base-profile <name>     Apply a base profile first, then add --profile on top
 
 Examples:
   claude-sandbox start --project ~/code/myapp --profile default
@@ -56,6 +57,7 @@ parse_start_args() {
     START_PROFILE=""
     START_BRANCH=""
     START_FEATURES=()
+    START_BASE_PROFILE=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -77,6 +79,11 @@ parse_start_args() {
             --feature)
                 [[ $# -ge 2 ]] || die "--feature requires a value"
                 START_FEATURES+=("$2")
+                shift 2
+                ;;
+            --base-profile)
+                [[ $# -ge 2 ]] || die "--base-profile requires a value"
+                START_BASE_PROFILE="$2"
                 shift 2
                 ;;
             -h|--help)
@@ -115,6 +122,11 @@ validate_start_args() {
         die "profile not found: $PROFILES_DIR/$START_PROFILE.json"
     fi
 
+    # Verify base profile exists (if provided)
+    if [[ -n "$START_BASE_PROFILE" ]] && [[ ! -f "$PROFILES_DIR/$START_BASE_PROFILE.json" ]]; then
+        die "base profile not found: $PROFILES_DIR/$START_BASE_PROFILE.json"
+    fi
+
     # Verify devcontainer CLI is available
     if ! command -v devcontainer >/dev/null 2>&1; then
         die "devcontainer CLI not found on PATH (install: npm install -g @devcontainers/cli)"
@@ -132,6 +144,12 @@ validate_start_args() {
     fi
     if [[ ! -f "$HOME/.claude.json" ]]; then
         die "~/.claude.json not found (run claude once to create it)"
+    fi
+    if [[ ! -f "$HOME/.claude/settings.json" ]]; then
+        die "~/.claude/settings.json not found (run claude once to create it)"
+    fi
+    if [[ ! -d "$HOME/.claude/.library" ]]; then
+        die "~/.claude/.library directory not found"
     fi
     if [[ ! -d "$HOME/.claudeup/profiles" ]]; then
         die "~/.claudeup/profiles directory not found (create it: mkdir -p ~/.claudeup/profiles)"
@@ -248,6 +266,7 @@ start_sandbox() {
         -v claude_config_repo="$claude_config_repo" \
         -v claude_config_branch="$claude_config_branch" \
         -v project_path="$START_PROJECT" \
+        -v base_profile="$START_BASE_PROFILE" \
         -v features="$features_block" \
         '{
             gsub(/\{\{PROJECT_NAME\}\}/, project_name)
@@ -261,6 +280,7 @@ start_sandbox() {
             gsub(/\{\{CLAUDE_CONFIG_REPO\}\}/, claude_config_repo)
             gsub(/\{\{CLAUDE_CONFIG_BRANCH\}\}/, claude_config_branch)
             gsub(/\{\{PROJECT_PATH\}\}/, project_path)
+            gsub(/\{\{BASE_PROFILE\}\}/, base_profile)
             if (features != "") {
                 gsub(/\{\{FEATURES\}\}/, features)
             } else {
