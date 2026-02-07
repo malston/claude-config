@@ -60,6 +60,49 @@ if [ -n "${base_plugins:-}" ] && [ "$base_plugins" != "{}" ]; then
     echo "[OK] Base profile enabledPlugins merged"
 fi
 
+# Sync local items (agents, commands, skills, hooks, output-styles) from profiles.
+# Skip if enabled.json already exists (e.g., deployed by init-config-repo.sh).
+if [ ! -f "$CLAUDE_HOME/enabled.json" ]; then
+    # Generate enabled.json from profile localItems
+    local_items_base="{}"
+    if [ -n "${CLAUDE_BASE_PROFILE:-}" ]; then
+        base_file="$CLAUDEUP_HOME/profiles/$CLAUDE_BASE_PROFILE.json"
+        if [ -f "$base_file" ] && jq -e '.localItems' "$base_file" > /dev/null 2>&1; then
+            local_items_base=$(jq '.localItems | with_entries(.value |= (map({(.): true}) | add // {}))' "$base_file")
+        fi
+    fi
+
+    local_items_profile="{}"
+    profile_file="$CLAUDEUP_HOME/profiles/$CLAUDE_PROFILE.json"
+    if [ -f "$profile_file" ] && jq -e '.localItems' "$profile_file" > /dev/null 2>&1; then
+        local_items_profile=$(jq '.localItems | with_entries(.value |= (map({(.): true}) | add // {}))' "$profile_file")
+    fi
+
+    # Merge base + profile items (profile wins on conflicts)
+    merged_items=$(jq -n --argjson base "$local_items_base" --argjson profile "$local_items_profile" '$base * $profile')
+
+    if [ "$merged_items" != "{}" ]; then
+        echo "$merged_items" > "$CLAUDE_HOME/enabled.json"
+        echo "[OK] enabled.json generated from profile localItems"
+    else
+        echo "[SKIP] No localItems in profile(s)"
+    fi
+else
+    echo "[SKIP] enabled.json already exists"
+fi
+
+# Create category directories and sync symlinks
+if [ -f "$CLAUDE_HOME/enabled.json" ]; then
+    for dir in skills agents commands hooks output-styles; do
+        mkdir -p "$CLAUDE_HOME/$dir"
+    done
+
+    if command -v claudeup &> /dev/null; then
+        claudeup local sync -y
+        echo "[OK] Local item symlinks synced"
+    fi
+fi
+
 touch "$MARKER_FILE"
 
 echo "Claudeup initialization complete"

@@ -148,11 +148,8 @@ validate_start_args() {
     if [[ ! -f "$HOME/.claude/settings.json" ]]; then
         die "~/.claude/settings.json not found (run claude once to create it)"
     fi
-    if [[ ! -d "$HOME/.claude/hooks" ]]; then
-        die "~/.claude/hooks directory not found (create it: mkdir -p ~/.claude/hooks)"
-    fi
-    if [[ ! -d "$HOME/.claude/.library/hooks" ]]; then
-        die "~/.claude/.library/hooks directory not found"
+    if [[ ! -d "$HOME/.claude/.library" ]]; then
+        die "~/.claude/.library directory not found"
     fi
     if [[ ! -d "$HOME/.claudeup/profiles" ]]; then
         die "~/.claudeup/profiles directory not found (create it: mkdir -p ~/.claudeup/profiles)"
