@@ -83,6 +83,12 @@ fi
 
 mkdir -p "$CLAUDE_HOME"
 
+# Seed settings.json from host base settings
+if [ -f /tmp/base-settings.json ]; then
+    cp /tmp/base-settings.json "$CLAUDE_HOME/settings.json"
+    echo "[OK] Base settings.json deployed"
+fi
+
 mkdir -p /home/node/.npm-global/lib
 
 echo "Claude configuration complete"

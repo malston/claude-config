@@ -30,7 +30,7 @@ if [ -d "$TEMP_DIR/.library" ]; then
     echo "[OK] .library/ deployed"
 fi
 
-# Deploy config files (not settings.json -- that comes from the claudeup profile)
+# Deploy config files (not settings.json -- seeded from host, updated by claudeup profile)
 for file in CLAUDE.md enabled.json Makefile; do
     if [ -f "$TEMP_DIR/$file" ]; then
         cp "$TEMP_DIR/$file" "$CLAUDE_HOME/$file"
