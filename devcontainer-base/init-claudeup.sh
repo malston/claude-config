@@ -33,10 +33,24 @@ fi
 echo "Applying profile: $CLAUDE_PROFILE..."
 if claudeup profile apply "$CLAUDE_PROFILE" -y; then
     echo "[OK] Profile '$CLAUDE_PROFILE' applied"
-    touch "$MARKER_FILE"
 else
     echo "[WARN] claudeup profile apply failed, will retry on next container start"
     exit 1
 fi
+
+# In additive mode, merge base enabledPlugins back into settings.json
+# so the profile's plugins are added on top of the base rather than replacing them
+if [ "${CLAUDE_ADDITIVE_PROFILE:-}" = "true" ] && [ -f /tmp/base-settings.json ]; then
+    CLAUDE_HOME="/home/node/.claude"
+    local_settings="$CLAUDE_HOME/settings.json"
+    base_plugins=$(jq -r '.enabledPlugins // {}' /tmp/base-settings.json)
+    if [ "$base_plugins" != "{}" ]; then
+        jq --argjson base "$base_plugins" '.enabledPlugins = ($base + .enabledPlugins)' "$local_settings" > "${local_settings}.tmp"
+        mv "${local_settings}.tmp" "$local_settings"
+        echo "[OK] Base enabledPlugins merged (additive mode)"
+    fi
+fi
+
+touch "$MARKER_FILE"
 
 echo "Claudeup initialization complete"

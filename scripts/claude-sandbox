@@ -38,6 +38,7 @@ Start options:
   --profile <name>          Profile name (required, must exist in ~/.claudeup/profiles/)
   --branch <name>           Git branch name (default: sandbox/<profile>)
   --feature <name[:ver]>    Devcontainer feature to include (repeatable)
+  --additive                Keep base enabledPlugins and add profile plugins on top
 
 Examples:
   claude-sandbox start --project ~/code/myapp --profile default
@@ -56,6 +57,7 @@ parse_start_args() {
     START_PROFILE=""
     START_BRANCH=""
     START_FEATURES=()
+    START_ADDITIVE=false
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -78,6 +80,10 @@ parse_start_args() {
                 [[ $# -ge 2 ]] || die "--feature requires a value"
                 START_FEATURES+=("$2")
                 shift 2
+                ;;
+            --additive)
+                START_ADDITIVE=true
+                shift
                 ;;
             -h|--help)
                 usage
@@ -257,6 +263,7 @@ start_sandbox() {
         -v claude_config_repo="$claude_config_repo" \
         -v claude_config_branch="$claude_config_branch" \
         -v project_path="$START_PROJECT" \
+        -v additive="$START_ADDITIVE" \
         -v features="$features_block" \
         '{
             gsub(/\{\{PROJECT_NAME\}\}/, project_name)
@@ -270,6 +277,7 @@ start_sandbox() {
             gsub(/\{\{CLAUDE_CONFIG_REPO\}\}/, claude_config_repo)
             gsub(/\{\{CLAUDE_CONFIG_BRANCH\}\}/, claude_config_branch)
             gsub(/\{\{PROJECT_PATH\}\}/, project_path)
+            gsub(/\{\{ADDITIVE_PROFILE\}\}/, additive)
             if (features != "") {
                 gsub(/\{\{FEATURES\}\}/, features)
             } else {
