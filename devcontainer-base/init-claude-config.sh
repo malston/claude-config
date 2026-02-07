@@ -83,10 +83,11 @@ fi
 
 mkdir -p "$CLAUDE_HOME"
 
-# Seed settings.json from host base settings
+# Seed settings.json from host base settings, stripping plugin-dependent keys
+# (enabledPlugins and statusLine are managed by the claudeup profile)
 if [ -f /tmp/base-settings.json ]; then
-    cp /tmp/base-settings.json "$CLAUDE_HOME/settings.json"
-    echo "[OK] Base settings.json deployed"
+    jq 'del(.statusLine, .enabledPlugins)' /tmp/base-settings.json > "$CLAUDE_HOME/settings.json"
+    echo "[OK] Base settings.json deployed (permissions, hooks)"
 fi
 
 mkdir -p /home/node/.npm-global/lib

@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SANDBOX_STATE_DIR="$HOME/.claude-sandboxes"
 DEVCONTAINER_BASE="$REPO_DIR/devcontainer-base"
@@ -135,6 +135,12 @@ validate_start_args() {
     fi
     if [[ ! -f "$HOME/.claude/settings.json" ]]; then
         die "~/.claude/settings.json not found (run claude once to create it)"
+    fi
+    if [[ ! -d "$HOME/.claude/hooks" ]]; then
+        die "~/.claude/hooks directory not found (create it: mkdir -p ~/.claude/hooks)"
+    fi
+    if [[ ! -d "$HOME/.claude/.library/hooks" ]]; then
+        die "~/.claude/.library/hooks directory not found"
     fi
     if [[ ! -d "$HOME/.claudeup/profiles" ]]; then
         die "~/.claudeup/profiles directory not found (create it: mkdir -p ~/.claudeup/profiles)"

@@ -31,11 +31,11 @@ else
 fi
 
 echo "Applying profile: $CLAUDE_PROFILE..."
-if claudeup setup --profile "$CLAUDE_PROFILE" -y; then
+if claudeup profile apply "$CLAUDE_PROFILE" -y; then
     echo "[OK] Profile '$CLAUDE_PROFILE' applied"
     touch "$MARKER_FILE"
 else
-    echo "[WARN] claudeup setup failed, will retry on next container start"
+    echo "[WARN] claudeup profile apply failed, will retry on next container start"
     exit 1
 fi
 
