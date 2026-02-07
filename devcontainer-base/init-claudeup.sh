@@ -41,7 +41,12 @@ if [ -n "${CLAUDE_BASE_PROFILE:-}" ]; then
         exit 1
     fi
     # Capture base profile's enabledPlugins before they get replaced
-    base_plugins=$(jq '.enabledPlugins // {}' "$CLAUDE_HOME/settings.json")
+    if [ -f "$CLAUDE_HOME/settings.json" ]; then
+        base_plugins=$(jq '.enabledPlugins // {}' "$CLAUDE_HOME/settings.json")
+    else
+        echo "[WARN] settings.json not found after base profile apply, skipping plugin capture"
+        base_plugins="{}"
+    fi
 fi
 
 echo "Applying profile: $CLAUDE_PROFILE..."
@@ -55,7 +60,7 @@ fi
 # Merge base profile's enabledPlugins back so both sets of plugins are active
 if [ -n "${base_plugins:-}" ] && [ "$base_plugins" != "{}" ]; then
     local_settings="$CLAUDE_HOME/settings.json"
-    jq --argjson base "$base_plugins" '.enabledPlugins = ($base + .enabledPlugins)' "$local_settings" > "${local_settings}.tmp"
+    jq --argjson base "$base_plugins" '.enabledPlugins = ($base + (.enabledPlugins // {}))' "$local_settings" > "${local_settings}.tmp"
     mv "${local_settings}.tmp" "$local_settings"
     echo "[OK] Base profile enabledPlugins merged"
 fi

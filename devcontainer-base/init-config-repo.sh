@@ -24,10 +24,12 @@ trap 'rm -rf "$TEMP_DIR"' EXIT
 echo "Cloning config repo ($BRANCH)..."
 git clone --branch "$BRANCH" --depth 1 "$CLAUDE_CONFIG_REPO" "$TEMP_DIR"
 
-# Deploy .library/ (all extensions)
-if [ -d "$TEMP_DIR/.library" ]; then
+# Deploy .library/ (all extensions) -- skip if already bind-mounted from host
+if [ -d "$TEMP_DIR/.library" ] && [ ! -d "$CLAUDE_HOME/.library" ]; then
     cp -a "$TEMP_DIR/.library" "$CLAUDE_HOME/.library"
     echo "[OK] .library/ deployed"
+elif [ -d "$CLAUDE_HOME/.library" ]; then
+    echo "[SKIP] .library/ already mounted"
 fi
 
 # Deploy config files (not settings.json -- seeded from host, updated by claudeup profile)
