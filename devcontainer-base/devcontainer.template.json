@@ -31,7 +31,7 @@
     "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}",
     "CLAUDE_CONFIG_REPO": "{{CLAUDE_CONFIG_REPO}}",
     "CLAUDE_CONFIG_BRANCH": "{{CLAUDE_CONFIG_BRANCH}}",
-    "CLAUDE_ADDITIVE_PROFILE": "{{ADDITIVE_PROFILE}}"
+    "CLAUDE_BASE_PROFILE": "{{BASE_PROFILE}}"
   },
   "workspaceFolder": "/workspaces/{{SANDBOX_ID}}",
   "postCreateCommand": "claude upgrade && /usr/local/bin/init-claude-config.sh && /usr/local/bin/init-config-repo.sh && /usr/local/bin/init-claudeup.sh",
