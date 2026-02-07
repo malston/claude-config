@@ -86,7 +86,7 @@ mkdir -p "$CLAUDE_HOME"
 # Seed settings.json from host base settings, stripping plugin-dependent keys
 # (enabledPlugins and statusLine are managed by the claudeup profile)
 if [ -f /tmp/base-settings.json ]; then
-    jq 'del(.statusLine, .enabledPlugins)' /tmp/base-settings.json > "$CLAUDE_HOME/settings.json"
+    jq 'del(.statusLine, .enabledPlugins, .hooks.Notification)' /tmp/base-settings.json > "$CLAUDE_HOME/settings.json"
     echo "[OK] Base settings.json deployed (permissions, hooks)"
 fi
 
