@@ -184,8 +184,8 @@
     "terraform": false,
     "test-driven-development": false,
     "typescript": false,
-    "vercel-react-best-practices": true,
+    "vercel-react-best-practices": false,
     "vsphere-architect": false,
-    "web-design-guidelines": true
+    "web-design-guidelines": false
   }
 }
