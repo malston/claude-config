@@ -12,6 +12,10 @@
   | **Style Decisions** | <https://google.github.io/styleguide/go/decisions>      | Readability Mentors | Yes         | No          |
   | **Best Practices**  | <https://google.github.io/styleguide/go/best-practices> | Anyone interested   | No          | No          |
 
+## Bash Scripting
+
+- See the enabled **bash** skill for shell scripting standards (shebang portability, defensive patterns)
+
 ## JavaScript/TypeScript Tooling
 
 - ALWAYS use `bun` instead of `npm` for package management and script execution when available

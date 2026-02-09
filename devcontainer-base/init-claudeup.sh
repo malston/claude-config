@@ -98,7 +98,7 @@ fi
 
 # Create category directories and sync symlinks
 if [ -f "$CLAUDE_HOME/enabled.json" ]; then
-    for dir in skills agents commands hooks output-styles; do
+    for dir in skills agents commands hooks output-styles rules; do
         mkdir -p "$CLAUDE_HOME/$dir"
     done
 
