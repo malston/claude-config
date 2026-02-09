@@ -22,7 +22,7 @@ Three layers separate concerns:
 
 1. **claudeup profiles** define what gets installed: plugins, marketplaces, settings. These live in `~/.claudeup/profiles/` and serve as the source of truth for a configuration.
 2. **A base Docker image** provides Claude Code, claudeup, Node.js, and common dev tools. It contains no profiles or project-specific tooling.
-3. **A launcher script** (`claude-sandbox`) orchestrates the session: creates a git worktree for the project, generates a `devcontainer.json` from a template, and starts the container with `devcontainer up`.
+3. **A launcher script** (`claude-sandbox`) orchestrates the session: maintains a bare clone of the project, creates a git worktree from it, generates a `devcontainer.json` from a template, and starts the container with `devcontainer up`.
 
 Claude Code runs inside the container. Hooks and skills execute against the container's toolchain, providing true isolation.
 
@@ -98,7 +98,7 @@ Design decisions:
 
 The launcher generates a `devcontainer.json` in the worktree's `.devcontainer/` directory from a template. Generation time substitutes placeholders.
 
-Template (`devcontainer-base/devcontainer.template.json`):
+Template (`devcontainer-base/devcontainer.template.json`). The template uses JSONC (trailing commas are valid) and is processed by `awk`, not a JSON parser:
 
 ```jsonc
 {
@@ -119,7 +119,7 @@ Template (`devcontainer-base/devcontainer.template.json`):
     "source={{HOME}}/.claude-mem,target=/home/node/.claude-mem,type=bind",
     "source={{HOME}}/.ssh,target=/home/node/.ssh,type=bind,readonly",
     "source={{HOME}}/.claude.json,target=/home/node/.claude.json,type=bind",
-    "source={{PROJECT_PATH}}/.git,target={{PROJECT_PATH}}/.git,type=bind",
+    "source={{BARE_REPO_PATH}},target={{BARE_REPO_PATH}},type=bind",
   ],
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
@@ -130,7 +130,7 @@ Template (`devcontainer-base/devcontainer.template.json`):
     "GITHUB_TOKEN": "{{GITHUB_TOKEN}}",
     "CONTEXT7_API_KEY": "{{CONTEXT7_API_KEY}}",
   },
-  "workspaceFolder": "/workspaces/{{SANDBOX_ID}}",
+  "workspaceFolder": "/workspaces/{{DISPLAY_NAME}}",
   "postCreateCommand": "claude upgrade && /usr/local/bin/init-claude-config.sh && /usr/local/bin/init-claudeup.sh",
   "waitFor": "postCreateCommand",
 }
@@ -138,17 +138,18 @@ Template (`devcontainer-base/devcontainer.template.json`):
 
 Key properties:
 
-- **`SANDBOX_ID` derives from `<project>-<profile>`** (e.g., `diego-capacity-analyzer-frontend-heavy`). Docker volumes are scoped to this ID. Restarting the same project+profile reuses existing volumes; a different profile gets fresh volumes.
+- **`SANDBOX_ID` is a UUID** generated at sandbox creation. Docker volumes are scoped to this UUID, guaranteeing uniqueness even for multiple sandboxes of the same project+profile.
+- **`DISPLAY_NAME` is the human-readable name** (default: `<project>-<profile>`, or overridden via `--name`). Used as the workspace folder name inside the container and as the primary way to reference sandboxes. Names must match `[A-Za-z0-9._-]+` and cannot start with `.`. If a name collides with an existing sandbox, the launcher appends a short UUID suffix (e.g., `myapp-default-57af889a`) to disambiguate.
 - **The host bind-mounts `~/.claude.json`** for authentication state.
 - **The host bind-mounts `~/.claude-mem`** so memory persists across sandbox sessions.
 - **The host bind-mounts `~/.ssh` read-only** for git access.
 - **The host bind-mounts `~/.claudeup/profiles` read-only** inside the claudeup volume so `claudeup setup` can find profiles.
-- **The host bind-mounts the main project's `.git` directory** at the same host path so git worktree references resolve inside the container.
+- **The host bind-mounts the bare clone** at its host path so the worktree's `.git` file (which contains a `gitdir:` pointer to the bare repo's `worktrees/` directory) resolves inside the container.
 - **The launcher injects devcontainer features** based on `--feature` flags (e.g., `--feature go:1.23`).
 
 ## Init Scripts
 
-Two scripts run at container creation, generalized from the existing `diego-capacity-analyzer` devcontainer setup.
+Two scripts run at container creation.
 
 ### init-claude-config.sh
 
@@ -172,29 +173,36 @@ A bash script in `scripts/` manages the full sandbox lifecycle.
 
 ```bash
 claude-sandbox start \
-  --project ~/code/diego-capacity-analyzer \
+  --project ~/code/myapp \
   --profile frontend-heavy \
   --branch feature/new-dashboard \
-  --feature go:1.23
+  --feature go:1.23 \
+  --name myapp-dashboard
 ```
 
 Steps:
 
-1. **Validate.** Verify project path is a git repo, profile exists, and `devcontainer` CLI is installed.
-2. **Create worktree.** Path: `<project-dir>-<profile>/` (e.g., `~/code/diego-capacity-analyzer-frontend-heavy/`). Create the branch if it does not exist.
-3. **Generate devcontainer.json.** Read template, substitute placeholders, inject features, and pull env vars from host. Write to `<worktree>/.devcontainer/devcontainer.json`. Add `.devcontainer/` to the worktree's local `.gitignore`.
-4. **Copy init scripts.** Copy `init-claude-config.sh` and `init-claudeup.sh` into the worktree's `.devcontainer/`.
-5. **Launch.** Run `devcontainer up --workspace-folder <worktree-path>`. Record the container ID in `~/.claude-sandboxes/<sandbox-id>`.
-6. **Report.** Print status and usage hints.
+1. **Validate.** Verify project path is a git repo (canonicalized via `pwd -P`), profile exists, and `devcontainer` CLI is installed.
+2. **Generate UUID.** Each sandbox gets a unique ID via `uuidgen`.
+3. **Ensure bare clone.** Create or refresh a bare clone in `~/.claude-sandboxes/repos/<project>.git`. The launcher clones from the project's `origin` remote URL if available, falling back to a direct clone of the local project path if the remote is unreachable or not configured. Multiple sandboxes of the same project share this clone. A source marker file prevents project name collisions.
+4. **Compute display name.** Default: `<project>-<profile>`. The `--name` flag overrides this. Collisions with existing sandboxes are disambiguated with a short UUID suffix.
+5. **Create worktree.** From the bare clone into `~/.claude-sandboxes/workspaces/<display-name>/`. If the branch is already checked out in another worktree, a short UUID suffix is appended to the branch name.
+6. **Generate devcontainer.json.** Read template, substitute placeholders (including `BARE_REPO_PATH` and `DISPLAY_NAME`), inject features, and pull env vars from host. Write to `<worktree>/.devcontainer/devcontainer.json`.
+7. **Copy init scripts.** Copy init scripts into the worktree's `.devcontainer/`.
+8. **Launch.** Run `devcontainer up --workspace-folder <worktree-path>`. Save metadata to `~/.claude-sandboxes/state/<uuid>.json`.
+9. **Report.** Print sandbox name, short UUID, worktree path, branch, and usage hints.
 
 ### `claude-sandbox exec`
 
 Opens an interactive shell inside the container:
 
 ```bash
-claude-sandbox exec                    # infers sandbox from cwd
-claude-sandbox exec --sandbox <name>   # explicit
+claude-sandbox exec --sandbox myapp-dashboard   # by display name
+claude-sandbox exec --sandbox 57af889a          # by partial UUID
+claude-sandbox exec                             # infers sandbox from cwd
 ```
+
+The `--sandbox` flag supports fuzzy matching: display name, partial UUID prefix, project name, or profile name. Ambiguous matches list available options.
 
 ### `claude-sandbox claude`
 
@@ -215,42 +223,54 @@ claude-sandbox attach
 
 ### `claude-sandbox list`
 
-Shows all active sandboxes with project, profile, and status:
+Shows all sandboxes with display name, short UUID, project, profile, and status:
 
 ```
-SANDBOX                                      PROJECT                    PROFILE          STATUS
-diego-capacity-analyzer-frontend-heavy       diego-capacity-analyzer    frontend-heavy   running
-diego-capacity-analyzer-minimal              diego-capacity-analyzer    minimal          stopped
+NAME                           ID         PROJECT              PROFILE         STATUS
+myapp-frontend-heavy           57af889a   myapp                frontend-heavy  running
+myapp-minimal                  a3c2f810   myapp                minimal         stopped
 ```
 
 ### `claude-sandbox stop`
 
-Stops the container. Docker volumes persist so the next `start` with the same project+profile is fast.
+Stops the container. Docker volumes persist so the next `start` is fast.
 
 ### `claude-sandbox cleanup`
 
 Full teardown with confirmation prompt:
 
 1. Stop the container.
-2. Remove Docker volumes.
-3. Remove the git worktree.
-4. Remove metadata from `~/.claude-sandboxes/`.
+2. Remove Docker volumes (matched by UUID).
+3. Remove the git worktree from the bare repo.
+4. Remove metadata from `~/.claude-sandboxes/state/`.
+5. If the bare repo has no remaining worktrees, offer to remove it.
 
 ## Project Files and Git Isolation
 
-Each sandbox operates on a **git worktree**, not the main working directory. This provides:
+Each sandbox operates on a **git worktree** created from a **bare clone** of the project's upstream repository. This provides:
 
+- **Source project isolation.** The bare clone is separate from the source project's `.git` directory. A misbehaving sandbox cannot corrupt the main repo.
+- **Shared object store.** Multiple sandboxes of the same project share one bare clone, avoiding redundant disk usage.
 - **Isolated git state.** Own branch, own index, own HEAD. The main working tree stays clean.
-- **Shared object store.** No clone overhead. Branches created in the worktree appear in the main repo.
-- **Clean merge path.** Work done in a sandbox produces a branch that can be merged or PR'd through the normal workflow.
+- **Clean merge path.** Work done in a sandbox produces a branch that can be pushed and PR'd through the normal workflow.
 
-The worktree directory name follows the pattern `<project-dir>-<profile>/`, placed alongside the original project directory.
+Storage layout:
+
+```
+~/.claude-sandboxes/
+  state/                          # metadata (one JSON file per sandbox)
+    <uuid>.json
+  repos/                          # bare clones (one per source project)
+    <project-name>.git/
+  workspaces/                     # worktrees (one per sandbox)
+    <display-name>/
+```
 
 ## Repo Directory Layout
 
 ```
-~/.claude_config_malston/
-├── Makefile                          # existing (add sandbox targets)
+~/.claude/
+├── Makefile                          # sandbox targets included
 ├── README.md                         # existing
 ├── setup.sh                          # existing
 ├── config/
@@ -294,18 +314,22 @@ The worktree directory name follows the pattern `<project-dir>-<profile>/`, plac
 **Not in this repo:**
 
 - Profiles remain in `~/.claudeup/profiles/` (claudeup owns those).
-- Sandbox runtime state lives in `~/.claude-sandboxes/` (not config, not version-controlled).
+- Sandbox runtime state lives in `~/.claude-sandboxes/` (not config, not version-controlled), organized into `state/`, `repos/`, and `workspaces/` subdirectories.
 
 ## Makefile Targets
 
 ```makefile
 ##@ Sandbox Management
 
-build-sandbox-image:  ## Build the base sandbox Docker image
-sandbox-start:        ## Start a sandbox (PROJECT=path PROFILE=name [BRANCH=name] [FEATURE=lang])
-sandbox-list:         ## List active sandboxes
-sandbox-stop:         ## Stop a sandbox (SANDBOX=name)
-sandbox-cleanup:      ## Remove a sandbox and its worktree (SANDBOX=name)
+build-sandbox-image:    ## Build the base sandbox Docker image
+rebuild-sandbox-image:  ## Rebuild the sandbox image from scratch (no cache)
+sandbox-start:          ## Start a sandbox (PROJECT=path PROFILE=name [BRANCH=name] [NAME=name] [FEATURE=lang])
+sandbox-list:           ## List active sandboxes
+sandbox-exec:           ## Open a shell in a sandbox (SANDBOX=name)
+sandbox-claude:         ## Run Claude Code in a sandbox (SANDBOX=name)
+sandbox-attach:         ## Attach VS Code to a sandbox (SANDBOX=name)
+sandbox-stop:           ## Stop a sandbox (SANDBOX=name)
+sandbox-cleanup:        ## Remove a sandbox and its worktree (SANDBOX=name)
 ```
 
 These are thin wrappers around `claude-sandbox` for discoverability via `make help`.
@@ -330,22 +354,29 @@ make build-sandbox-image
 ```bash
 # Start a sandbox
 claude-sandbox start \
-  --project ~/code/diego-capacity-analyzer \
+  --project ~/code/myapp \
   --profile frontend-heavy \
   --branch feature/new-dashboard \
   --feature go:1.23
 
+# Start a second sandbox of the same project
+claude-sandbox start \
+  --project ~/code/myapp \
+  --profile frontend-heavy \
+  --branch feature/experiment \
+  --name myapp-experiment
+
 # Work in the container
-claude-sandbox claude
+claude-sandbox claude --sandbox myapp-frontend-heavy
 
 # Attach VS Code for visual diffing
-claude-sandbox attach
+claude-sandbox attach --sandbox myapp-frontend-heavy
 
 # Done for the day
-claude-sandbox stop
+claude-sandbox stop --sandbox myapp-frontend-heavy
 
 # Done with this experiment entirely
-claude-sandbox cleanup
+claude-sandbox cleanup --sandbox myapp-experiment
 ```
 
 ## Future Considerations
