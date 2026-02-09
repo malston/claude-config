@@ -166,7 +166,12 @@
   "output-styles": {
     "technical-evangelist.md": true
   },
-  "rules": {},
+  "rules": {
+    "coding-standards.md": true,
+    "documentation-guidelines.md": true,
+    "naming-and-comments.md": true,
+    "version-control.md": true
+  },
   "skills": {
     "bash": true,
     "claude-docs-consultant": false,
