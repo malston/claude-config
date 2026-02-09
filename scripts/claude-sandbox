@@ -116,9 +116,26 @@ compute_display_name() {
         display_name="${project_name}-${profile}"
     fi
 
-    # Disambiguate if directory already exists
+    # Disambiguate against existing directories and state metadata
+    local needs_suffix=false
     if [[ -d "$SANDBOX_WORKSPACES_DIR/$display_name" ]]; then
+        needs_suffix=true
+    else
+        for meta in "$SANDBOX_STATE_DIR"/*.json; do
+            [[ -f "$meta" ]] || continue
+            if [[ "$(jq -r .display_name "$meta")" == "$display_name" ]]; then
+                needs_suffix=true
+                break
+            fi
+        done
+    fi
+    if [[ "$needs_suffix" == true ]]; then
         display_name="${display_name}-${sandbox_id:0:8}"
+    fi
+
+    # Validate display name contains only safe characters
+    if [[ ! "$display_name" =~ ^[A-Za-z0-9._-]+$ ]]; then
+        die "invalid sandbox name '$display_name' -- allowed characters: A-Z, a-z, 0-9, '.', '_', '-'"
     fi
 
     printf '%s' "$display_name"
@@ -339,7 +356,7 @@ start_sandbox() {
     local branch="$START_BRANCH"
 
     # Check if branch is already checked out in another worktree
-    if git -C "$bare_repo_path" worktree list --porcelain 2>/dev/null | grep -q "branch refs/heads/$branch"; then
+    if git -C "$bare_repo_path" worktree list --porcelain 2>/dev/null | grep -Fq "branch refs/heads/$branch"; then
         local original_branch="$branch"
         branch="${branch}-${sandbox_id:0:8}"
         echo "Branch '$original_branch' already in use, using '$branch' instead"
@@ -756,8 +773,13 @@ cmd_cleanup() {
 
     # Check if the bare repo has any remaining worktrees
     if [[ -d "$bare_repo" ]]; then
+        local worktree_output
+        if ! worktree_output=$(git -C "$bare_repo" worktree list --porcelain 2>/dev/null); then
+            echo "warning: could not list worktrees for $bare_repo, skipping bare repo cleanup check" >&2
+            return 0
+        fi
         local worktree_count
-        worktree_count=$(git -C "$bare_repo" worktree list --porcelain 2>/dev/null | grep -c "^worktree " || echo "0")
+        worktree_count=$(echo "$worktree_output" | grep -c "^worktree " || echo "0")
         # A bare repo always lists itself as one worktree
         if [[ "$worktree_count" -le 1 ]]; then
             echo ""
