@@ -92,6 +92,6 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "safety-hooks@cctools-plugins": false,
     "superpowers@superpowers-marketplace": true,
-    "vsphere-architect@vsphere-architect": true
+    "vsphere-architect@vsphere-architect": false
   }
 }
