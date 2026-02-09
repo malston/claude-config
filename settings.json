@@ -91,6 +91,7 @@
     "hookify@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "safety-hooks@cctools-plugins": false,
-    "superpowers@superpowers-marketplace": true
+    "superpowers@superpowers-marketplace": true,
+    "vsphere-architect@vsphere-architect": true
   }
 }
