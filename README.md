@@ -156,7 +156,7 @@ claude-sandbox start \
   --branch feature/experiment \
   --name myapp-experiment
 
-# List running sandboxes
+# List sandboxes
 claude-sandbox list
 
 # Run Claude Code inside the sandbox

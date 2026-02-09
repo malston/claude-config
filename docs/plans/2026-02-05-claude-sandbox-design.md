@@ -98,7 +98,7 @@ Design decisions:
 
 The launcher generates a `devcontainer.json` in the worktree's `.devcontainer/` directory from a template. Generation time substitutes placeholders.
 
-Template (`devcontainer-base/devcontainer.template.json`):
+Template (`devcontainer-base/devcontainer.template.json`). The template uses JSONC (trailing commas are valid) and is processed by `awk`, not a JSON parser:
 
 ```jsonc
 {
@@ -139,7 +139,7 @@ Template (`devcontainer-base/devcontainer.template.json`):
 Key properties:
 
 - **`SANDBOX_ID` is a UUID** generated at sandbox creation. Docker volumes are scoped to this UUID, guaranteeing uniqueness even for multiple sandboxes of the same project+profile.
-- **`DISPLAY_NAME` is the human-readable name** (default: `<project>-<profile>`, or overridden via `--name`). Used as the workspace folder name inside the container and as the primary way to reference sandboxes.
+- **`DISPLAY_NAME` is the human-readable name** (default: `<project>-<profile>`, or overridden via `--name`). Used as the workspace folder name inside the container and as the primary way to reference sandboxes. Names must match `[A-Za-z0-9._-]+` and cannot start with `.`. If a name collides with an existing sandbox, the launcher appends a short UUID suffix (e.g., `myapp-default-57af889a`) to disambiguate.
 - **The host bind-mounts `~/.claude.json`** for authentication state.
 - **The host bind-mounts `~/.claude-mem`** so memory persists across sandbox sessions.
 - **The host bind-mounts `~/.ssh` read-only** for git access.
@@ -184,7 +184,7 @@ Steps:
 
 1. **Validate.** Verify project path is a git repo (canonicalized via `pwd -P`), profile exists, and `devcontainer` CLI is installed.
 2. **Generate UUID.** Each sandbox gets a unique ID via `uuidgen`.
-3. **Ensure bare clone.** Create or refresh a bare clone of the project's upstream in `~/.claude-sandboxes/repos/<project>.git`. Multiple sandboxes of the same project share this clone. A source marker file prevents project name collisions.
+3. **Ensure bare clone.** Create or refresh a bare clone in `~/.claude-sandboxes/repos/<project>.git`. The launcher clones from the project's `origin` remote URL if available, falling back to a direct clone of the local project path if the remote is unreachable or not configured. Multiple sandboxes of the same project share this clone. A source marker file prevents project name collisions.
 4. **Compute display name.** Default: `<project>-<profile>`. The `--name` flag overrides this. Collisions with existing sandboxes are disambiguated with a short UUID suffix.
 5. **Create worktree.** From the bare clone into `~/.claude-sandboxes/workspaces/<display-name>/`. If the branch is already checked out in another worktree, a short UUID suffix is appended to the branch name.
 6. **Generate devcontainer.json.** Read template, substitute placeholders (including `BARE_REPO_PATH` and `DISPLAY_NAME`), inject features, and pull env vars from host. Write to `<worktree>/.devcontainer/devcontainer.json`.
