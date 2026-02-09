@@ -18,7 +18,7 @@
     "source={{HOME}}/.claude/settings.json,target=/tmp/base-settings.json,type=bind,readonly",
     "source={{HOME}}/.claude/.library,target=/home/node/.claude/.library,type=bind,readonly",
     "source={{HOME}}/.claude.json,target=/home/node/.claude.json,type=bind",
-    "source={{PROJECT_PATH}}/.git,target={{PROJECT_PATH}}/.git,type=bind"
+    "source={{BARE_REPO_PATH}},target={{BARE_REPO_PATH}},type=bind"
   ],
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
@@ -32,7 +32,7 @@
     "CLAUDE_CONFIG_BRANCH": "{{CLAUDE_CONFIG_BRANCH}}",
     "CLAUDE_BASE_PROFILE": "{{BASE_PROFILE}}"
   },
-  "workspaceFolder": "/workspaces/{{SANDBOX_ID}}",
+  "workspaceFolder": "/workspaces/{{DISPLAY_NAME}}",
   "postCreateCommand": "claude upgrade && /usr/local/bin/init-claude-config.sh && /usr/local/bin/init-config-repo.sh && /usr/local/bin/init-claudeup.sh",
   "waitFor": "postCreateCommand"
 }

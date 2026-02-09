@@ -6,7 +6,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-SANDBOX_STATE_DIR="$HOME/.claude-sandboxes"
+SANDBOX_BASE_DIR="$HOME/.claude-sandboxes"
+SANDBOX_STATE_DIR="$SANDBOX_BASE_DIR/state"
+SANDBOX_REPOS_DIR="$SANDBOX_BASE_DIR/repos"
+SANDBOX_WORKSPACES_DIR="$SANDBOX_BASE_DIR/workspaces"
 DEVCONTAINER_BASE="$REPO_DIR/devcontainer-base"
 PROFILES_DIR="$HOME/.claudeup/profiles"
 
@@ -15,6 +18,135 @@ PROFILES_DIR="$HOME/.claudeup/profiles"
 die() {
     echo "error: $*" >&2
     exit 1
+}
+
+generate_sandbox_id() {
+    uuidgen | tr '[:upper:]' '[:lower:]'
+}
+
+# Creates or refreshes a bare clone for the given source project.
+# Outputs the bare repo path on stdout.
+ensure_bare_repo() {
+    local source_project="$1"
+    local project_name="$2"
+    local bare_repo_name="${project_name}.git"
+    local bare_repo_path="$SANDBOX_REPOS_DIR/$bare_repo_name"
+    local source_marker="sandbox-source-project"
+
+    mkdir -p "$SANDBOX_REPOS_DIR"
+
+    if [[ -d "$bare_repo_path" ]]; then
+        # Verify source matches
+        local stored_source=""
+        if [[ -f "$bare_repo_path/$source_marker" ]]; then
+            stored_source=$(<"$bare_repo_path/$source_marker")
+        fi
+
+        if [[ "$stored_source" != "$source_project" ]]; then
+            # Source mismatch -- different project with same name.
+            # Append hash suffix to disambiguate.
+            local hash_suffix
+            hash_suffix=$(printf '%s' "$source_project" | shasum -a 256 | cut -c1-8)
+            bare_repo_name="${project_name}-${hash_suffix}.git"
+            bare_repo_path="$SANDBOX_REPOS_DIR/$bare_repo_name"
+
+            if [[ -d "$bare_repo_path" ]]; then
+                # Already exists with hash suffix, verify it matches
+                stored_source=""
+                if [[ -f "$bare_repo_path/$source_marker" ]]; then
+                    stored_source=$(<"$bare_repo_path/$source_marker")
+                fi
+                if [[ "$stored_source" != "$source_project" ]]; then
+                    die "bare repo collision: $bare_repo_path exists for a different project"
+                fi
+            fi
+        fi
+    fi
+
+    if [[ -d "$bare_repo_path" ]]; then
+        # Refresh existing bare clone
+        echo "Refreshing bare clone: $bare_repo_path" >&2
+        if ! git -C "$bare_repo_path" fetch --all --prune >&2; then
+            # Fetch failed -- try updating origin URL from source
+            local current_upstream
+            current_upstream=$(git -C "$source_project" remote get-url origin 2>/dev/null || true)
+            if [[ -n "$current_upstream" ]]; then
+                echo "Updating origin URL and retrying fetch..." >&2
+                git -C "$bare_repo_path" remote set-url origin "$current_upstream"
+                git -C "$bare_repo_path" fetch --all --prune >&2 || true
+            fi
+        fi
+        # Fetch local branches from source project
+        git -C "$bare_repo_path" fetch "$source_project" '+refs/heads/*:refs/heads/*' >&2 || true
+    else
+        # Create new bare clone
+        local upstream_url
+        upstream_url=$(git -C "$source_project" remote get-url origin 2>/dev/null || true)
+
+        if [[ -n "$upstream_url" ]]; then
+            echo "Cloning bare repo from upstream: $upstream_url" >&2
+            if git clone --bare "$upstream_url" "$bare_repo_path" >&2; then
+                # Capture local branches not yet pushed
+                echo "Fetching local branches from source project..." >&2
+                git -C "$bare_repo_path" fetch "$source_project" '+refs/heads/*:refs/heads/*' >&2 || true
+            else
+                echo "Upstream clone failed, falling back to local project..." >&2
+                rm -rf "$bare_repo_path"
+                git clone --bare "$source_project" "$bare_repo_path" >&2
+            fi
+        else
+            echo "Cloning bare repo from local project (no upstream)..." >&2
+            git clone --bare "$source_project" "$bare_repo_path" >&2
+        fi
+
+        # Record source project path
+        printf '%s' "$source_project" > "$bare_repo_path/$source_marker"
+    fi
+
+    printf '%s' "$bare_repo_path"
+}
+
+# Derives a human-readable display name for the sandbox workspace directory.
+# Outputs the display name on stdout.
+compute_display_name() {
+    local project_name="$1"
+    local profile="$2"
+    local user_name="$3"
+    local sandbox_id="$4"
+    local display_name
+
+    if [[ -n "$user_name" ]]; then
+        display_name="$user_name"
+    else
+        display_name="${project_name}-${profile}"
+    fi
+
+    # Disambiguate against existing directories and state metadata
+    local needs_suffix=false
+    if [[ -d "$SANDBOX_WORKSPACES_DIR/$display_name" ]]; then
+        needs_suffix=true
+    else
+        for meta in "$SANDBOX_STATE_DIR"/*.json; do
+            [[ -f "$meta" ]] || continue
+            if [[ "$(jq -r .display_name "$meta")" == "$display_name" ]]; then
+                needs_suffix=true
+                break
+            fi
+        done
+    fi
+    if [[ "$needs_suffix" == true ]]; then
+        display_name="${display_name}-${sandbox_id:0:8}"
+    fi
+
+    # Validate display name contains only safe characters
+    if [[ ! "$display_name" =~ ^[A-Za-z0-9._-]+$ ]]; then
+        die "invalid sandbox name '$display_name' -- allowed characters: A-Z, a-z, 0-9, '.', '_', '-'"
+    fi
+    if [[ "$display_name" == "." || "$display_name" == ".." || "$display_name" == .* ]]; then
+        die "invalid sandbox name '$display_name' -- name must not start with '.'"
+    fi
+
+    printf '%s' "$display_name"
 }
 
 usage() {
@@ -26,9 +158,9 @@ Commands:
   exec       Run a command inside a running sandbox
   claude     Launch Claude Code inside a running sandbox
   attach     Attach a terminal to a running sandbox
-  list       List running sandboxes
+  list       List sandboxes and their status
   stop       Stop a running sandbox
-  cleanup    Remove stopped sandboxes and stale state
+  cleanup    Remove a sandbox (worktree, container, volumes)
 
 Options:
   -h, --help    Show this help message
@@ -37,14 +169,23 @@ Start options:
   --project <path>          Project directory (required, must be a git repo)
   --profile <name>          Profile name (required, must exist in ~/.claudeup/profiles/)
   --branch <name>           Git branch name (default: sandbox/<profile>)
+  --name <name>             Display name for the sandbox (default: <project>-<profile>)
   --feature <name[:ver]>    Devcontainer feature to include (repeatable)
   --base-profile <name>     Apply a base profile first, then add --profile on top
+
+Sandbox resolution (--sandbox):
+  Sandboxes can be identified by display name, UUID, partial UUID prefix,
+  project name, or profile name. If ambiguous, matching sandboxes are listed.
+  When run from inside a worktree, the sandbox is inferred automatically.
 
 Examples:
   claude-sandbox start --project ~/code/myapp --profile default
   claude-sandbox start --project . --profile docker --branch sandbox/docker-work
-  claude-sandbox start --project ~/code/myapp --profile full --feature node:20 --feature python
+  claude-sandbox start --project ~/code/myapp --profile full --name myapp-full
+  claude-sandbox start --project ~/code/myapp --profile default --feature node:20
   claude-sandbox list
+  claude-sandbox exec --sandbox myapp-default -- ls -la
+  claude-sandbox exec --sandbox a1b2c3d4 -- bash
   claude-sandbox stop --sandbox myapp-default
   claude-sandbox cleanup --sandbox myapp-default
 EOF
@@ -58,6 +199,7 @@ parse_start_args() {
     START_BRANCH=""
     START_FEATURES=()
     START_BASE_PROFILE=""
+    START_NAME=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -86,6 +228,11 @@ parse_start_args() {
                 START_BASE_PROFILE="$2"
                 shift 2
                 ;;
+            --name)
+                [[ $# -ge 2 ]] || die "--name requires a value"
+                START_NAME="$2"
+                shift 2
+                ;;
             -h|--help)
                 usage
                 exit 0
@@ -110,7 +257,7 @@ validate_start_args() {
     if [[ ! -d "$START_PROJECT" ]]; then
         die "project path does not exist: $START_PROJECT"
     fi
-    START_PROJECT="$(cd "$START_PROJECT" && pwd)"
+    START_PROJECT="$(cd "$START_PROJECT" && pwd -P)"
 
     # Verify it's a git repo
     if ! git -C "$START_PROJECT" rev-parse --git-dir >/dev/null 2>&1; then
@@ -197,32 +344,40 @@ build_features_json() {
 # --- Start implementation ---
 
 start_sandbox() {
-    # Step 1 -- derive IDs and paths
+    # Step 1 -- generate UUID and derive names
     local project_name
     project_name=$(basename "$START_PROJECT")
-    local sandbox_id="${project_name}-${START_PROFILE}"
-    local project_parent
-    project_parent=$(dirname "$START_PROJECT")
-    local worktree_path="${project_parent}/${sandbox_id}"
+    local sandbox_id
+    sandbox_id=$(generate_sandbox_id)
 
-    # Check for existing sandbox in inconsistent state
-    if [ -f "$SANDBOX_STATE_DIR/${sandbox_id}.json" ]; then
-        die "sandbox already exists: $sandbox_id (use 'claude-sandbox stop --sandbox $sandbox_id' or 'claude-sandbox cleanup --sandbox $sandbox_id' first)"
+    # Step 2 -- create or refresh bare clone
+    local bare_repo_path
+    bare_repo_path=$(ensure_bare_repo "$START_PROJECT" "$project_name")
+
+    # Step 3 -- compute display name and worktree path
+    mkdir -p "$SANDBOX_WORKSPACES_DIR"
+    local display_name
+    display_name=$(compute_display_name "$project_name" "$START_PROFILE" "$START_NAME" "$sandbox_id")
+    local worktree_path="$SANDBOX_WORKSPACES_DIR/$display_name"
+
+    # Step 4 -- create worktree from bare repo
+    local branch="$START_BRANCH"
+
+    # Check if branch is already checked out in another worktree
+    if git -C "$bare_repo_path" worktree list --porcelain 2>/dev/null | grep -Fq "branch refs/heads/$branch"; then
+        local original_branch="$branch"
+        branch="${branch}-${sandbox_id:0:8}"
+        echo "Branch '$original_branch' already in use, using '$branch' instead"
     fi
 
-    # Step 2 -- create worktree
-    if [ -d "$worktree_path" ]; then
-        echo "Worktree already exists: $worktree_path"
+    echo "Creating worktree at $worktree_path..."
+    if git -C "$bare_repo_path" show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null; then
+        git -C "$bare_repo_path" worktree add "$worktree_path" "$branch"
     else
-        echo "Creating worktree at $worktree_path..."
-        if git -C "$START_PROJECT" show-ref --verify --quiet "refs/heads/$START_BRANCH" 2>/dev/null; then
-            git -C "$START_PROJECT" worktree add "$worktree_path" "$START_BRANCH"
-        else
-            git -C "$START_PROJECT" worktree add "$worktree_path" -b "$START_BRANCH"
-        fi
+        git -C "$bare_repo_path" worktree add "$worktree_path" -b "$branch"
     fi
 
-    # Step 3 -- generate devcontainer.json
+    # Step 5 -- generate devcontainer.json
     mkdir -p "$worktree_path/.devcontainer"
 
     # Exclude .devcontainer/ from git tracking in this worktree
@@ -258,6 +413,8 @@ start_sandbox() {
         -v project_name="$project_name" \
         -v profile="$START_PROFILE" \
         -v sandbox_id="$sandbox_id" \
+        -v display_name="$display_name" \
+        -v bare_repo_path="$bare_repo_path" \
         -v home="$HOME" \
         -v git_user_name="$git_user_name" \
         -v git_user_email="$git_user_email" \
@@ -265,13 +422,14 @@ start_sandbox() {
         -v context7_api_key="$context7_api_key" \
         -v claude_config_repo="$claude_config_repo" \
         -v claude_config_branch="$claude_config_branch" \
-        -v project_path="$START_PROJECT" \
         -v base_profile="$START_BASE_PROFILE" \
         -v features="$features_block" \
         '{
             gsub(/\{\{PROJECT_NAME\}\}/, project_name)
             gsub(/\{\{PROFILE\}\}/, profile)
             gsub(/\{\{SANDBOX_ID\}\}/, sandbox_id)
+            gsub(/\{\{DISPLAY_NAME\}\}/, display_name)
+            gsub(/\{\{BARE_REPO_PATH\}\}/, bare_repo_path)
             gsub(/\{\{HOME\}\}/, home)
             gsub(/\{\{GIT_USER_NAME\}\}/, git_user_name)
             gsub(/\{\{GIT_USER_EMAIL\}\}/, git_user_email)
@@ -279,7 +437,6 @@ start_sandbox() {
             gsub(/\{\{CONTEXT7_API_KEY\}\}/, context7_api_key)
             gsub(/\{\{CLAUDE_CONFIG_REPO\}\}/, claude_config_repo)
             gsub(/\{\{CLAUDE_CONFIG_BRANCH\}\}/, claude_config_branch)
-            gsub(/\{\{PROJECT_PATH\}\}/, project_path)
             gsub(/\{\{BASE_PROFILE\}\}/, base_profile)
             if (features != "") {
                 gsub(/\{\{FEATURES\}\}/, features)
@@ -290,53 +447,57 @@ start_sandbox() {
             print
         }' "$DEVCONTAINER_BASE/devcontainer.template.json" > "$outfile"
 
-    # Step 4 -- copy init scripts
+    # Step 6 -- copy init scripts
     cp "$DEVCONTAINER_BASE/init-claude-config.sh" "$worktree_path/.devcontainer/"
     cp "$DEVCONTAINER_BASE/init-config-repo.sh" "$worktree_path/.devcontainer/"
     cp "$DEVCONTAINER_BASE/init-claudeup.sh" "$worktree_path/.devcontainer/"
 
-    # Step 5 -- launch container
+    # Step 7 -- launch container
     echo "Starting devcontainer..."
     devcontainer up --workspace-folder "$worktree_path"
 
-    # Step 6 -- save metadata
+    # Step 8 -- save metadata
     mkdir -p "$SANDBOX_STATE_DIR"
     cat > "$SANDBOX_STATE_DIR/${sandbox_id}.json" <<METADATA
 {
   "sandbox_id": "$sandbox_id",
+  "display_name": "$display_name",
   "project": "$START_PROJECT",
+  "project_name": "$project_name",
   "profile": "$START_PROFILE",
+  "bare_repo": "$bare_repo_path",
   "worktree": "$worktree_path",
-  "branch": "$START_BRANCH",
+  "branch": "$branch",
   "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 METADATA
 
-    # Step 7 -- report
+    # Step 9 -- report
     echo ""
     echo "Sandbox ready!"
-    echo "  ID:       $sandbox_id"
+    echo "  Name:     $display_name"
+    echo "  ID:       ${sandbox_id:0:8}"
     echo "  Worktree: $worktree_path"
-    echo "  Branch:   $START_BRANCH"
+    echo "  Branch:   $branch"
     echo "  Profile:  $START_PROFILE"
     echo ""
     echo "Next steps:"
-    echo "  claude-sandbox exec   --sandbox $sandbox_id -- <command>"
-    echo "  claude-sandbox claude --sandbox $sandbox_id"
-    echo "  claude-sandbox attach --sandbox $sandbox_id"
-    echo "  claude-sandbox stop   --sandbox $sandbox_id"
+    echo "  claude-sandbox exec   --sandbox $display_name -- <command>"
+    echo "  claude-sandbox claude --sandbox $display_name"
+    echo "  claude-sandbox attach --sandbox $display_name"
+    echo "  claude-sandbox stop   --sandbox $display_name"
 }
 
 # --- Sandbox resolution ---
 
 resolve_sandbox() {
-    local sandbox_id=""
+    local query=""
 
     # Check for --sandbox flag
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --sandbox)
-                sandbox_id="$2"
+                query="$2"
                 shift 2
                 ;;
             *)
@@ -345,42 +506,103 @@ resolve_sandbox() {
         esac
     done
 
-    # If no --sandbox flag, try to infer from cwd
-    if [ -z "$sandbox_id" ]; then
+    local matches=()
+
+    if [[ -n "$query" ]]; then
+        # 1. Exact UUID match
+        if [[ -f "$SANDBOX_STATE_DIR/${query}.json" ]]; then
+            echo "$query"
+            return 0
+        fi
+
+        # Search all state files for fuzzy matches
+        for meta in "$SANDBOX_STATE_DIR"/*.json; do
+            [[ -f "$meta" ]] || continue
+            local sid dname proj_name prof
+            sid=$(jq -r .sandbox_id "$meta")
+            dname=$(jq -r .display_name "$meta")
+            proj_name=$(jq -r .project_name "$meta")
+            prof=$(jq -r .profile "$meta")
+
+            # 2. Display name match
+            if [[ "$dname" == "$query" ]]; then
+                matches=("$sid")
+                break
+            fi
+
+            # 3. Partial UUID prefix
+            if [[ "$sid" == "$query"* ]]; then
+                matches+=("$sid")
+                continue
+            fi
+
+            # 4. Project name match
+            if [[ "$proj_name" == "$query" ]]; then
+                matches+=("$sid")
+                continue
+            fi
+
+            # 5. Profile match
+            if [[ "$prof" == "$query" ]]; then
+                matches+=("$sid")
+                continue
+            fi
+        done
+    else
+        # No --sandbox flag: try to infer from cwd
         local cwd
         cwd=$(pwd)
         for meta in "$SANDBOX_STATE_DIR"/*.json; do
-            [ -f "$meta" ] || continue
-            local wt
+            [[ -f "$meta" ]] || continue
+            local wt sid
             wt=$(jq -r .worktree "$meta")
+            sid=$(jq -r .sandbox_id "$meta")
             if [[ "$cwd" == "$wt"* ]]; then
-                sandbox_id=$(jq -r .sandbox_id "$meta")
+                matches=("$sid")
                 break
             fi
         done
     fi
 
-    if [ -z "$sandbox_id" ]; then
-        echo "Error: Could not determine sandbox." >&2
-        echo "Use --sandbox <name> or run from inside a sandbox worktree." >&2
-        echo "" >&2
-        if ls "$SANDBOX_STATE_DIR"/*.json &>/dev/null; then
-            echo "Available sandboxes:" >&2
-            for meta in "$SANDBOX_STATE_DIR"/*.json; do
-                jq -r .sandbox_id "$meta" >&2
-            done
-        else
-            echo "No sandboxes found." >&2
-        fi
+    if [[ ${#matches[@]} -eq 1 ]]; then
+        echo "${matches[0]}"
+        return 0
+    fi
+
+    if [[ ${#matches[@]} -gt 1 ]]; then
+        echo "error: Ambiguous sandbox query: '$query'" >&2
+        echo "Matching sandboxes:" >&2
+        for sid in "${matches[@]}"; do
+            local meta="$SANDBOX_STATE_DIR/${sid}.json"
+            local dname proj_name prof
+            dname=$(jq -r .display_name "$meta")
+            proj_name=$(jq -r .project_name "$meta")
+            prof=$(jq -r .profile "$meta")
+            printf "  %-30s %-10s %-20s %s\n" "$dname" "${sid:0:8}" "$proj_name" "$prof" >&2
+        done
         exit 1
     fi
 
-    # Verify sandbox exists
-    if [ ! -f "$SANDBOX_STATE_DIR/${sandbox_id}.json" ]; then
-        die "sandbox not found: $sandbox_id"
+    # No matches
+    echo "error: Could not determine sandbox." >&2
+    if [[ -n "$query" ]]; then
+        echo "No sandbox matched: '$query'" >&2
+    else
+        echo "Use --sandbox <name> or run from inside a sandbox worktree." >&2
     fi
-
-    echo "$sandbox_id"
+    echo "" >&2
+    if ls "$SANDBOX_STATE_DIR"/*.json &>/dev/null 2>&1; then
+        echo "Available sandboxes:" >&2
+        for meta in "$SANDBOX_STATE_DIR"/*.json; do
+            local dname sid
+            dname=$(jq -r .display_name "$meta")
+            sid=$(jq -r .sandbox_id "$meta")
+            echo "  $dname (${sid:0:8})" >&2
+        done
+    else
+        echo "No sandboxes found." >&2
+    fi
+    exit 1
 }
 
 # --- Subcommands ---
@@ -442,8 +664,10 @@ cmd_attach() {
 
     local sandbox_id
     sandbox_id=$(resolve_sandbox "$@")
-    local worktree
-    worktree=$(jq -r .worktree "$SANDBOX_STATE_DIR/$sandbox_id.json")
+    local meta="$SANDBOX_STATE_DIR/$sandbox_id.json"
+    local worktree display_name
+    worktree=$(jq -r .worktree "$meta")
+    display_name=$(jq -r .display_name "$meta")
 
     # Get container ID
     local container_id
@@ -454,11 +678,8 @@ cmd_attach() {
     local hex_id
     hex_id=$(printf '%s' "$container_id" | xxd -p | tr -d '\n')
 
-    local workspace_name
-    workspace_name=$(basename "$worktree")
-
-    code --folder-uri "vscode-remote://attached-container+${hex_id}/workspaces/${workspace_name}"
-    echo "VS Code attached to sandbox: $sandbox_id"
+    code --folder-uri "vscode-remote://attached-container+${hex_id}/workspaces/${display_name}"
+    echo "VS Code attached to sandbox: $display_name (${sandbox_id:0:8})"
 }
 
 cmd_list() {
@@ -467,14 +688,15 @@ cmd_list() {
         return 0
     fi
 
-    printf "%-45s %-25s %-20s %s\n" "SANDBOX" "PROJECT" "PROFILE" "STATUS"
-    printf "%-45s %-25s %-20s %s\n" "-------" "-------" "-------" "------"
+    printf "%-30s %-10s %-20s %-15s %s\n" "NAME" "ID" "PROJECT" "PROFILE" "STATUS"
+    printf "%-30s %-10s %-20s %-15s %s\n" "----" "--" "-------" "-------" "------"
 
     for meta in "$SANDBOX_STATE_DIR"/*.json; do
         [ -f "$meta" ] || continue
-        local sandbox_id project profile worktree status
+        local sandbox_id display_name project_name profile worktree status
         sandbox_id=$(jq -r .sandbox_id "$meta")
-        project=$(jq -r '.project | split("/") | last' "$meta")
+        display_name=$(jq -r .display_name "$meta")
+        project_name=$(jq -r .project_name "$meta")
         profile=$(jq -r .profile "$meta")
         worktree=$(jq -r .worktree "$meta")
 
@@ -487,7 +709,7 @@ cmd_list() {
             status="orphaned"
         fi
 
-        printf "%-45s %-25s %-20s %s\n" "$sandbox_id" "$project" "$profile" "$status"
+        printf "%-30s %-10s %-20s %-15s %s\n" "$display_name" "${sandbox_id:0:8}" "$project_name" "$profile" "$status"
     done
 }
 
@@ -496,17 +718,18 @@ cmd_stop() {
     sandbox_id=$(resolve_sandbox "$@")
 
     local meta="$SANDBOX_STATE_DIR/${sandbox_id}.json"
-    local worktree
+    local worktree display_name
     worktree=$(jq -r .worktree "$meta")
+    display_name=$(jq -r .display_name "$meta")
 
-    echo "Stopping sandbox: $sandbox_id..."
+    echo "Stopping sandbox: $display_name..."
     local container_id
     container_id=$(docker ps -q --filter "label=devcontainer.local_folder=$worktree" 2>/dev/null)
     if [[ -n "$container_id" ]]; then
         docker stop "$container_id" >/dev/null
-        echo "Stopped sandbox: $sandbox_id"
+        echo "Stopped sandbox: $display_name"
     else
-        echo "No running container found for sandbox: $sandbox_id"
+        echo "No running container found for sandbox: $display_name"
     fi
 }
 
@@ -515,9 +738,10 @@ cmd_cleanup() {
     sandbox_id=$(resolve_sandbox "$@")
 
     local meta="$SANDBOX_STATE_DIR/${sandbox_id}.json"
-    local worktree project
+    local worktree bare_repo display_name
     worktree=$(jq -r .worktree "$meta")
-    project=$(jq -r .project "$meta")
+    bare_repo=$(jq -r .bare_repo "$meta")
+    display_name=$(jq -r .display_name "$meta")
 
     echo "This will:"
     echo "  - Stop the container"
@@ -543,15 +767,66 @@ cmd_cleanup() {
     fi
 
     echo "Removing worktree..."
-    if [ -d "$worktree" ]; then
-        git -C "$project" worktree remove "$worktree" --force 2>/dev/null || \
+    if [[ -d "$worktree" ]] && [[ -d "$bare_repo" ]]; then
+        git -C "$bare_repo" worktree remove "$worktree" --force 2>/dev/null || \
             rm -rf "$worktree"
+    elif [[ -d "$worktree" ]]; then
+        rm -rf "$worktree"
     fi
 
     echo "Removing metadata..."
     rm -f "$meta"
 
-    echo "Cleaned up sandbox: $sandbox_id"
+    echo "Cleaned up sandbox: $display_name"
+
+    # Check if the bare repo has any remaining worktrees
+    if [[ -d "$bare_repo" ]]; then
+        local worktree_output
+        if ! worktree_output=$(git -C "$bare_repo" worktree list --porcelain 2>/dev/null); then
+            echo "warning: could not list worktrees for $bare_repo, skipping bare repo cleanup check" >&2
+            return 0
+        fi
+        local worktree_count
+        worktree_count=$(echo "$worktree_output" | grep -c "^worktree " || echo "0")
+        # A bare repo always lists itself as one worktree
+        if [[ "$worktree_count" -le 1 ]]; then
+            echo ""
+            echo "Bare repo $bare_repo has no remaining worktrees."
+            read -rp "Remove bare repo? [y/N] " confirm_bare
+            if [[ "$confirm_bare" =~ ^[Yy]$ ]]; then
+                rm -rf "$bare_repo"
+                echo "Removed bare repo: $bare_repo"
+            fi
+        fi
+    fi
+}
+
+# --- Legacy state migration guard ---
+
+migrate_legacy_state() {
+    # Detect old-format state files (*.json directly in ~/.claude-sandboxes/)
+    local legacy_files=()
+    for f in "$SANDBOX_BASE_DIR"/*.json; do
+        [[ -f "$f" ]] || continue
+        legacy_files+=("$f")
+    done
+
+    if [[ ${#legacy_files[@]} -gt 0 ]]; then
+        echo "error: Legacy sandbox state detected in $SANDBOX_BASE_DIR/" >&2
+        echo "" >&2
+        echo "The following sandboxes use the old format:" >&2
+        for f in "${legacy_files[@]}"; do
+            local name
+            name=$(basename "$f" .json)
+            echo "  - $name" >&2
+        done
+        echo "" >&2
+        echo "Clean up legacy sandboxes before proceeding:" >&2
+        echo "  1. Stop and remove running containers for each sandbox" >&2
+        echo "  2. Remove worktrees (git worktree remove ...)" >&2
+        echo "  3. Delete state files: rm $SANDBOX_BASE_DIR/*.json" >&2
+        exit 1
+    fi
 }
 
 # --- Main dispatch ---
@@ -561,6 +836,9 @@ main() {
         usage
         exit 0
     fi
+
+    # Guard against legacy state format
+    migrate_legacy_state
 
     local cmd="$1"
     shift

@@ -6,7 +6,7 @@
         upgrade update-plugins update-all \
         enable-all-agents disable-all-agents enable-all-skills disable-all-skills \
         mcp-servers marketplaces browse-marketplace show-plugin sync-profile install-plugin plugins plugins-installed available-plugins project-plugins user-plugins \
-        build-sandbox-image sandbox-start sandbox-exec sandbox-claude sandbox-attach sandbox-list sandbox-stop sandbox-cleanup
+        build-sandbox-image rebuild-sandbox-image sandbox-start sandbox-exec sandbox-claude sandbox-attach sandbox-list sandbox-stop sandbox-cleanup
 
 # Valid categories for claudeup local commands
 CATEGORIES := skills, commands, agents, hooks, output-styles
@@ -128,11 +128,14 @@ user-plugins: ## List user-scoped plugins
 build-sandbox-image: ## Build the base sandbox Docker image
 	@docker build -t claude-sandbox:latest devcontainer-base/
 
-sandbox-start: ## Start a sandbox (PROJECT=path PROFILE=name [BRANCH=name] [FEATURE=lang])
+rebuild-sandbox-image: ## Rebuild the sandbox image from scratch (no cache)
+	@docker build --no-cache -t claude-sandbox:latest devcontainer-base/
+
+sandbox-start: ## Start a sandbox (PROJECT=path PROFILE=name [BRANCH=name] [NAME=name] [FEATURE=lang])
 	@test -n "$(PROJECT)" || (echo "Error: PROJECT required (path to git repo)" && exit 1)
 	@test -n "$(PROFILE)" || (echo "Error: PROFILE required (claudeup profile name)" && exit 1)
 	@scripts/claude-sandbox start --project $(PROJECT) --profile $(PROFILE) \
-		$(if $(BRANCH),--branch $(BRANCH)) $(if $(FEATURE),--feature $(FEATURE))
+		$(if $(BRANCH),--branch $(BRANCH)) $(if $(NAME),--name "$(NAME)") $(if $(FEATURE),--feature $(FEATURE))
 
 sandbox-exec: ## Open a shell in a sandbox (SANDBOX=name)
 	@test -n "$(SANDBOX)" || (echo "Error: SANDBOX required" && exit 1)
