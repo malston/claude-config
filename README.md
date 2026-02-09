@@ -149,32 +149,47 @@ claude-sandbox start \
   --profile my-profile \
   --feature go:1.23
 
+# Start a second sandbox of the same project (custom name)
+claude-sandbox start \
+  --project ~/code/myapp \
+  --profile my-profile \
+  --branch feature/experiment \
+  --name myapp-experiment
+
 # List running sandboxes
 claude-sandbox list
 
 # Run Claude Code inside the sandbox
-claude-sandbox claude
+claude-sandbox claude --sandbox myapp-my-profile
 
 # Resume a previous Claude session
 claude-sandbox claude --sandbox myapp-my-profile \
   --resume <session-id>
 
 # Open a shell inside the sandbox
-claude-sandbox exec
+claude-sandbox exec --sandbox myapp-my-profile
 
 # Attach VS Code to the sandbox
-claude-sandbox attach
+claude-sandbox attach --sandbox myapp-my-profile
 
 # Stop (preserves state for fast restart)
-claude-sandbox stop
+claude-sandbox stop --sandbox myapp-my-profile
 
 # Full teardown (removes container, volumes, worktree)
-claude-sandbox cleanup
+claude-sandbox cleanup --sandbox myapp-my-profile
 ```
 
-Each sandbox creates a git worktree alongside your project directory, so work done inside the sandbox produces a branch that can be merged or PR'd through the normal workflow.
+Each sandbox is backed by a **bare clone** of the project's upstream repository, shared across all sandboxes of the same project. Worktrees are created from the bare clone, providing full isolation from the source project's `.git` directory. Work done inside a sandbox produces a branch that can be merged or PR'd through the normal workflow.
 
-The sandbox ID is `<project>-<profile>` (e.g., `myapp-my-profile`). Since profiles describe the _configuration_ being tested, not the project, keep profile names short and descriptive: `my-profile`, `minimal`, `frontend-heavy`. This keeps sandbox IDs readable when used with `--sandbox`.
+Each sandbox is identified internally by a UUID but referenced by a human-readable **display name** (default: `<project>-<profile>`). The `--name` flag overrides the default display name. The `--sandbox` flag accepts display names, partial UUID prefixes, project names, or profile names -- ambiguous matches list available options.
+
+```
+NAME                           ID         PROJECT              PROFILE         STATUS
+myapp-my-profile               57af889a   myapp                my-profile      running
+myapp-experiment               a3c2f810   myapp                my-profile      stopped
+```
+
+Sandbox state is stored in `~/.claude-sandboxes/` with subdirectories for metadata (`state/`), bare clones (`repos/`), and worktrees (`workspaces/`).
 
 Profiles live in `~/.claudeup/profiles/`. Create one with `claudeup profile save <name>` or write the JSON directly. Available features: `go`, `rust`, `python`, `java` (see `devcontainer-base/features.json`).
 
