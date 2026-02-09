@@ -21,4 +21,4 @@ This ensures documentation remains professional and avoids any potential tradema
 
 ## Punctuation
 
-- NEVER use em dashes (---) in documentation. Use `--` or rewrite the sentence to avoid the need for either.
+- NEVER use em dashes (—) in documentation. Use `--` or rewrite the sentence to avoid the need for either.
