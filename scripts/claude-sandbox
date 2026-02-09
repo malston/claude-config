@@ -85,10 +85,15 @@ ensure_bare_repo() {
 
         if [[ -n "$upstream_url" ]]; then
             echo "Cloning bare repo from upstream: $upstream_url" >&2
-            git clone --bare "$upstream_url" "$bare_repo_path" >&2
-            # Capture local branches not yet pushed
-            echo "Fetching local branches from source project..." >&2
-            git -C "$bare_repo_path" fetch "$source_project" '+refs/heads/*:refs/heads/*' >&2 || true
+            if git clone --bare "$upstream_url" "$bare_repo_path" >&2; then
+                # Capture local branches not yet pushed
+                echo "Fetching local branches from source project..." >&2
+                git -C "$bare_repo_path" fetch "$source_project" '+refs/heads/*:refs/heads/*' >&2 || true
+            else
+                echo "Upstream clone failed, falling back to local project..." >&2
+                rm -rf "$bare_repo_path"
+                git clone --bare "$source_project" "$bare_repo_path" >&2
+            fi
         else
             echo "Cloning bare repo from local project (no upstream)..." >&2
             git clone --bare "$source_project" "$bare_repo_path" >&2
@@ -136,6 +141,9 @@ compute_display_name() {
     # Validate display name contains only safe characters
     if [[ ! "$display_name" =~ ^[A-Za-z0-9._-]+$ ]]; then
         die "invalid sandbox name '$display_name' -- allowed characters: A-Z, a-z, 0-9, '.', '_', '-'"
+    fi
+    if [[ "$display_name" == "." || "$display_name" == ".." || "$display_name" == .* ]]; then
+        die "invalid sandbox name '$display_name' -- name must not start with '.'"
     fi
 
     printf '%s' "$display_name"
@@ -249,7 +257,7 @@ validate_start_args() {
     if [[ ! -d "$START_PROJECT" ]]; then
         die "project path does not exist: $START_PROJECT"
     fi
-    START_PROJECT="$(cd "$START_PROJECT" && pwd)"
+    START_PROJECT="$(cd "$START_PROJECT" && pwd -P)"
 
     # Verify it's a git repo
     if ! git -C "$START_PROJECT" rev-parse --git-dir >/dev/null 2>&1; then
@@ -753,7 +761,7 @@ cmd_cleanup() {
 
     echo "Removing Docker volumes..."
     local volumes
-    volumes=$(docker volume ls --format '{{.Name}}' | grep "claude-sandbox-.*-${sandbox_id}" || true)
+    volumes=$(docker volume ls --format '{{.Name}}' | grep "claude-sandbox-.*-${sandbox_id}$" || true)
     if [[ -n "$volumes" ]]; then
         echo "$volumes" | xargs docker volume rm 2>/dev/null || true
     fi
