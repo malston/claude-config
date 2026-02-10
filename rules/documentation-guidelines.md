@@ -1,1 +1,1 @@
-../.library/rules/documentation-guidelines.md
+/Users/markalston/.claudeup/local/rules/documentation-guidelines.md

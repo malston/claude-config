@@ -1,1 +1,1 @@
-../.library/commands/commit.md
+/Users/markalston/.claudeup/local/commands/commit.md

@@ -1,1 +1,1 @@
-../.library/hooks/markdown_formatter.py
+/Users/markalston/.claudeup/local/hooks/markdown_formatter.py

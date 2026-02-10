@@ -1,1 +1,1 @@
-../.library/hooks/block-dangerous-commands.sh
+/Users/markalston/.claudeup/local/hooks/block-dangerous-commands.sh

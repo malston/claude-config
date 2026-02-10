@@ -1,1 +1,1 @@
-../.library/hooks/protect-sensitive-files.sh
+/Users/markalston/.claudeup/local/hooks/protect-sensitive-files.sh

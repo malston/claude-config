@@ -1,1 +1,1 @@
-../.library/hooks/log-bash-commands.sh
+/Users/markalston/.claudeup/local/hooks/log-bash-commands.sh

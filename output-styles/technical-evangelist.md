@@ -1,1 +1,1 @@
-../.library/output-styles/technical-evangelist.md
+/Users/markalston/.claudeup/local/output-styles/technical-evangelist.md

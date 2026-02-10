@@ -1,1 +1,1 @@
-../.library/rules/version-control.md
+/Users/markalston/.claudeup/local/rules/version-control.md

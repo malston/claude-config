@@ -1,1 +1,1 @@
-../.library/rules/coding-standards.md
+/Users/markalston/.claudeup/local/rules/coding-standards.md
