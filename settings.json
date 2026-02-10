@@ -30,6 +30,7 @@
     "ask": [],
     "defaultMode": "acceptEdits"
   },
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -93,6 +94,7 @@
     "safety-hooks@cctools-plugins": false,
     "superpowers@superpowers-marketplace": true,
     "vsphere-architect@vsphere-architect": false,
-    "code-simplifier@claude-plugins-official": true
+    "code-simplifier@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true
   }
 }
