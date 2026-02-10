@@ -16,7 +16,7 @@
     "source={{HOME}}/.claude-mem,target=/home/node/.claude-mem,type=bind",
     "source={{HOME}}/.ssh,target=/home/node/.ssh,type=bind,readonly",
     "source={{HOME}}/.claude/settings.json,target=/tmp/base-settings.json,type=bind,readonly",
-    "source={{HOME}}/.claude/.library,target=/home/node/.claude/.library,type=bind,readonly",
+    "source={{HOME}}/.claudeup/local,target=/home/node/.claudeup/local,type=bind,readonly",
     "source={{HOME}}/.claude.json,target=/home/node/.claude.json,type=bind",
     "source={{BARE_REPO_PATH}},target={{BARE_REPO_PATH}},type=bind"
   ],
