@@ -96,5 +96,6 @@
     "vsphere-architect@vsphere-architect": false,
     "code-simplifier@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }

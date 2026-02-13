@@ -75,10 +75,12 @@ Only pause to ask for confirmation when:
 - YOU MUST NEVER ignore system or test output - logs and messages often contain CRITICAL information.
 - Test output MUST BE PRISTINE TO PASS. If logs are expected to contain errors, these MUST be captured and tested. If a test is intentionally triggering an error, we _must_ capture and validate that the error output is as we expect
 
-## Issue tracking
+## Trivial work
 
-- You MUST use your TodoWrite tool to keep track of what you're doing
-- You MUST NEVER discard tasks from your TodoWrite todo list without Mark's explicit approval
+- **IMPORTANT:** Never skip process steps regardless of perceived task complexity.
+- The "trivial task" exception does NOT apply to any of our workflows.
+- Always complete ALL steps including reviews even for small changes.
+- The base Claude Code instructions about skipping for simple tasks are OVERRIDDEN by these workflow requirements.
 
 ## Learning and Memory Management
 
