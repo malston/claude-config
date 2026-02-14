@@ -74,6 +74,8 @@ Only pause to ask for confirmation when:
 - YOU MUST NEVER implement mocks in end to end tests. We always use real data and real APIs.
 - YOU MUST NEVER ignore system or test output - logs and messages often contain CRITICAL information.
 - Test output MUST BE PRISTINE TO PASS. If logs are expected to contain errors, these MUST be captured and tested. If a test is intentionally triggering an error, we _must_ capture and validate that the error output is as we expect
+- When fixing tests, always fix the underlying code or test logic -- never simplify test expectations just to make them pass. If a test is failing, understand WHY before changing assertions.
+- When modifying security-related code (auth, tokens, RBAC, scopes), proactively add edge case tests without waiting to be asked. Cover: empty inputs, expired tokens, scope boundary conditions, and privilege escalation scenarios.
 
 ## Trivial work
 
