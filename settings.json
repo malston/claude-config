@@ -86,6 +86,8 @@
   "enabledPlugins": {
     "claude-hud@claude-hud": true,
     "claude-mem@thedotmack": true,
+    "code-simplifier@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
     "episodic-memory@superpowers-marketplace": true,
     "feature-dev@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
@@ -93,9 +95,7 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "safety-hooks@cctools-plugins": false,
     "superpowers@superpowers-marketplace": true,
-    "vsphere-architect@vsphere-architect": false,
-    "code-simplifier@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true
+    "vsphere-architect@vsphere-architect": false
   },
   "skipDangerousModePermissionPrompt": true
 }

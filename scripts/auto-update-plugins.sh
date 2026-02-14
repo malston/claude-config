@@ -57,10 +57,10 @@ fi
 # Run claudeup with closed stdin and explicit wait
 if [[ "$QUIET" == true ]]; then
     claudeup update > /dev/null 2>&1
-    claudeup upgrade > /dev/null 2>&1
+    claudeup upgrade --all > /dev/null 2>&1
 else
     claudeup update
-    claudeup upgrade
+    claudeup upgrade --all
 fi
 
 # Mark as checked today
