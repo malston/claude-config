@@ -51,7 +51,7 @@ fi
 # Display current settings
 log "Displaying Claude Code user settings..."
 if [[ "$QUIET" == false ]]; then
-    claudeup local list --enabled
+    claudeup ext list --enabled
 fi
 
 # Run claudeup with closed stdin and explicit wait

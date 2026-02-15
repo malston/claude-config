@@ -103,7 +103,7 @@ if [ -f "$CLAUDE_HOME/enabled.json" ]; then
     done
 
     if command -v claudeup &> /dev/null; then
-        claudeup local sync -y
+        claudeup ext sync -y
         echo "[OK] Local item symlinks synced"
     fi
 fi

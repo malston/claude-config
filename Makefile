@@ -8,7 +8,7 @@
         mcp-servers marketplaces browse-marketplace show-plugin sync-profile install-plugin plugins plugins-installed available-plugins project-plugins user-plugins \
         build-sandbox-image rebuild-sandbox-image sandbox-start sandbox-exec sandbox-claude sandbox-attach sandbox-list sandbox-stop sandbox-cleanup
 
-# Valid categories for claudeup local commands
+# Valid categories for claudeup ext commands
 CATEGORIES := skills, commands, agents, hooks, output-styles
 
 ##@ General
@@ -21,48 +21,48 @@ help: ## Show this help
 setup: ## Run initial setup
 	@./setup.sh
 
-##@ Configuration Management (claudeup local)
+##@ Configuration Management (claudeup ext)
 
 sync: ## Sync symlinks based on enabled.json
-	@claudeup local sync
+	@claudeup ext sync
 
 list: ## List all items (list-skills, list-skills-enabled, etc.)
-	@claudeup local list $(CATEGORY)
+	@claudeup ext list $(CATEGORY)
 
 list-%-enabled:
-	@claudeup local list $* --enabled
+	@claudeup ext list $* --enabled
 
 list-%:
-	@claudeup local list $*
+	@claudeup ext list $*
 
 enable: ## Enable item (CATEGORY=agents ITEM=name)
 	@test -n "$(CATEGORY)" || (echo "Error: CATEGORY required ($(CATEGORIES))" && exit 1)
 	@test -n "$(ITEM)" || (echo "Error: ITEM required (item name or * for all)" && exit 1)
-	@claudeup local enable $(CATEGORY) $(ITEM)
+	@claudeup ext enable $(CATEGORY) $(ITEM)
 
 disable: ## Disable item (CATEGORY=agents ITEM=name)
 	@test -n "$(CATEGORY)" || (echo "Error: CATEGORY required ($(CATEGORIES))" && exit 1)
 	@test -n "$(ITEM)" || (echo "Error: ITEM required (item name or * for all)" && exit 1)
-	@claudeup local disable $(CATEGORY) $(ITEM)
+	@claudeup ext disable $(CATEGORY) $(ITEM)
 
 install: ## Install from path (CATEGORY=agents SOURCE=path)
 	@test -n "$(CATEGORY)" || (echo "Error: CATEGORY required ($(CATEGORIES))" && exit 1)
 	@test -n "$(SOURCE)" || (echo "Error: SOURCE required (path to file or directory)" && exit 1)
-	@claudeup local install $(CATEGORY) $(SOURCE)
+	@claudeup ext install $(CATEGORY) $(SOURCE)
 
 ##@ Bulk Operations
 
 enable-all-agents: ## Enable all agents
-	@claudeup local enable agents '*'
+	@claudeup ext enable agents '*'
 
 disable-all-agents: ## Disable all agents
-	@claudeup local disable agents '*'
+	@claudeup ext disable agents '*'
 
 enable-all-skills: ## Enable all skills
-	@claudeup local enable skills '*'
+	@claudeup ext enable skills '*'
 
 disable-all-skills: ## Disable all skills
-	@claudeup local disable skills '*'
+	@claudeup ext disable skills '*'
 
 ##@ Updates
 

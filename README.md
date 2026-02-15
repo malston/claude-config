@@ -218,46 +218,46 @@ After disabling, your MCP context drops from ~53k to ~5k tokens (90% reduction).
 
 ## Managing Skills, Commands, Agents, Rules, and Output Styles
 
-This config uses a library-based enable/disable system. All items live in `.library/` and symlinks in discovery directories control what Claude Code sees.
+This config uses a library-based enable/disable system. All items live in `~/.claudeup/ext/` and symlinks in discovery directories control what Claude Code sees.
 
-Use `claudeup local` to manage local extensions:
+Use `claudeup ext` to manage extensions:
 
 **List all items and their status:**
 
 ```bash
-claudeup local list
-claudeup local list agents    # specific category
-claudeup local list --enabled # only enabled items
+claudeup ext list
+claudeup ext list agents    # specific category
+claudeup ext list --enabled # only enabled items
 ```
 
 **Disable/enable items:**
 
 ```bash
-claudeup local disable agents business-product
-claudeup local enable agents business-product
-claudeup local disable agents '*'    # disable all agents
-claudeup local enable skills '*'     # enable all skills
-claudeup local enable agents gsd-*   # wildcard matching
+claudeup ext disable agents business-product
+claudeup ext enable agents business-product
+claudeup ext disable agents '*'    # disable all agents
+claudeup ext enable skills '*'     # enable all skills
+claudeup ext enable agents gsd-*   # wildcard matching
 ```
 
 **Sync after manual edits to `enabled.json`:**
 
 ```bash
-claudeup local sync
+claudeup ext sync
 ```
 
 **Install items from external paths:**
 
 ```bash
-claudeup local install skills ~/path/to/my-skill
-claudeup local install hooks ~/Downloads/format-on-save.sh
+claudeup ext install skills ~/path/to/my-skill
+claudeup ext install hooks ~/Downloads/format-on-save.sh
 ```
 
 **View item contents:**
 
 ```bash
-claudeup local view skills bash
-claudeup local view agents gsd-planner
+claudeup ext view skills bash
+claudeup ext view agents gsd-planner
 ```
 
 Categories: `skills`, `commands`, `agents`, `hooks`, `output-styles`
@@ -316,11 +316,13 @@ The `scripts/auto-upgrade-claude.sh` script automatically checks for and install
 1. Install direnv: `brew install direnv`
 2. Add to your `~/.zshrc`: `eval "$(direnv hook zsh)"`
 3. Create `.envrc` in this directory (gitignored):
+
    ```bash
    #!/bin/bash
    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
    "$SCRIPT_DIR/scripts/auto-upgrade-claude.sh" &
    ```
+
 4. Allow direnv: `direnv allow`
 
 ## Configuration Files
