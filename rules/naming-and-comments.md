@@ -1,1 +1,1 @@
-/Users/markalston/.claudeup/local/rules/naming-and-comments.md
+/Users/markalston/.claudeup/ext/rules/naming-and-comments.md

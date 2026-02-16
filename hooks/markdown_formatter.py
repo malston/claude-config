@@ -1,1 +1,1 @@
-/Users/markalston/.claudeup/local/hooks/markdown_formatter.py
+/Users/markalston/.claudeup/ext/hooks/markdown_formatter.py

@@ -1,1 +1,1 @@
-/Users/markalston/.claudeup/local/commands/create-release.md
+/Users/markalston/.claudeup/ext/commands/create-release.md

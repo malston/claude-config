@@ -118,7 +118,7 @@ All lab runtime data lives under `~/.claudeup-lab/`, separate from both claudeup
 Each optional mount is checked with a path existence test. Missing mounts are logged at info level (e.g., `skipping ~/.claude-mem mount (directory not found)`).
 
 - `~/.claudeup/profiles` -- profile definitions (required only if `--profile` is explicitly named)
-- `~/.claudeup/local` -- local extensions (bind readonly)
+- `~/.claudeup/ext` -- extensions (bind readonly)
 - `~/.claude/settings.json` -- base settings seed (bind readonly)
 - `~/.claude-mem` -- persistent memory across sessions
 - `~/.ssh` -- git access (bind readonly)

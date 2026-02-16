@@ -1,1 +1,1 @@
-/Users/markalston/.claudeup/local/rules/coding-standards.md
+/Users/markalston/.claudeup/ext/rules/coding-standards.md

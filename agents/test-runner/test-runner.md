@@ -1,1 +1,1 @@
-/Users/markalston/.claudeup/local/agents/test-runner/test-runner.md
+/Users/markalston/.claudeup/ext/agents/test-runner/test-runner.md

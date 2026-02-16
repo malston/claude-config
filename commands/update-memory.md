@@ -1,1 +1,1 @@
-/Users/markalston/.claudeup/local/commands/update-memory.md
+/Users/markalston/.claudeup/ext/commands/update-memory.md

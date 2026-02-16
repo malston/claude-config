@@ -295,8 +295,8 @@ validate_start_args() {
     if [[ ! -f "$HOME/.claude/settings.json" ]]; then
         die "~/.claude/settings.json not found (run claude once to create it)"
     fi
-    if [[ ! -d "$HOME/.claudeup/local" ]]; then
-        die "~/.claudeup/local directory not found"
+    if [[ ! -d "$HOME/.claudeup/ext" ]]; then
+        die "~/.claudeup/ext directory not found"
     fi
     if [[ ! -d "$HOME/.claudeup/profiles" ]]; then
         die "~/.claudeup/profiles directory not found (create it: mkdir -p ~/.claudeup/profiles)"

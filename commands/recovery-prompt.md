@@ -1,1 +1,1 @@
-/Users/markalston/.claudeup/local/commands/recovery-prompt.md
+/Users/markalston/.claudeup/ext/commands/recovery-prompt.md

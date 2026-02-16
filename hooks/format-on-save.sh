@@ -1,1 +1,1 @@
-/Users/markalston/.claudeup/local/hooks/format-on-save.sh
+/Users/markalston/.claudeup/ext/hooks/format-on-save.sh
