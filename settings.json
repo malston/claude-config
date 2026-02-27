@@ -65,6 +65,14 @@
             "command": "~/.claude/hooks/format-on-save.sh"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/markalston/.claude/hooks/gsd-context-monitor.js\""
+          }
+        ]
       }
     ],
     "Notification": [
@@ -77,25 +85,39 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/markalston/.claude/hooks/gsd-check-update.js\""
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
     "type": "command",
-    "command": "bash -c '~/.bun/bin/bun \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)src/index.ts\"'"
+    "command": "node \"/Users/markalston/.claude/hooks/gsd-statusline.js\""
   },
   "enabledPlugins": {
-    "claude-hud@claude-hud": true,
+    "claude-hud@claude-hud": false,
     "claude-mem@thedotmack": true,
     "code-simplifier@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
-    "episodic-memory@superpowers-marketplace": true,
-    "feature-dev@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "hookify@claude-plugins-official": true,
+    "conductor@claude-code-workflows": false,
+    "document-skills@anthropic-agent-skills": true,
+    "feature-dev@claude-plugins-official": false,
+    "frontend-design@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
-    "safety-hooks@cctools-plugins": false,
+    "unit-testing@claude-code-workflows": false,
+    "automatic-code-review@claude-skillz": false,
+    "superpowers-developing-for-claude-code@superpowers-marketplace": true,
+    "elements-of-style@superpowers-marketplace": true,
     "superpowers@superpowers-marketplace": true,
-    "vsphere-architect@vsphere-architect": false
+    "double-shot-latte@superpowers-marketplace": false,
+    "episodic-memory@superpowers-marketplace": true
   },
   "skipDangerousModePermissionPrompt": true
 }
