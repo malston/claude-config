@@ -42,6 +42,7 @@ log "Checking for Claude Code updates..."
 
 # Get current version before upgrading
 OLD_VERSION=$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+log "Claude version: $OLD_VERSION"
 
 # Detect installation method and run appropriate upgrade
 # Native installer uses Homebrew cask, legacy uses npm
