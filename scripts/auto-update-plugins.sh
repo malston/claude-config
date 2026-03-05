@@ -48,6 +48,14 @@ if [[ "$FORCE" == false && -f "$LAST_CHECK_FILE" ]]; then
     fi
 fi
 
+if [[ "$QUIET" == false ]]; then
+    claudeup doctor
+    claudeup cleanup --yes
+else
+    claudeup doctor > /dev/null 2>&1
+    claudeup cleanup --yes > /dev/null 2>&1
+fi
+
 # Display current settings
 log "Displaying Claude Code user settings..."
 if [[ "$QUIET" == false ]]; then
