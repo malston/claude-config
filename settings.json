@@ -108,9 +108,114 @@
     "document-skills@anthropic-agent-skills": true,
     "elements-of-style@superpowers-marketplace": true,
     "episodic-memory@superpowers-marketplace": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
+    "safety-hooks@cctools-plugins": false,
     "superpowers-developing-for-claude-code@superpowers-marketplace": true,
-    "superpowers@superpowers-marketplace": true
+    "superpowers@superpowers-marketplace": true,
+    "claude-session-driver@superpowers-marketplace": true,
+    "vsphere-architect@vsphere-architect": false
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    },
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      }
+    },
+    "thedotmack": {
+      "source": {
+        "source": "github",
+        "repo": "thedotmack/claude-mem"
+      }
+    },
+    "claude-code-workflows": {
+      "source": {
+        "source": "github",
+        "repo": "wshobson/agents"
+      }
+    },
+    "claude-hud": {
+      "source": {
+        "source": "github",
+        "repo": "jarrodwatts/claude-hud"
+      }
+    },
+    "claude-skillz": {
+      "source": {
+        "source": "github",
+        "repo": "ntcoding/claude-skillz"
+      }
+    },
+    "kokko-ng-kokko-cmds": {
+      "source": {
+        "source": "github",
+        "repo": "kokko-ng/kokko-cmds"
+      }
+    },
+    "vsphere-architect": {
+      "source": {
+        "source": "github",
+        "repo": "malston/vsphere-architect"
+      }
+    },
+    "cctools-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "pchalasani/claude-code-tools"
+      }
+    },
+    "openapi-dev": {
+      "source": {
+        "source": "github",
+        "repo": "malston/openapi-docs-generator"
+      }
+    },
+    "everything-claude-code": {
+      "source": {
+        "source": "github",
+        "repo": "affaan-m/everything-claude-code"
+      }
+    },
+    "multi-agent-intelligence-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "jmanhype/claude-code-plugins"
+      }
+    },
+    "textual-tui-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "aperepel/textual-tui-skill"
+      }
+    },
+    "awesome-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "ComposioHQ/awesome-claude-plugins"
+      }
+    },
+    "mbailey": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/mbailey/claude-plugins.git"
+      }
+    }
   },
   "skipDangerousModePermissionPrompt": true
 }
