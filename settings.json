@@ -104,7 +104,7 @@
   "enabledPlugins": {
     "claude-mem@thedotmack": true,
     "code-simplifier@claude-plugins-official": false,
-    "commit-commands@claude-plugins-official": false,
+    "commit-commands@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": true,
     "elements-of-style@superpowers-marketplace": true,
     "episodic-memory@superpowers-marketplace": true,
@@ -117,7 +117,10 @@
     "superpowers-developing-for-claude-code@superpowers-marketplace": true,
     "superpowers@superpowers-marketplace": true,
     "claude-session-driver@superpowers-marketplace": true,
-    "vsphere-architect@vsphere-architect": false
+    "vsphere-architect@vsphere-architect": false,
+    "skill-creator@claude-plugins-official": true,
+    "plugin-dev@claude-plugins-official": true,
+    "claude-code-tutor@claude-code-tutor-dev": true
   },
   "extraKnownMarketplaces": {
     "superpowers-marketplace": {
@@ -214,6 +217,12 @@
       "source": {
         "source": "git",
         "url": "https://github.com/mbailey/claude-plugins.git"
+      }
+    },
+    "claude-code-tutor-dev": {
+      "source": {
+        "source": "github",
+        "repo": "malston/claude-code-tutor"
       }
     }
   },
