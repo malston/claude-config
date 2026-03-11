@@ -1,5 +1,197 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": {
+    "claude-code-tutor@claude-code-tutor-dev": true,
+    "claude-mem@thedotmack": true,
+    "claude-session-driver@superpowers-marketplace": true,
+    "code-simplifier@claude-plugins-official": false,
+    "commit-commands@claude-plugins-official": true,
+    "document-skills@anthropic-agent-skills": true,
+    "elements-of-style@superpowers-marketplace": true,
+    "episodic-memory@superpowers-marketplace": true,
+    "feature-dev@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
+    "plugin-dev@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "safety-hooks@cctools-plugins": false,
+    "skill-creator@claude-plugins-official": true,
+    "superpowers-developing-for-claude-code@superpowers-marketplace": true,
+    "superpowers@superpowers-marketplace": true,
+    "vsphere-architect@vsphere-architect": false
+  },
+  "extraKnownMarketplaces": {
+    "anthropic-agent-skills": {
+      "source": {
+        "repo": "anthropics/skills",
+        "source": "github"
+      }
+    },
+    "awesome-claude-plugins": {
+      "source": {
+        "repo": "ComposioHQ/awesome-claude-plugins",
+        "source": "github"
+      }
+    },
+    "cctools-plugins": {
+      "source": {
+        "repo": "pchalasani/claude-code-tools",
+        "source": "github"
+      }
+    },
+    "claude-code-tutor-dev": {
+      "source": {
+        "repo": "malston/claude-code-tutor",
+        "source": "github"
+      }
+    },
+    "claude-code-workflows": {
+      "source": {
+        "repo": "wshobson/agents",
+        "source": "github"
+      }
+    },
+    "claude-hud": {
+      "source": {
+        "repo": "jarrodwatts/claude-hud",
+        "source": "github"
+      }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "repo": "anthropics/claude-plugins-official",
+        "source": "github"
+      }
+    },
+    "claude-skillz": {
+      "source": {
+        "repo": "ntcoding/claude-skillz",
+        "source": "github"
+      }
+    },
+    "everything-claude-code": {
+      "source": {
+        "repo": "affaan-m/everything-claude-code",
+        "source": "github"
+      }
+    },
+    "kokko-ng-kokko-cmds": {
+      "source": {
+        "repo": "kokko-ng/kokko-cmds",
+        "source": "github"
+      }
+    },
+    "mbailey": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/mbailey/claude-plugins.git"
+      }
+    },
+    "multi-agent-intelligence-marketplace": {
+      "source": {
+        "repo": "jmanhype/claude-code-plugins",
+        "source": "github"
+      }
+    },
+    "openapi-dev": {
+      "source": {
+        "repo": "malston/openapi-docs-generator",
+        "source": "github"
+      }
+    },
+    "superpowers-marketplace": {
+      "autoUpdate": false,
+      "source": {
+        "repo": "obra/superpowers-marketplace",
+        "source": "github"
+      }
+    },
+    "textual-tui-marketplace": {
+      "source": {
+        "repo": "aperepel/textual-tui-skill",
+        "source": "github"
+      }
+    },
+    "thedotmack": {
+      "source": {
+        "repo": "thedotmack/claude-mem",
+        "source": "github"
+      }
+    },
+    "vsphere-architect": {
+      "source": {
+        "repo": "malston/vsphere-architect",
+        "source": "github"
+      }
+    }
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "notify-send 'Claude Code' 'Awaiting your input'",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/format-on-save.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      },
+      {
+        "hooks": [
+          {
+            "command": "node \"/Users/markalston/.claude/hooks/gsd-context-monitor.js\"",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/log-bash-commands.sh",
+            "type": "command"
+          },
+          {
+            "command": "~/.claude/hooks/block-dangerous-commands.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/protect-sensitive-files.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "node \"/Users/markalston/.claude/hooks/gsd-check-update.js\"",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
@@ -26,205 +218,13 @@
       "Bash(git add:*)",
       "Bash(HEADLESS=true npm run test:e2e:*)"
     ],
-    "deny": [],
     "ask": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "deny": []
   },
-  "model": "opus",
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/log-bash-commands.sh"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/block-dangerous-commands.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/protect-sensitive-files.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/format-on-save.sh"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"/Users/markalston/.claude/hooks/gsd-context-monitor.js\""
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "notify-send 'Claude Code' 'Awaiting your input'"
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"/Users/markalston/.claude/hooks/gsd-check-update.js\""
-          }
-        ]
-      }
-    ]
-  },
+  "skipDangerousModePermissionPrompt": true,
   "statusLine": {
-    "type": "command",
-    "command": "node \"/Users/markalston/.claude/hooks/gsd-statusline.js\""
-  },
-  "enabledPlugins": {
-    "claude-mem@thedotmack": true,
-    "code-simplifier@claude-plugins-official": false,
-    "commit-commands@claude-plugins-official": true,
-    "document-skills@anthropic-agent-skills": true,
-    "elements-of-style@superpowers-marketplace": true,
-    "episodic-memory@superpowers-marketplace": true,
-    "feature-dev@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "hookify@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true,
-    "safety-hooks@cctools-plugins": false,
-    "superpowers-developing-for-claude-code@superpowers-marketplace": true,
-    "superpowers@superpowers-marketplace": true,
-    "claude-session-driver@superpowers-marketplace": true,
-    "vsphere-architect@vsphere-architect": false,
-    "skill-creator@claude-plugins-official": true,
-    "plugin-dev@claude-plugins-official": true,
-    "claude-code-tutor@claude-code-tutor-dev": true
-  },
-  "extraKnownMarketplaces": {
-    "superpowers-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "obra/superpowers-marketplace"
-      }
-    },
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
-      }
-    },
-    "anthropic-agent-skills": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/skills"
-      }
-    },
-    "thedotmack": {
-      "source": {
-        "source": "github",
-        "repo": "thedotmack/claude-mem"
-      }
-    },
-    "claude-code-workflows": {
-      "source": {
-        "source": "github",
-        "repo": "wshobson/agents"
-      }
-    },
-    "claude-hud": {
-      "source": {
-        "source": "github",
-        "repo": "jarrodwatts/claude-hud"
-      }
-    },
-    "claude-skillz": {
-      "source": {
-        "source": "github",
-        "repo": "ntcoding/claude-skillz"
-      }
-    },
-    "kokko-ng-kokko-cmds": {
-      "source": {
-        "source": "github",
-        "repo": "kokko-ng/kokko-cmds"
-      }
-    },
-    "vsphere-architect": {
-      "source": {
-        "source": "github",
-        "repo": "malston/vsphere-architect"
-      }
-    },
-    "cctools-plugins": {
-      "source": {
-        "source": "github",
-        "repo": "pchalasani/claude-code-tools"
-      }
-    },
-    "openapi-dev": {
-      "source": {
-        "source": "github",
-        "repo": "malston/openapi-docs-generator"
-      }
-    },
-    "everything-claude-code": {
-      "source": {
-        "source": "github",
-        "repo": "affaan-m/everything-claude-code"
-      }
-    },
-    "multi-agent-intelligence-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "jmanhype/claude-code-plugins"
-      }
-    },
-    "textual-tui-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "aperepel/textual-tui-skill"
-      }
-    },
-    "awesome-claude-plugins": {
-      "source": {
-        "source": "github",
-        "repo": "ComposioHQ/awesome-claude-plugins"
-      }
-    },
-    "mbailey": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/mbailey/claude-plugins.git"
-      }
-    },
-    "claude-code-tutor-dev": {
-      "source": {
-        "source": "github",
-        "repo": "malston/claude-code-tutor"
-      }
-    }
-  },
-  "skipDangerousModePermissionPrompt": true
+    "command": "node \"/Users/markalston/.claude/hooks/gsd-statusline.js\"",
+    "type": "command"
+  }
 }
