@@ -56,6 +56,7 @@ chrome/chrome-native-host
 local/
 
 # Backup files
+backups/
 *.bak
 *copy.json
 
