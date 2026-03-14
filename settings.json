@@ -222,6 +222,9 @@
     "defaultMode": "acceptEdits",
     "deny": []
   },
+  "sandbox": {
+    "allowUnsandboxedCommands": true
+  },
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
     "command": "node \"/Users/markalston/.claude/hooks/gsd-statusline.js\"",
