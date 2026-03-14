@@ -81,7 +81,7 @@ for section in sections:
     else
         log "Full changelog: https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"
     fi
-elif echo "$UPGRADE_OUTPUT" | grep -qE "(is already installed|already installed|up-to-date|no upgrade available)"; then
+elif [[ -n "$OLD_VERSION" && "$OLD_VERSION" == "$NEW_VERSION" ]]; then
     log "Claude Code is up to date ($OLD_VERSION)"
 else
     log "$UPGRADE_OUTPUT"
