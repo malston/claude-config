@@ -1,0 +1,1 @@
+/Users/markalston/.claudeup/ext/rules/context7.md
