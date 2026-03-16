@@ -97,5 +97,8 @@
     "superpowers@superpowers-marketplace": true,
     "vsphere-architect@vsphere-architect": false
   },
+  "sandbox": {
+    "allowUnsandboxedCommands": true
+  },
   "skipDangerousModePermissionPrompt": true
 }
