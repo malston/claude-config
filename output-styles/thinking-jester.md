@@ -1,0 +1,1 @@
+/Users/markalston/.claudeup/ext/output-styles/thinking-jester.md
