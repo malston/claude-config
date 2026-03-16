@@ -1,21 +1,130 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(chmod:*)",
+      "Bash(sed:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(make test:*)",
+      "mcp__git__git_commit",
+      "Bash(curl:*)",
+      "Bash(source:*)",
+      "Bash(time make:*)",
+      "Bash(gh issue list:*)",
+      "Bash(npm test:*)",
+      "Bash(git commit:*)",
+      "Skill(code-reviewer)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(npm run coverage:*)",
+      "Bash(git add:*)",
+      "Bash(HEADLESS=true npm run test:e2e:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "acceptEdits"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/log-bash-commands.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-dangerous-commands.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/protect-sensitive-files.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/format-on-save.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/markalston/.claude/hooks/gsd-context-monitor.js\""
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify-send 'Claude Code' 'Awaiting your input'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/markalston/.claude/hooks/gsd-check-update.js\""
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node \"/Users/markalston/.claude/hooks/gsd-statusline.js\""
+  },
   "enabledPlugins": {
     "claude-code-tutor@claude-code-tutor-dev": true,
     "claude-mem@thedotmack": true,
     "claude-session-driver@superpowers-marketplace": true,
+    "code-review@anthropics/claude-plugins-official": true,
+    "code-simplifier@anthropics/claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": false,
+    "commit-commands@anthropics/claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": true,
     "elements-of-style@superpowers-marketplace": true,
     "episodic-memory@superpowers-marketplace": true,
+    "feature-dev@anthropics/claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
+    "github@anthropics/claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
+    "playwright@anthropics/claude-plugins-official": true,
     "plugin-dev@claude-plugins-official": true,
+    "pr-review-toolkit@anthropics/claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
+    "pyright-lsp@anthropics/claude-plugins-official": true,
     "safety-hooks@cctools-plugins": false,
+    "security-guidance@anthropics/claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
     "superpowers-developing-for-claude-code@superpowers-marketplace": true,
     "superpowers@superpowers-marketplace": true,
@@ -126,108 +235,8 @@
       }
     }
   },
-  "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "command": "notify-send 'Claude Code' 'Awaiting your input'",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "command": "~/.claude/hooks/format-on-save.sh",
-            "type": "command"
-          }
-        ],
-        "matcher": "Edit|Write"
-      },
-      {
-        "hooks": [
-          {
-            "command": "node \"/Users/markalston/.claude/hooks/gsd-context-monitor.js\"",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "command": "~/.claude/hooks/log-bash-commands.sh",
-            "type": "command"
-          },
-          {
-            "command": "~/.claude/hooks/block-dangerous-commands.sh",
-            "type": "command"
-          }
-        ],
-        "matcher": "Bash"
-      },
-      {
-        "hooks": [
-          {
-            "command": "~/.claude/hooks/protect-sensitive-files.sh",
-            "type": "command"
-          }
-        ],
-        "matcher": "Edit|Write"
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "command": "node \"/Users/markalston/.claude/hooks/gsd-check-update.js\"",
-            "type": "command"
-          }
-        ]
-      }
-    ]
-  },
-  "includeCoAuthoredBy": false,
-  "permissions": {
-    "allow": [
-      "Bash(python3:*)",
-      "Bash(python:*)",
-      "Bash(rm:*)",
-      "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(chmod:*)",
-      "Bash(sed:*)",
-      "Bash(find:*)",
-      "Bash(grep:*)",
-      "Bash(make test:*)",
-      "mcp__git__git_commit",
-      "Bash(curl:*)",
-      "Bash(source:*)",
-      "Bash(time make:*)",
-      "Bash(gh issue list:*)",
-      "Bash(npm test:*)",
-      "Bash(git commit:*)",
-      "Skill(code-reviewer)",
-      "Bash(npm run test:coverage:*)",
-      "Bash(npm run coverage:*)",
-      "Bash(git add:*)",
-      "Bash(HEADLESS=true npm run test:e2e:*)"
-    ],
-    "ask": [],
-    "defaultMode": "acceptEdits",
-    "deny": []
-  },
   "sandbox": {
     "allowUnsandboxedCommands": true
   },
-  "skipDangerousModePermissionPrompt": true,
-  "statusLine": {
-    "command": "node \"/Users/markalston/.claude/hooks/gsd-statusline.js\"",
-    "type": "command"
-  }
+  "skipDangerousModePermissionPrompt": true
 }
