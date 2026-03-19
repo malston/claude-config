@@ -85,41 +85,76 @@
   "enabledPlugins": {
     "claude-hud@claude-hud": true,
     "claude-mem@thedotmack": true,
+    "code-refactoring@claude-code-workflows": true,
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
+    "codebase-cleanup@claude-code-workflows": true,
     "commit-commands@claude-plugins-official": true,
+    "comprehensive-review@claude-code-workflows": true,
+    "dependency-management@claude-code-workflows": true,
+    "developer-essentials@claude-code-workflows": true,
+    "elements-of-style@superpowers-marketplace": true,
     "episodic-memory@superpowers-marketplace": true,
     "feature-dev@claude-plugins-official": true,
+    "framework-migration@claude-code-workflows": true,
+    "full-stack-orchestration@claude-code-workflows": true,
+    "git-pr-workflows@claude-code-workflows": true,
     "github@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
+    "safety-hooks@cctools-plugins": true,
+    "security-compliance@claude-code-workflows": true,
     "security-guidance@claude-plugins-official": true,
-    "superpowers@superpowers-marketplace": true
+    "security-scanning@claude-code-workflows": true,
+    "shell-scripting@claude-code-workflows": true,
+    "superpowers-developing-for-claude-code@superpowers-marketplace": true,
+    "superpowers-lab@superpowers-marketplace": true,
+    "superpowers@superpowers-marketplace": true,
+    "team-collaboration@claude-code-workflows": true,
+    "paivot-graph@paivot-graph": true
   },
   "extraKnownMarketplaces": {
+    "cctools-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "pchalasani/claude-code-tools"
+      }
+    },
+    "claude-code-workflows": {
+      "source": {
+        "source": "github",
+        "repo": "wshobson/agents"
+      }
+    },
     "claude-hud": {
       "source": {
-        "repo": "jarrodwatts/claude-hud",
-        "source": "github"
+        "source": "github",
+        "repo": "jarrodwatts/claude-hud"
       }
     },
     "claude-plugins-official": {
       "source": {
-        "repo": "anthropics/claude-plugins-official",
-        "source": "github"
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
       }
     },
     "superpowers-marketplace": {
       "source": {
-        "repo": "obra/superpowers-marketplace",
-        "source": "github"
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
       }
     },
     "thedotmack": {
       "source": {
-        "repo": "thedotmack/claude-mem",
-        "source": "github"
+        "source": "github",
+        "repo": "thedotmack/claude-mem"
+      }
+    },
+    "paivot-graph": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/markalston/code/paivot-graph"
       }
     }
   },
