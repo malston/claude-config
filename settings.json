@@ -30,7 +30,6 @@
     "ask": [],
     "defaultMode": "acceptEdits"
   },
-  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -97,6 +96,32 @@
     "pr-review-toolkit@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-hud": {
+      "source": {
+        "repo": "jarrodwatts/claude-hud",
+        "source": "github"
+      }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "repo": "anthropics/claude-plugins-official",
+        "source": "github"
+      }
+    },
+    "superpowers-marketplace": {
+      "source": {
+        "repo": "obra/superpowers-marketplace",
+        "source": "github"
+      }
+    },
+    "thedotmack": {
+      "source": {
+        "repo": "thedotmack/claude-mem",
+        "source": "github"
+      }
+    }
   },
   "sandbox": {
     "allowUnsandboxedCommands": true
