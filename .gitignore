@@ -65,10 +65,11 @@ config/.env
 
 # OS files
 .DS_Store
-.claude/
 
 # Claude
+.claude/settings.local.json
 CLAUDE.local.md
 **/CLAUDE.md
 !.claude/CLAUDE.md
+!.claude/settings.json
 !/CLAUDE.md

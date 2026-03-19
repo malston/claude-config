@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "shell-scripting@claude-code-workflows": true
+  }
+}
