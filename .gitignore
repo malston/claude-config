@@ -33,6 +33,10 @@ plugins/claude-hud/.usage-cache.json
 plugins/claude-hud/.keychain-backoff
 usage-data/
 image-cache/
+mcp-needs-auth-cache.json
+vercel-plugin-device-id
+vercel-plugin-telemetry-preference
+policy-limits.json
 
 # IDE and lock files
 ide/
