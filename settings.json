@@ -166,5 +166,7 @@
   "sandbox": {
     "allowUnsandboxedCommands": true
   },
+  "autoMemoryEnabled": true,
+  "autoDreamEnabled": true,
   "skipDangerousModePermissionPrompt": true
 }
