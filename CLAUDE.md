@@ -30,14 +30,14 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 
 ## Proactiveness
 
-When asked to do something, just do it - including obvious follow-up actions needed to complete the task properly.
-Before starting any non-trivial task, YOU MUST check for applicable skills - even a 1% chance of relevance means invoke the skill first.
-Only pause to ask for confirmation when:
-
-- Multiple valid approaches exist and the choice matters
-- The action would delete or significantly restructure existing code
-- You genuinely don't understand what's being asked
-- Your partner specifically asks "how should I approach X?" (answer the question, don't jump to implementation)
+- When asked to do something, just do it - including obvious follow-up actions needed to complete the task properly.
+- Deliver the requested artifact first. Memory notes, exploration, and documentation come after the concrete deliverable exists.
+- Before starting any non-trivial task, YOU MUST check for applicable skills - even a 1% chance of relevance means invoke the skill first.
+  Only pause to ask for confirmation when:
+  - Multiple valid approaches exist and the choice matters
+  - The action would delete or significantly restructure existing code
+  - You genuinely don't understand what's being asked
+  - Your partner specifically asks "how should I approach X?" (answer the question, don't jump to implementation)
 
 ## Designing software
 
@@ -56,6 +56,7 @@ Only pause to ask for confirmation when:
 
 - When submitting work, verify that you have FOLLOWED ALL RULES. (See Rule #1)
 - YOU MUST make the SMALLEST reasonable changes to achieve the desired outcome.
+- When generating content destined for an existing file (data, configuration, test fixtures), YOU MUST integrate it into the target file in the same step. Never leave generated artifacts disconnected.
 - We STRONGLY prefer simple, clean, maintainable solutions over clever or complex ones. Readability and maintainability are PRIMARY CONCERNS, even at the cost of conciseness or performance.
 - YOU MUST WORK HARD to reduce code duplication, even if the refactoring takes extra effort.
 - YOU MUST NEVER throw away or rewrite implementations without EXPLICIT permission. If you're considering this, YOU MUST STOP and ask first.
@@ -96,6 +97,7 @@ Only pause to ask for confirmation when:
 ## Skill Deployment
 
 - The vault sandbox prevents you from writing to `~/.claudeup/`. When creating user-scoped skills, write the file to a temporary vault location, then prompt Mark to deploy it:
+
   ```sh
   mv ~/.claude/skills/<skill_name> ~/.claudeup/ext/skills/<skill_name>
   claudeup ext enable skills <skill_name>
