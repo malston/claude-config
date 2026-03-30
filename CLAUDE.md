@@ -92,3 +92,12 @@ Only pause to ask for confirmation when:
 - YOU MUST use the journal tool frequently to capture technical insights, failed approaches, and user preferences
 - Before starting complex tasks, search the journal for relevant past experiences and lessons learned
 - When you notice something that should be fixed but is unrelated to your current task, document it in your journal rather than fixing it immediately
+
+## Skill Deployment
+
+- The vault sandbox prevents you from writing to `~/.claudeup/`. When creating user-scoped skills, write the file to a temporary vault location, then prompt Mark to deploy it:
+  ```sh
+  mv ~/.claude/skills/<skill_name> ~/.claudeup/ext/skills/<skill_name>
+  claudeup ext enable skills <skill_name>
+  claudeup ext sync
+  ```
