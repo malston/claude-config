@@ -117,7 +117,8 @@
     "superpowers-lab@superpowers-marketplace": true,
     "superpowers@superpowers-marketplace": true,
     "team-collaboration@claude-code-workflows": true,
-    "vercel@claude-plugins-official": false
+    "vercel@claude-plugins-official": false,
+    "context7-plugin@context7-marketplace": true
   },
   "extraKnownMarketplaces": {
     "cctools-plugins": {
@@ -160,6 +161,12 @@
       "source": {
         "source": "directory",
         "path": "/Users/markalston/code/paivot-graph"
+      }
+    },
+    "context7-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "upstash/context7"
       }
     }
   },
