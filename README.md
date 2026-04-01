@@ -6,24 +6,25 @@ Portable configuration for Claude Code CLI.
 
 ## Contents
 
-| Directory/File       | Purpose                                                                 |
-| -------------------- | ----------------------------------------------------------------------- |
-| `CLAUDE.md`          | Primary user instructions and coding standards                          |
-| `settings.json`      | Permissions, hooks, status line, plugin settings                        |
-| `enabled.json`       | Enable/disable state for skills, commands, agents, rules, output-styles |
-| `.library/`          | Canonical storage for all manageable items                              |
-| `commands/`          | Symlinks to enabled commands in `.library/commands/`                    |
-| `skills/`            | Symlinks to enabled skills in `.library/skills/`                        |
-| `agents/`            | Symlinks to enabled agents in `.library/agents/`                        |
-| `output-styles/`     | Symlinks to enabled output styles in `.library/output-styles/`          |
-| `hooks/`             | Hook scripts (e.g., markdown formatter)                                 |
-| `plugins/`           | Plugin cache and CLI-managed marketplace data                           |
-| `config/`            | MCP servers, profiles, and environment templates                        |
-| `scripts/`           | Utility scripts for upgrades, diagnostics, and sandbox management       |
-| `devcontainer-base/` | Base Docker image and templates for sandbox devcontainers               |
-| `setup.sh`           | Post-clone setup script                                                 |
-| `Dockerfile`         | Docker configuration for containerized environments                     |
-| `docs/DOCKER.md`     | Docker setup and usage guide                                            |
+| Directory/File                | Purpose                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `CLAUDE.md`                   | Primary user instructions and coding standards                           |
+| `settings.json`               | Permissions, hooks, status line, plugin settings                         |
+| `enabled.json`                | Enable/disable state for skills, commands, agents, rules, output-styles  |
+| `.library/`                   | Canonical storage for all manageable items                               |
+| `commands/`                   | Symlinks to enabled commands in `.library/commands/`                     |
+| `skills/`                     | Symlinks to enabled skills in `.library/skills/`                         |
+| `agents/`                     | Symlinks to enabled agents in `.library/agents/`                         |
+| `output-styles/`              | Symlinks to enabled output styles in `.library/output-styles/`           |
+| `hooks/`                      | Hook scripts (e.g., markdown formatter)                                  |
+| `plugins/`                    | Plugin cache and CLI-managed marketplace data                            |
+| `config/`                     | MCP servers, profiles, and environment templates                         |
+| `scripts/`                    | Utility scripts for upgrades, diagnostics, and sandbox management        |
+| `docs/beads-project-setup.md` | Beads (`bd`) initialization guide for greenfield and brownfield projects |
+| `devcontainer-base/`          | Base Docker image and templates for sandbox devcontainers                |
+| `setup.sh`                    | Post-clone setup script                                                  |
+| `Dockerfile`                  | Docker configuration for containerized environments                      |
+| `docs/DOCKER.md`              | Docker setup and usage guide                                             |
 
 ## Quick Start
 

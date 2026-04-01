@@ -94,6 +94,28 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 - Before starting complex tasks, search the journal for relevant past experiences and lessons learned
 - When you notice something that should be fixed but is unrelated to your current task, document it in your journal rather than fixing it immediately
 
+## Memory Routing
+
+Each piece of persistent knowledge has ONE canonical home:
+
+| Knowledge | Where | Example |
+| --------- | ----- | ------- |
+| Work items (to-do, bugs, features) | `bd create` | "Add error handling to API" |
+| Epics & multi-step plans | `bd create --type=epic` | "Parallel execution cheatsheet" |
+| Decisions (why X over Y) | `bd create --type=decision` | "Use progressive structure" |
+| Stable project facts | `bd remember` | "Docs-only repo, no build system" |
+| User preferences | auto-memory `user` type | "Prefers problem-first framing" |
+| Style corrections | auto-memory `feedback` type | "Use -- not em dashes" |
+| In-progress brainstorm (not yet actionable) | auto-memory `project` type | "Exploring approach A vs B" |
+| External system pointers | `bd remember` | "Bugs tracked in Linear INGEST" |
+
+Rules:
+
+- Use `bd` for work that spans sessions or has dependencies. TaskCreate/TaskUpdate are fine for ephemeral within-session progress tracking.
+- NEVER create auto-memory `reference` type. Use `bd remember` instead.
+- When a brainstorm becomes actionable work, migrate it from auto-memory to a beads epic.
+- When closing a beads issue, use `bd close <id> --suggest-next` to find newly unblocked work.
+
 ## Skill Deployment
 
 - The vault sandbox prevents you from writing to `~/.claudeup/`. When creating user-scoped skills, write the file to a temporary vault location, then prompt Mark to deploy it:
