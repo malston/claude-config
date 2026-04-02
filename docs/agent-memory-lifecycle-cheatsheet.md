@@ -2,7 +2,7 @@
 
 AI coding agents forget everything between sessions -- and even mid-session when the context window compacts. Four complementary systems fix this by hooking into different moments of the Claude Code session lifecycle, each capturing a different type of knowledge.
 
-Companion to the [interactive session lifecycle explorer](./html/agent-memory-lifecycle.html).
+Companion to the [interactive session lifecycle explorer](../../code/technical-cheatsheets/html/agent-memory-lifecycle.html).
 
 ---
 
@@ -26,8 +26,8 @@ Each column is a session event. A box means that layer fires at that event.
 ─────────────────┼──────────┼──────────┼──────────┼──────────┼────────┼────
                  │          │          │          │          │        │
   beads        ┌──────┐                         ┌──────┐
-               │  bd  │  ·····agent-initiated····│  bd  │
-               │prime │  ·····bd create/close····│prime │
+               │  bd  │  ····agent-initiated····│  bd  │
+               │prime │  ····bd create/close····│prime │
                └──────┘                         └──────┘
                  │          │          │          │          │        │
 ─────────────────┼──────────┼──────────┼──────────┼──────────┼────────┼────
@@ -40,11 +40,11 @@ Each column is a session event. A box means that layer fires at that event.
                  │          │          │          │          │        │
 ─────────────────┼──────────┼──────────┼──────────┼──────────┼────────┼────
                  │          │          │          │          │        │
-  claude-mem   ┌──────┐  ┌──────┐  ┌──────┐              ┌──────┐ ┌──────┐
+  claude-mem   ┌──────┐  ┌───────┐  ┌──────┐              ┌──────┐ ┌──────┐
                │worker│  │session│  │record│              │summa-│ │persis│
-               │start │  │-init │  │obser-│              │rize  │ │t to  │
-               │+load │  │      │  │vation│              │      │ │  DB  │
-               └──────┘  └──────┘  └──────┘              └──────┘ └──────┘
+               │start │  │-init  │  │obser-│              │rize  │ │t to  │
+               │+load │  │       │  │vation│              │      │ │  DB  │
+               └──────┘  └───────┘  └──────┘              └──────┘ └──────┘
                  │          │          │          │          │        │
 ─────────────────┼──────────┼──────────┼──────────┼──────────┼────────┼────
                  │          │          │          │          │        │
@@ -340,6 +340,7 @@ What kind of knowledge is this?
 **When you pick wrong:** If you stored something and can't find it, check the other obvious candidate. The layers have minimal overlap, so the fallback search space is small.
 
 **When it fits two places:** Route by lifecycle. If it has open/close semantics (work to be done), it goes in beads. If it is a static truth, it goes in `bd remember` or auto-memory depending on scope (project-scoped vs cross-project).
+
 ## Failure Taxonomy
 
 | Failure                         | Layer               | Symptom                                       | Detection                                                            | Recovery                                                        |

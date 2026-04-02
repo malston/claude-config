@@ -61,7 +61,7 @@ Second, an ASCII swim-lane diagram showing which layers are active at each lifec
     │                │              │              │              │
     ▼                ▼              ▼              ▼              ▼
 ┌────────┐                                    ┌────────┐
-│ beads  │          ·····agent-initiated·····  │ beads  │
+│ beads  │          ·····agent-initiated····· │ beads  │
 │  prime │                                    │  prime │
 └────────┘                                    └────────┘
 ┌────────┐
